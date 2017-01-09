@@ -1,0 +1,11 @@
+diff -urN a/han.c b/han.c
+--- a/han.c	2016-04-20 02:28:24.964898663 -0700
++++ b/han.c	2016-04-20 02:28:37.045997660 -0700
+@@ -525,6 +525,7 @@
+ 
+ 	while (true) {
+ 		bzero(&c_addr, sizeof(c_addr));
++		addr_len = sizeof(c_addr);
+ 		len = recvfrom(deliver_fd, rx_buffer, sizeof(rx_buffer), 
+ 				0, (struct sockaddr *)&c_addr, &addr_len);
+ 		if (len > 0) {

@@ -1,0 +1,93 @@
+diff -urN a/channel.c b/channel.c
+--- a/channel.c	2016-04-27 02:03:33.705190969 -0700
++++ b/channel.c	2016-04-27 02:06:44.108345821 -0700
+@@ -183,7 +183,7 @@
+ }
+ 
+ #if HAN_VERSION
+-int whole_channels_scanning = 0;
++int whole_channels_scanning = 1;
+ char stuffix[64] = {0};
+ int pause_scanning = 0;
+ 
+diff -urN a/han.c b/han.c
+--- a/han.c	2016-04-27 02:03:48.789190778 -0700
++++ b/han.c	2016-04-27 02:23:14.846693007 -0700
+@@ -102,8 +102,11 @@
+ 			if (ai) {
+ 				MAC_ADDR_COPY(ai->u.ci.associate_wlan, pi->wlan_bssid);
+ 				ai->rss = pi->phy_signal;
+-				if (ip)
+-					ai->u.ci.ip = ip;
++				ai->u.ci.ip = ip;
++				if (pi->pkt_types & PKT_TYPE_QDATA)
++					ai->u.ci.qos = 1;
++				else 
++					ai->u.ci.qos = 0;
+ 				ai->inact = conf.reload_inact;
+ 			}
+ 			pthread_mutex_unlock(&client_head[hash].lock);
+@@ -135,7 +138,27 @@
+ 			}
+ 			pthread_mutex_unlock(&wlan_head[hash].lock);
+ 		}
+-	}
++	 } else if (pi->pkt_types & PKT_TYPE_AUTH) {
++		if (WLAN_MODE_AP == pi->wlan_mode)
++			mac = pi->wlan_dst;
++		else if (WLAN_MODE_STA == pi->wlan_mode)
++			mac = pi->wlan_src;
++		if (mac) {
++			if (mac[0] & 0x01) //multicast, drop
++				return;
++			hash = HASH(mac);
++			pthread_mutex_lock(&client_head[hash].lock);
++			ai = find_airinfo_item(&client_head[hash].head, mac);
++			if (ai) {
++				MAC_ADDR_COPY(ai->u.ci.associate_wlan, pi->wlan_bssid);
++				ai->rss = pi->phy_signal;
++				ai->u.ci.ip = 0;
++				ai->u.ci.qos = 0;
++				ai->inact = conf.reload_inact;
++			}
++			pthread_mutex_unlock(&client_head[hash].lock);
++		}		
++	 }
+ }
+ 
+ void *
+@@ -389,6 +412,7 @@
+ 			fprintf(DUMP_FILE, "Mac: %s\t", ether_sprintf(ai->mac));
+ 			fprintf(DUMP_FILE, "Signal: %d\t", ai->rss);
+ 			fprintf(DUMP_FILE, "Wlan: %s\t", ether_sprintf(ai->u.ci.associate_wlan));
++			fprintf(DUMP_FILE, "QoS: %d\t", ai->u.ci.qos);
+ 			fprintf(DUMP_FILE, "IP: %d.%d.%d.%d\n", 
+ 				((u_int8_t *)&ai->u.ci.ip)[0], ((u_int8_t *)&ai->u.ci.ip)[1],
+ 				((u_int8_t *)&ai->u.ci.ip)[2], ((u_int8_t *)&ai->u.ci.ip)[3]);
+@@ -462,6 +486,7 @@
+ 				ie_number(ie, IE_RSS, 1, ai->rss, msg_len, &client_head[i].lock);
+ 				ie_string(ie, IE_WLAN_MAC, MAC_LEN, ai->u.ci.associate_wlan, msg_len, &client_head[i].lock);
+ 				ie_number(ie, IE_IP, 4, ai->u.ci.ip, msg_len, &client_head[i].lock);
++				ie_number(ie, IE_QOS, 1, ai->u.ci.qos, msg_len, &client_head[i].lock);
+ 				group_len = msg_len;
+ 			}
+ 			pthread_mutex_unlock(&client_head[i].lock);
+diff -urN a/han.h b/han.h
+--- a/han.h	2016-04-27 02:03:40.677191158 -0700
++++ b/han.h	2016-04-27 02:00:10.663163105 -0700
+@@ -38,6 +38,7 @@
+ 		} wi;
+ 		struct client_info {
+ 			u_int8_t associate_wlan[MAC_LEN];
++			u_int8_t qos;
+ 			u_int32_t ip;
+ 		} ci;
+ 	} u;	
+@@ -73,6 +74,7 @@
+ 	
+ 	IE_STA_MAC = 90,
+ 	IE_IP,	
++	IE_QOS,
+ };
+ 
+ 

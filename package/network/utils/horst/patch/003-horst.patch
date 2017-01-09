@@ -1,0 +1,119 @@
+diff -urN a/han.c b/han.c
+--- a/han.c	2016-04-18 23:17:40.848184319 -0700
++++ b/han.c	2016-04-19 05:20:03.321544042 -0700
+@@ -138,34 +138,44 @@
+ 	}
+ }
+ 
+-void
+-sigalrm_handler(__attribute__((unused)) int sig)
++void *
++thread_sigalrm_handler(void *arg)
+ {
++	sigset_t signal_set;
++	int sig_num;
+ 	u_int8_t i = 0;
+ 	struct airinfo *ai = NULL, *n = NULL;
+-	
+-	for (i=0; i<HASH_SIZE; i++) {
+-		pthread_mutex_lock(&wlan_head[i].lock);
+-		list_for_each_safe(&wlan_head[i].head, ai, n, list) {
+-			if (dec_and_check_inact(ai)) { // aging
+-				list_del(&ai->list);
+-				free(ai);
+-				ai = NULL;
+-			}
+-		}
+-		pthread_mutex_unlock(&wlan_head[i].lock);
+ 
+-		pthread_mutex_lock(&client_head[i].lock);
+-		list_for_each_safe(&client_head[i].head, ai, n, list) {
+-			if (dec_and_check_inact(ai)) { // aging
+-				list_del(&ai->list);
+-				free(ai);
+-				ai = NULL;
++	sigemptyset(&signal_set);
++	sigaddset(&signal_set, SIGALRM);
++
++	for(;;) {
++		sigwait(&signal_set, &sig_num);
++		if (SIGALRM == sig_num) {
++			for (i=0; i<HASH_SIZE; i++) {
++				pthread_mutex_lock(&wlan_head[i].lock);
++				list_for_each_safe(&wlan_head[i].head, ai, n, list) {
++					if (dec_and_check_inact(ai)) { // aging
++						list_del(&ai->list);
++						free(ai);
++						ai = NULL;
++					}
++				}
++				pthread_mutex_unlock(&wlan_head[i].lock);
++
++				pthread_mutex_lock(&client_head[i].lock);
++				list_for_each_safe(&client_head[i].head, ai, n, list) {
++					if (dec_and_check_inact(ai)) { // aging
++						list_del(&ai->list);
++						free(ai);
++						ai = NULL;
++					}
++				}
++				pthread_mutex_unlock(&client_head[i].lock);
+ 			}
++			alarm(10);
+ 		}
+-		pthread_mutex_unlock(&client_head[i].lock);
+ 	}
+-	alarm(10);
+ }
+ 
+ void 
+diff -urN a/han.h b/han.h
+--- a/han.h	2016-04-18 23:17:40.848184319 -0700
++++ b/han.h	2016-04-19 04:37:33.769989678 -0700
+@@ -96,8 +96,8 @@
+ 
+ void
+ init_list(void);
+-void
+-sigalrm_handler(__attribute__((unused)) int sig);
++void *
++thread_sigalrm_handler(void *arg);
+ void
+ dump_airinfo(struct packet_info *pi);
+ void 
+diff -urN a/main.c b/main.c
+--- a/main.c	2016-04-18 23:17:40.848184319 -0700
++++ b/main.c	2016-04-19 04:30:22.687811424 -0700
+@@ -773,7 +773,8 @@
+ main(int argc, char** argv)
+ {
+ #if HAN_VERSION
+-	pthread_t pth_do_2g_scan, pth_do_5g_scan, pth_deliver; 
++	pthread_t pth_do_2g_scan, pth_do_5g_scan, pth_deliver, pth_sighandler;
++	sigset_t signal_set;
+ #endif
+ 	
+ 	list_head_init(&essids.list);
+@@ -789,7 +790,13 @@
+ 	signal(SIGHUP, sigint_handler);
+ 	signal(SIGPIPE, sigpipe_handler);
+ #if HAN_VERSION
+-	signal(SIGALRM, sigalrm_handler);
++	sigemptyset(&signal_set);
++	sigaddset(&signal_set, SIGALRM);
++	
++	if (0 != pthread_sigmask(SIG_BLOCK, &signal_set, NULL)) {
++		err(1, "SIGALRM block error");
++		exit(0);
++	}
+ #endif
+ 	atexit(exit_handler);
+ 
+@@ -841,6 +848,7 @@
+ 	pthread_create(&pth_do_2g_scan, NULL, do_2g_scan, NULL);
+ 	pthread_create(&pth_do_5g_scan, NULL, do_5g_scan, NULL);
+ 	pthread_create(&pth_deliver, NULL, thread_deliver_handle, NULL);
++	pthread_create(&pth_sighandler, NULL, thread_sigalrm_handler, NULL);
+ #endif
+ 
+ 	alarm(15);

@@ -1,0 +1,11 @@
+#!/bin/sh
+
+# add exclusive flock
+LOCKFILE="/var/lock/cclock"
+
+(
+    flock 200
+    #==============================
+
+    /sbin/jffs2reset
+) 200<> $LOCKFILE

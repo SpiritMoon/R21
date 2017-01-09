@@ -1,0 +1,5 @@
+
+config upload_core 'upload_core'
+	option server ''
+	option enable '0'
+

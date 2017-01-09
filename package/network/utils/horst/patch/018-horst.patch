@@ -1,0 +1,12 @@
+diff -urN a/channel.c b/channel.c
+--- a/channel.c	2016-08-17 22:21:13.918467692 -0700
++++ b/channel.c	2016-08-18 01:39:52.105108424 -0700
+@@ -227,7 +227,7 @@
+ 				
+ 		}
+ 		if (whole_channels_scanning) 
+-			sleep(conf.scanning_intval * scanif_safe.ch_num);
++			sleep(20);
+ 		else
+ 			sleep(conf.scanning_intval);
+ 	}

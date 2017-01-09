@@ -1,0 +1,32 @@
+config system sysinfo
+       option log_remote '0'
+       option log_ip '192.168.100.1'
+       option log_port '514'
+       option log_priority 'LOG_NOTICE'
+       option hanletName 'WebView for AP Group'
+       option encflag '1'
+
+config webUser 'Administrator'
+       option password '21232f297a57a5a743894a0e4a801fc3'
+       option sessionId ''
+
+config webUser 'Viewer'
+       option password '21232f297a57a5a743894a0e4a801fc3'
+       option sessionId ''
+       option enable '0'
+
+config webUser 'GuestOperator'
+       option password '21232f297a57a5a743894a0e4a801fc3'
+       option sessionId ''
+       option enable '0'
+
+config timeserver ntp
+        list server     pool.ntp.org
+        list server     cn.pool.ntp.org
+        list server     tw.pool.ntp.org
+        list server     0.asia.pool.ntp.org
+        list server     1.asia.pool.ntp.org
+        list server     0.openwrt.pool.ntp.org
+        list server     1.openwrt.pool.ntp.org
+        option enabled 1
+        option enable_server 0

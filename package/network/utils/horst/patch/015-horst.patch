@@ -1,0 +1,659 @@
+diff -urN a/capture.c b/capture.c
+--- a/capture.c	2016-07-31 19:10:59.030719395 -0700
++++ b/capture.c	2016-08-02 04:36:34.774260697 -0700
+@@ -130,6 +130,12 @@
+ #endif
+ }
+ 
++#if HAN_VERSION
++#ifndef ETH_P_80211_RAW
++#define ETH_P_80211_RAW (ETH_P_ECONET + 1)
++#endif
++#endif
++
+ 
+ int
+ open_packet_socket(char* devname, int recv_buffer_size)
+@@ -138,8 +144,11 @@
+ 	int mon_fd;
+ 	int ifindex;
+ 	struct sockaddr_ll sall;
+-
++#if HAN_VERSION
++	mon_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_80211_RAW));
++#else
+ 	mon_fd = socket(PF_PACKET, SOCK_RAW, htons(ETH_P_ALL));
++#endif
+ 	if (mon_fd < 0) {
+ 		printf("Could not create packet socket! Please run horst as root!\n");
+ 		exit(1);
+@@ -151,7 +160,11 @@
+ 	memset(&sall, 0, sizeof(struct sockaddr_ll));
+ 	sall.sll_ifindex = ifindex;
+ 	sall.sll_family = AF_PACKET;
++#if HAN_VERSION
++	sall.sll_protocol = htons(ETH_P_80211_RAW);
++#else
+ 	sall.sll_protocol = htons(ETH_P_ALL);
++#endif
+ 
+ 	ret = bind(mon_fd, (struct sockaddr*)&sall, sizeof(sall));
+ 	if (ret != 0)
+diff -urN a/capture.h b/capture.h
+--- a/capture.h	2014-11-05 00:57:51.000000000 -0800
++++ b/capture.h	2016-08-01 23:04:35.050079133 -0700
+@@ -22,6 +22,7 @@
+ 
+ #include <stddef.h>
+ 
++
+ int
+ open_packet_socket(char* devname, int recv_buffer_size);
+ 
+diff -urN a/channel.c b/channel.c
+--- a/channel.c	2016-07-31 19:10:38.018719533 -0700
++++ b/channel.c	2016-08-02 02:42:08.749901844 -0700
+@@ -61,13 +61,7 @@
+ 
+ static struct timeval last_channelchange;
+ extern int mon; /* monitoring socket */
+-extern int mon_2g;
+-extern int mon_5g;
+ static struct chan_freq channels[MAX_CHANNELS];
+-#if HAN_VERSION
+-struct chan_freq channels_2g[MAX_CHANNELS];
+-struct chan_freq channels_5g[MAX_CHANNELS];
+-#endif
+ 
+ 
+ 
+@@ -177,8 +171,14 @@
+ 	conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
+ 	conf.channel_idx = get_current_wext_channel_idx(mon);
+ #else
+-	conf.num_channels_2g = wext_get_channels(mon_2g, conf.ifname_2g, channels_2g);
+-	conf.num_channels_5g = wext_get_channels(mon_5g, conf.ifname_5g, channels_5g);
++	int i = 0;
++
++	for (; i < MAX_SCAN_IFACE; i++) {
++		if (scan_iface[i].fd > 0) {
++			scan_iface[i].ch_num = 
++				wext_get_channels(scan_iface[i].fd, scan_iface[i].ifname, scan_iface[i].ch_list);
++		}
++	}
+ #endif
+ }
+ 
+@@ -188,8 +188,10 @@
+ int pause_scanning = 0;
+ 
+ void *
+-do_2g_scan(void *arg)
++do_scan(void *arg)
+ {
++	
++	struct iface_info *scanif = (struct iface_info *) arg, scanif_safe;
+ 	struct iw_scan_req scanopt;
+ 	struct iwreq wrq;
+ 	static u_int8_t i = 0;
+@@ -198,6 +200,9 @@
+ 	while (true) {
+ rescan:
+ 		if (!pause_scanning) {
++			pthread_mutex_lock(&scanif->p_lock);
++			scanif_safe = *scanif;
++			pthread_mutex_unlock(&scanif->p_lock);
+ 			bzero(&scanopt, sizeof(scanopt));
+ 			scanopt.max_channel_time = conf.duration_on_foreign * 3 / 2;
+ 			scanopt.min_channel_time = conf.duration_on_foreign;
+@@ -205,72 +210,30 @@
+ 			if (!whole_channels_scanning) {
+ 				scanopt.num_channels = 1;
+ 				scanopt.channel_list[0].e = 1;
+-				scanopt.channel_list[0].m = channels_2g[i].freq * 100000;
++				scanopt.channel_list[0].m = scanif_safe.ch_list[i].freq * 100000;
+ 				i++;
+-				i = i % conf.num_channels_2g;
++				i = i % scanif_safe.ch_num;
+ 			}
+ 			wrq.u.data.pointer = (caddr_t) &scanopt;
+ 			wrq.u.data.length = sizeof(scanopt);
+ 			wrq.u.data.flags |= IW_SCAN_THIS_FREQ;
+-			strncpy(wrq.ifr_name, conf.ifname_2g, IFNAMSIZ);
++			strncpy(wrq.ifr_name, scanif_safe.ifname, IFNAMSIZ);
+ 
+-			ret = ioctl(mon_2g, SIOCSIWSCAN, &wrq);
++			ret = ioctl(scanif_safe.fd, SIOCSIWSCAN, &wrq);
+ 			if (ret < 0) {
+ 				sleep(1);
+-				i = (i + conf.num_channels_2g - 1) % conf.num_channels_2g;
++				i = (i + scanif_safe.ch_num - 1) % scanif_safe.ch_num;
+ 				goto rescan;
+ 			}
+ 				
+ 		}
+ 		if (whole_channels_scanning) 
+-			sleep(conf.scanning_intval * conf.num_channels_2g);
++			sleep(conf.scanning_intval * scanif_safe.ch_num);
+ 		else
+ 			sleep(conf.scanning_intval);
+ 	}
+ }
+ 
+-void *
+-do_5g_scan(void *arg)
+-{
+-	struct iw_scan_req scanopt;
+-	struct iwreq wrq;
+-	static u_int8_t i = 0;
+-	int ret = 0;
+-
+-	while (true) {
+-rescan:
+-		if (!pause_scanning) {
+-			bzero(&scanopt, sizeof(scanopt));
+-			scanopt.max_channel_time = conf.duration_on_foreign * 3 / 2;
+-			scanopt.min_channel_time = conf.duration_on_foreign;
+-			scanopt.scan_type = IW_SCAN_TYPE_PASSIVE;
+-			if (!whole_channels_scanning) {
+-				scanopt.num_channels = 2;
+-				scanopt.channel_list[0].e = 1;
+-				scanopt.channel_list[0].m = channels_5g[i%conf.num_channels_5g].freq * 100000;
+-				scanopt.channel_list[1].e = 1;
+-				scanopt.channel_list[1].m = channels_5g[(i+1)%conf.num_channels_5g].freq * 100000;
+-				i += 2;
+-				i %= conf.num_channels_5g;
+-			}
+-			wrq.u.data.pointer = (caddr_t) &scanopt;
+-			wrq.u.data.length = sizeof(scanopt);
+-			wrq.u.data.flags |= IW_SCAN_THIS_FREQ;
+-			strncpy(wrq.ifr_name, conf.ifname_5g, IFNAMSIZ);
+-				
+-			ret = ioctl(mon_5g, SIOCSIWSCAN, &wrq);
+-			if (ret < 0) {
+-				sleep(1);
+-				i = (i + conf.num_channels_5g - 2) % conf.num_channels_5g;
+-				goto rescan;
+-			}
+-		}
+-		if (whole_channels_scanning) 
+-			sleep(conf.scanning_intval * conf.num_channels_5g / 2);
+-		else
+-			sleep(conf.scanning_intval);
+-	}
+-}
+ 
+ void
+ fast_scanning(char *ifname)
+diff -urN a/channel.h b/channel.h
+--- a/channel.h	2016-07-31 19:10:17.938719904 -0700
++++ b/channel.h	2016-07-31 20:26:08.470658192 -0700
+@@ -60,9 +60,7 @@
+ 
+ #if HAN_VERSION
+ void *
+-do_5g_scan(void *);
+-void *
+-do_2g_scan(void *);
++do_scan(void *);
+ void
+ fast_scanning(char *);
+ #endif
+diff -urN a/control.c b/control.c
+--- a/control.c	2016-07-31 19:11:06.934719031 -0700
++++ b/control.c	2016-08-01 00:39:09.638453261 -0700
+@@ -162,6 +162,9 @@
+ 	} else if (strcmp(cmd, "fastscan") == 0) {
+ 		pause_scanning = 1;
+ 		fast_scanning(val);
++	} else if (strncmp(cmd, "scan-iface", strlen("scan-iface")) == 0) {
++		char *p = cmd + strlen("scan-iface");
++		try_rebind_monitor_interface(p, val);
+ 	}
+ #endif
+ }
+diff -urN a/han.c b/han.c
+--- a/han.c	2016-07-31 19:11:10.850720249 -0700
++++ b/han.c	2016-08-02 02:50:00.741595324 -0700
+@@ -11,6 +11,7 @@
+ #include <linux/un.h>
+ #include <linux/netlink.h>
+ #include <linux/rtnetlink.h>
++#include "wext.h"
+ 
+ 
+ #define dec_and_check_inact(info) \
+@@ -136,6 +137,10 @@
+ 		if (mac) {
+ 			if (MAC_ADDR_MATCH(mac, invalid_mac))
+ 				return ;
++			
++			if (!pi->wlan_channel)
++				return ;
++			
+ 			hash = HASH(mac);
+ 			pthread_mutex_lock(&wlan_table_lock);
+ 			ai = find_airinfo_item(&wlan_head[hash].head, mac);
+@@ -244,57 +249,45 @@
+ 	exit(0);
+ }
+ 
+-extern int rtnl_fd;
+-extern int mon_2g;
+-extern int mon_5g;
++
+ extern int
+ open_packet_socket(char* devname, int recv_buffer_size);
+ 
+ static void
+-rebind_monitor_interface(char *ifname)
++rebind_monitor_interface(struct iface_info *scan_if, char *ifname)
+ {
+ 	int fd = open_packet_socket(ifname, 0);
+ 
+ 	printf("ifname: %s\n", ifname);
+ 	if (fd > 0) {
+-		if (!memcmp(ifname, "athscan0", strlen("athscan0"))) {
+-			close(mon_2g);
+-			mon_2g = fd;
+-		}
+-		else {
+-			close(mon_5g);
+-			mon_5g = fd;
+-		}
++		//update fd
++		pthread_mutex_lock(&scan_if->p_lock);
++		close(scan_if->fd);
++		scan_if->fd = fd;
++		
++		//update ifname
++		bzero(scan_if->ifname, sizeof(scan_if->ifname));
++		memcpy(scan_if->ifname, ifname, strlen(ifname));
++		
++		//update ch_num, ch_list
++		scan_if->ch_num = wext_get_channels(fd, ifname, scan_if->ch_list);
++		pthread_mutex_unlock(&scan_if->p_lock);
+ 	}
+-	
+ }
+ 
+ 
+ void
+-try_rebind_monitor_interface(void)
++try_rebind_monitor_interface(char *p, char *ifname)
+ {
+-	struct {
+-		struct nlmsghdr nlh;
+-		struct ifinfomsg msg;
+-		u_int8_t pad[4000];
+-	} resp;
+-	ssize_t read_bytes = -1;
+-	char ifname[IFNAMSIZ]= {0};
+-
+-	memset(&resp, 0, sizeof(resp));
+-	read_bytes = recv(rtnl_fd, &resp, sizeof(resp), 0);
+-	if (read_bytes < 0 || !NLMSG_OK(&resp.nlh, read_bytes) 
+-		|| resp.nlh.nlmsg_type != RTM_NEWLINK) 
+-		return;
+-	if_indextoname(resp.msg.ifi_index, ifname);
+-	if (memcmp(ifname, "athscan", strlen("athscan")))
++	int index = atoi(p);
++
++	if (index >= MAX_SCAN_IFACE || index < 0)
+ 		return;
+ 	
+-	if ((resp.msg.ifi_change & IFF_UP) && //flag changes
+-		(resp.msg.ifi_flags & IFF_UP)) //up operation
+-		rebind_monitor_interface(ifname);
++	rebind_monitor_interface(&scan_iface[index], ifname);
+ }
+ 
++#if 0
+ void 
+ init_rtnl_fd(void)
+ {
+@@ -315,7 +308,7 @@
+ 	perror("Socket rtnl_fd failed");
+ 	exit(0);
+ }
+-
++#endif
+ 
+ 
+ void
+@@ -355,7 +348,7 @@
+ void
+ dump_status(void)
+ {
+-	int i = 0;
++	int i = 0, j = 0;
+ 	
+ 	dump_file_open("w+");
+ 	fprintf(DUMP_FILE, "\n");
+@@ -363,16 +356,16 @@
+ 	fprintf(DUMP_FILE, "Whole Scanning: %d\n", whole_channels_scanning);
+ 	fprintf(DUMP_FILE, "Pause Scanning: %d\n", pause_scanning);
+ 	fprintf(DUMP_FILE, "\nChannel List\t\t\n");
+-	fprintf(DUMP_FILE, "Radio 0:\n");
+-	for (; i<conf.num_channels_2g; i++)
+-		fprintf(DUMP_FILE, "%d ", channels_2g[i].chan);
+-	fprintf(DUMP_FILE, "\n");
++	
++	for (i = 0; i < MAX_SCAN_IFACE; i++) {
++		if (scan_iface[i].ifname[0] != '\0') {
++			fprintf(DUMP_FILE, "Scan Interface %d: %s\n", i, scan_iface[i].ifname);
++			for (j = 0; j < scan_iface[i].ch_num; j++)
++				fprintf(DUMP_FILE, "%d ", scan_iface[i].ch_list[j].chan);
++			fprintf(DUMP_FILE, "\n\n");
++		}
++	}
+ 
+-	fprintf(DUMP_FILE, "Radio 1:\n");
+-	for (i=0; i<conf.num_channels_5g; i++)
+-		fprintf(DUMP_FILE, "%d ", channels_5g[i].chan);
+-	fprintf(DUMP_FILE, "\n");
+-	fprintf(DUMP_FILE, "\n");
+ 	dump_file_close();
+ }
+ 
+@@ -645,3 +638,20 @@
+ 	
+ }
+ 
++
++void 
++scan_iface_lock_init(void)
++{
++	int i = 0;
++	for (; i < MAX_SCAN_IFACE; i++)
++		pthread_mutex_init(&scan_iface[i].p_lock, NULL);
++}
++
++void 
++scan_iface_lock_destroy(void)
++{
++	int i = 0;
++	for (; i < MAX_SCAN_IFACE; i++)
++		pthread_mutex_destroy(&scan_iface[i].p_lock);
++}
++
+diff -urN a/han.h b/han.h
+--- a/han.h	2016-07-31 19:11:02.642719636 -0700
++++ b/han.h	2016-08-02 02:17:41.106258402 -0700
+@@ -7,6 +7,7 @@
+ #include <sys/socket.h>
+ #include <linux/if.h>
+ #include <linux/wireless.h>
++#include <pthread.h>
+ 
+ 
+ #ifndef MAC_LEN
+@@ -14,7 +15,7 @@
+ #endif
+ 
+ #ifndef MAX_ESSID_LEN
+-#define MAX_ESSID_LEN	32
++#define MAX_ESSID_LEN	34
+ #endif
+ 
+ enum encrytion_type{
+@@ -112,20 +113,30 @@
+ void
+ dump_status(void);
+ void
+-try_rebind_monitor_interface(void);
++try_rebind_monitor_interface(char *, char *);
++//void 
++//init_rtnl_fd(void);
++void
++scan_iface_lock_init(void);
+ void 
+-init_rtnl_fd(void);
++scan_iface_lock_destroy(void);
+ 
+-char * 
+-if_indextoname(int, char *);
+ 
+ extern int deliver_fd;
+-extern struct chan_freq channels_2g[MAX_CHANNELS];
+-extern struct chan_freq channels_5g[MAX_CHANNELS];
+ extern int whole_channels_scanning;
+ extern int pause_scanning;
+ 
++#define MAX_SCAN_IFACE 3
++
++struct iface_info{
++	int fd;
++	char ifname[32];
++	struct chan_freq ch_list[MAX_CHANNELS];
++	int ch_num;
++	pthread_mutex_t p_lock;
++};
+ 
++extern struct iface_info scan_iface[];
+ 
+ 
+ #endif
+diff -urN a/main.c b/main.c
+--- a/main.c	2016-07-31 19:10:47.134719828 -0700
++++ b/main.c	2016-08-02 02:17:04.133943408 -0700
+@@ -63,8 +63,6 @@
+ 	.filter_pkt		= PKT_TYPE_ALL,
+ 	.filter_mode		= WLAN_MODE_ALL,
+ #if HAN_VERSION
+-	.ifname_2g		= INTERFACE_NAME_2G,
+-	.ifname_5g		= INTERFACE_NAME_5G,
+ 	.client_reload_inact = CLIENT_RELOAD_INACT,
+ 	.wlan_reload_inact = WLAN_RELOAD_INACT,
+ 	.sun_path		= SUN_PATH,
+@@ -77,12 +75,24 @@
+ struct timeval the_time;
+ 
+ int mon; /* monitoring socket */
+-int mon_2g;
+-char *mon_2g_interface = "athscan0";
+-int mon_5g;
+-char *mon_5g_interface = "athscan1";
+-int rtnl_fd;
++#ifdef HAN_VERSION
++pthread_t pth_do_scan[MAX_SCAN_IFACE];
++struct iface_info scan_iface[MAX_SCAN_IFACE] = {
++		{
++			 .fd = -1,
++			 .ifname = {'a', 't', 'h', 's', 'c', 'a', 'n', '0'},
++		},
++		{
++			.fd = -1,
++		 	.ifname = {'a', 't', 'h', 's', 'c', 'a', 'n', '1'},
++		},
++		{
++			.fd = -1,
++		},
++};
+ 
++//int rtnl_fd;
++#endif
+ static FILE* DF = NULL;
+ 
+ /* receive packet buffer
+@@ -411,6 +421,9 @@
+ receive_any(void)
+ {
+ 	int ret, mfd;
++#if HAN_VERSION
++	int i = 0;
++#endif
+ 
+ 	FD_ZERO(&read_fds);
+ 	FD_ZERO(&write_fds);
+@@ -420,9 +433,10 @@
+ #if !HAN_VERSION
+ 	FD_SET(mon, &read_fds);
+ #else
+-	FD_SET(mon_2g, &read_fds);
+-	FD_SET(mon_5g, &read_fds);
+-	FD_SET(rtnl_fd, &read_fds);
++	for (i = 0; i < MAX_SCAN_IFACE; i++)
++		if (scan_iface[i].fd > 0)
++			FD_SET(scan_iface[i].fd, &read_fds);
++	//FD_SET(rtnl_fd, &read_fds);
+ #endif
+ 	if (srv_fd != -1)
+ 		FD_SET(srv_fd, &read_fds);
+@@ -436,9 +450,11 @@
+ #if !HAN_VERSION
+ 	mfd = max(mon, srv_fd);
+ #else
+-	mfd = max(mon_2g, srv_fd);
+-	mfd = max(mfd, mon_5g);
+-	mfd = max(mfd, rtnl_fd);
++	for (i = 0; i < MAX_SCAN_IFACE; i++)
++		if (scan_iface[i].fd > 0)
++			mfd = max(scan_iface[i].fd, mfd);
++	mfd = max(mfd, srv_fd);
++	//mfd = max(mfd, rtnl_fd);
+ #endif
+ 	mfd = max(mfd, ctlpipe);
+ 	mfd = max(mfd, cli_fd) + 1;
+@@ -476,13 +492,11 @@
+ 	if (cli_fd > -1 && FD_ISSET(cli_fd, &read_fds))
+ 		net_receive(cli_fd, cli_buffer, &cli_buflen, sizeof(cli_buffer));
+ #else 
+-		
+-	if (FD_ISSET(mon_2g, &read_fds))
+-		local_receive_packet(mon_2g, buffer, sizeof(buffer));
+-	if (FD_ISSET(mon_5g, &read_fds))
+-		local_receive_packet(mon_5g, buffer, sizeof(buffer));
+-	if (FD_ISSET(rtnl_fd, &read_fds))
+-		try_rebind_monitor_interface();
++	for (i = 0; i < MAX_SCAN_IFACE; i++)
++		if ((scan_iface[i].fd > 0) && FD_ISSET(scan_iface[i].fd, &read_fds))
++			local_receive_packet(scan_iface[i].fd, buffer, sizeof(buffer));
++	//if (FD_ISSET(rtnl_fd, &read_fds))
++		//try_rebind_monitor_interface();
+ #endif
+ 	/* named pipe */
+ 	if (ctlpipe > -1 && FD_ISSET(ctlpipe, &read_fds))
+@@ -545,6 +559,9 @@
+ 
+ 	if (!conf.quiet && !conf.debug)
+ 		finish_display();
++#if HAN_VERSION
++	scan_iface_lock_destroy();
++#endif
+ }
+ 
+ 
+@@ -568,6 +585,19 @@
+ 	/* ignore signal here - we will handle it after write failed */
+ }
+ 
++static void
++phrase_interface(char *iface_list)
++{
++	int i = 0;
++	char *p = strtok(iface_list, ",");
++
++	while(p && (i < MAX_SCAN_IFACE)) {
++		bzero(scan_iface[i].ifname, sizeof(scan_iface[i].ifname));
++		memcpy(scan_iface[i].ifname, p, strlen(p));
++		i++;
++		p = strtok(NULL, ",");
++	}
++}
+ 
+ static void
+ get_options(int argc, char** argv)
+@@ -593,7 +623,11 @@
+ 			break;
+ 
+ 		case 'i':
++#if !HAN_VERSION
+ 			conf.ifname = optarg;
++#else
++			phrase_interface(optarg);
++#endif
+ 			break;
+ 		case 'o':
+ 			conf.dumpfile = optarg;
+@@ -774,14 +808,15 @@
+ main(int argc, char** argv)
+ {
+ #if HAN_VERSION
+-	pthread_t pth_do_2g_scan, pth_do_5g_scan, pth_deliver, pth_sighandler;
+-	sigset_t signal_set;
++	pthread_t pth_deliver, pth_sighandler;
++	sigset_t signal_set; int i = 0;
+ #endif
+ 	
+ 	list_head_init(&essids.list);
+ 	list_head_init(&nodes);
+ #if HAN_VERSION
+ 	init_list();
++	scan_iface_lock_init();
+ #endif
+ 
+ 	get_options(argc, argv);
+@@ -830,24 +865,24 @@
+ 		init_spectrum();
+ 	}
+ #else
+-	mon_2g = open_packet_socket(conf.ifname_2g, conf.recv_buffer_size);
+-	if (mon_2g <= 0) {
+-		err(1, "Couldn't open 2g packet socket");
+-		exit(0);
+-	}
+-	mon_5g = open_packet_socket(conf.ifname_5g, conf.recv_buffer_size);
+-	if (mon_5g <= 0) {
+-		err(1, "Couldn't open 5g packet socket");
+-		exit(0);
+-	}
++	for (i = 0; i < MAX_SCAN_IFACE; i++)
++		if (scan_iface[i].ifname[0] != '\0') {
++			scan_iface[i].fd = open_packet_socket(scan_iface[i].ifname, conf.recv_buffer_size);
++			if (scan_iface[i].fd < 0) {
++				err(1, "Couldn't open packet socket");
++				exit(0);
++			}
++		}
++	
+ 	conf.arphrd = ARPHRD_IEEE80211_PRISM;
+ 	channel_init();
+ 
+ 	init_deliver_fd();
+-	init_rtnl_fd();
++	//init_rtnl_fd();
+ 	//thread
+-	pthread_create(&pth_do_2g_scan, NULL, do_2g_scan, NULL);
+-	pthread_create(&pth_do_5g_scan, NULL, do_5g_scan, NULL);
++	for (i = 0; i < MAX_SCAN_IFACE; i++)
++		if (scan_iface[i].fd > 0)
++			pthread_create(&pth_do_scan[i], NULL, do_scan, (void *)&scan_iface[i]);
+ 	pthread_create(&pth_deliver, NULL, thread_deliver_handle, NULL);
+ 	pthread_create(&pth_sighandler, NULL, thread_sigalrm_handler, NULL);
+ #endif
+diff -urN a/main.h b/main.h
+--- a/main.h	2016-07-31 19:10:47.134719828 -0700
++++ b/main.h	2016-07-31 22:59:23.370533470 -0700
+@@ -96,9 +96,7 @@
+ 
+ /* default config values */
+ #define INTERFACE_NAME		"wlan0"
+-#if HAN_VERSION
+-#define INTERFACE_NAME_2G		"athscan0"
+-#define INTERFACE_NAME_5G  		"athscan1"
++#if HAN_VERSION											
+ #define WLAN_RELOAD_INACT		30 //five minutes
+ #define CLIENT_RELOAD_INACT		360 //one hour
+ #define SUN_PATH			"/tmp/unix-bgscan"
+@@ -327,10 +325,6 @@
+ 	int			paused;
+ 	int			num_channels;
+ #if HAN_VERSION
+-	char*			ifname_2g;
+-	char*			ifname_5g;
+-	int				num_channels_2g;
+-	int				num_channels_5g;
+ 	int				duration_on_foreign;
+ 	char			scanning_intval;
+ 	short 			client_reload_inact;

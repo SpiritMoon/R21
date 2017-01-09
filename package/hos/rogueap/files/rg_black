@@ -1,0 +1,48 @@
+
+#parameter numbers check and usage
+if [ $# -lt 2 ];then
+	echo "Usage:"
+	echo "	    rg_black [add/del] [MAC_ADDR0] [MAC_ADDR1] [MAC_ADDR2]"
+#	exit 1
+fi
+
+#parameter parsing
+parameter_num=$#
+mac_num=`expr $# - 1` 
+op=$1 
+
+i=2
+while [ $mac_num -ne 0 ]
+do
+	mac=`eval echo '$'"$i"`
+	if [ -n "$mac" ];then
+		#echo "$mac is not empty"
+		interface=`cat /proc/net/dev |grep -r "ath" |awk -F ":" '{print $1}'`
+#		interface=`iwconfig | grep -r "ESSID" |awk -F " " '{print $1}'`
+		num=`cat /proc/net/dev |grep -r "ath" |awk -F ":" '{print $1}'|wc -l`
+		while [ $num -ne 0 ]
+		do
+			ath=`echo $interface |awk -F " " '{print $'$num' }'`
+
+			if [ "$ath"x != "athscan0"x ]&&[ "$ath"x != "athscan1"x ];then 
+#				echo 'if ath:'$ath
+				if [ "$op"x = "add"x ];then
+					echo "ath:"$ath "mac="$mac "op="$op
+					iwpriv $ath addmac $mac
+				fi
+				if [ "$op"x = "del"x ];then
+					echo "ath="$ath "mac="$mac "op="$op
+					iwpriv $ath delmac $mac
+				fi
+			fi
+			num=`expr $num  - 1`
+		done
+	fi	
+	mac_num=`expr $mac_num - 1`
+	i=`expr $i + 1`
+done
+
+
+
+
+

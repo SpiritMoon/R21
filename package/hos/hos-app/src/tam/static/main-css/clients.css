@@ -1,0 +1,90 @@
+.client_panel_height{
+    height:220px;
+    width:100%;
+}
+.client_table_width{
+    width:100%;
+}
+.search_img{
+    float:right;
+    margin-right:5%;
+    margin-top:5px;
+    width:20px;
+    height:20px;
+}
+.search_input{
+    margin-left:50%;
+    height:25px;
+    width:180px;
+    font-size:14px;
+}
+#clientpanel > div.panel-body{
+    padding:0px;
+    padding-bottom:10px;
+    height:184px;
+}
+#client_title{
+    cursor:pointer;
+}
+#clientDetailHead{
+    height:32px;
+    line-height:32px;
+}
+.clientDetailBody{
+    height:450px;
+    height:450px;
+    overflow:auto;
+}
+#clientLists{
+    height: 452px;
+    overflow: auto;
+}
+#clientLists table tr td :hover{
+    cursor:pointer;
+}
+#clientDetails{
+    word-wrap: break-word;
+    word-break: break-all;
+}
+.clientOwner{
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    overflow:hidden;
+    color:#fff;
+}
+.statistic_client{
+    font-size:14px;
+    color:#fff;
+}
+@media screen and (min-width:998px) {
+    .search_input{
+        margin-left:50%;
+    }
+}
+
+@media screen and (min-width:590px) and (max-width:997px) {
+    .search_input{
+        margin-left:25%;
+    }
+}
+
+@media screen and (min-width:525px) and (max-width:589px) {
+    .search_input{
+        margin-left:15%;
+    }
+}
+
+@media screen and (min-width:480px) and (max-width:524px) {
+    .search_input{
+        margin-left:5%;
+    }
+}
+
+@media screen and (max-width:479px) {
+    .search_input{
+        margin-left:1%;
+        height:25px;
+        width:130px;
+        font-size:14px;
+    }
+}

@@ -1,0 +1,19 @@
+config rogueap 'RogueAP'
+	option SuppressSwitch	'0'
+	option Debug	'1'
+	option BlackSwitch '0'
+
+config rogueap 'Contain'
+	list ruleset 'Open'
+	list ruleset 'Encrypt'
+
+config ruleset 'Open'
+	option ARP	'1'
+	option Deauth	'0'
+	option Disassoc	'0'
+	
+config ruleset 'Encrypt'
+	option Deauth	'1'
+	option Disassoc	'0'
+	
+	

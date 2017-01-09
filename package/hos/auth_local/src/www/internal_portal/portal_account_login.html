@@ -1,0 +1,224 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wireless Login Page</title>
+    <!-- Bootstrap -->
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/css/main.css" rel="stylesheet">
+    <script type="text/javascript">
+
+        //显示提示信息
+        var showMsg = function (msg) {
+            $('#msg').text(msg);
+            $('#alert-msg').show('slow', function () {
+                setTimeout(function () {
+                    $('#msg').text('');
+                    $('#alert-msg').hide();
+                }, 100000);
+            });
+        }
+
+        function accountlogin() {
+            document.getElementById("loginbyaccount").disabled = true;
+
+            var username = document.getElementById("username").value;
+            var password = document.getElementById("password").value;
+
+            if (username == "" || password == "") {
+                showMsg("please fill correct username and password!");
+            }
+            else {
+                window.location.href = "http://instant.alcatel-lucentnetworks.com:8080/cgi-bin/wp_eag_portal_login.cgi?op_auth=login&username=" + username + "&password=" + password + "&suc_url=http://instant.alcatel-lucentnetworks.com:8080/internal_portal/portal_auth_suc.html&fail_url=http://instant.alcatel-lucentnetworks.com:8080/internal_portal/portal_account_auth_fail.html";
+            }
+
+            setTimeout(function () {
+                document.getElementById("loginbyaccount").disabled = false;
+            }, 1000);
+        }
+        function itemuseShowAgreement(){
+            window.location.href="./declaration.html";
+        }
+
+
+        var xmlhttp ;
+        var xmlhttpLogo;
+        var ip = document.location.hostname;
+
+        function initImAge(){
+            getBackgrounImg();
+            getLogoImg();
+        }
+        function getBackgrounImg() {
+            var bg_img = false;
+            var url = "http://" + ip + ":8080/internal_portal/static/img/bg.png";
+            xmlhttp = null;
+            $.ajax({
+                url: url,
+                type: "GET",
+                async: false,
+                success: function () {
+                    bg_img = true;
+//                    document.getElementById("backgroud_img_account_login").src = "static/img/bg.png";
+                }
+//                ,
+//                error: function () {
+//                    document.getElementById("backgroud_img_account_login").src = "static/img/bg.jpg";
+//                }
+            });
+            if(bg_img){
+                document.getElementById("backgroud_img_account_login").src = "static/img/bg.png";
+            }else{
+                document.getElementById("backgroud_img_account_login").src = "static/img/bg.jpg";
+            }
+        }
+
+        function getLogoImg() {
+            var logo_img = false;
+            var url_logo = "http://" + ip + ":8080/internal_portal/static/img/logo.png";
+            $.ajax({
+                url: url_logo,
+                type: "GET",
+                async: false,
+                success: function () {
+                    logo_img = true;
+//                    document.getElementById("logo_img_account_login").src = "static/img/logo.png";
+                }
+//                ,
+//                error: function () {
+//                    document.getElementById("logo_img_account_login").src = "static/img/logo.jpg";
+//                }
+            });
+
+            if(logo_img){
+                document.getElementById("logo_img_account_login").src = "static/img/logo.png";
+            }else{
+                document.getElementById("logo_img_account_login").src = "static/img/logo.jpg";
+            }
+        }
+
+    </script>
+</head>
+<body onload="initImAge()">
+<div class="container-fluid" align="center">
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div style="width: auto; height: 75px; padding:0px; margin:0px;float:left; text-align:left; vertical-align:top;">
+                <img id="logo_img_account_login" src="static/img/logo.png" width="189px" height="76px" alt="Alcatel-Lucent Enterprise homepage">
+            </div>
+        </div>
+    </div>
+    <div class="row ">
+        <div class="col-xs-12 col-md-12">
+            <hr style="border-top: 3px solid #eee">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div style="margin: 0 auto;text-align: center;">
+                <img id="backgroud_img_account_login" class="col-md-12  col-xs-12 col-lg-12" src="static/img/bg.png" alt="Resource Library" style="padding:0 10%;">
+            </div>
+            <div class="col-md-3" style="display:inline-block"></div>
+
+            <div class="col-md-6 col-xs-12" style="text-align: center;">
+                <form role="form" id="signin-form">
+                    <div class="row" style="padding: 15px 15%;">
+                        <div class="col-xs-12 col-md-12 col-lg-12"  style="padding-left: 0px;text-align: left;">
+                           <span > Please login to the network using your username and password.</span>
+                        </div>
+                    </div>
+                    <div class="row row-split">
+                        <div class="row"  style="padding: 15px 15%">
+                            <div class="col-xs-8 col-md-6 col-lg-5" >
+                                <div class="from-group" style="text-align: left;">
+                                    <label>Username:</label>
+                                    <input id="username" name="username" type="text" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="padding: 15px 15%">
+                            <div class="col-xs-8 col-md-6 col-lg-5" >
+                                <div class="from-group" style="text-align: left;">
+                                    <label>Password:</label>
+                                    <input id="password" name="password" type="password" class="form-control">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="padding: 5px 15%">
+                            <div class="col-xs-8 col-md-6" style="padding:0px 10px 0px 26px; ">
+                                <div class="checkbox" style="text-align:left">
+                                    <label style="padding-left:10px;">
+                                        <input id="agreeText" type="checkbox" checked="checked">
+                                        <strong style="font-size: 14px;color:#777">I accept the <a style="text-decoration: none" onclick="itemuseShowAgreement();"> terms of use </a></strong>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="row" style="padding: 15px 15%">
+                            <div class="col-xs-4 cl-md-3 col-lg-2 " >
+                                <button id="loginbyaccount" style="float: left;" type="button" name="namelogin"
+                                        class="btn btn-info" onclick="accountlogin();">Log In
+                                </button>
+                            </div>
+                            <!--  alert box start-->
+                            <div class="col-xs-8 col-md-9 col-lg-10" id="alert-msg"
+                                 style="display: none; vertical-align: middle;padding-top: 8px;padding-left: 25px;;text-align:left;">
+                                <!--	<button type="button" class="close" data-dismiss="alert"><span aria-hidden="true">&times;</span><span
+                                            class="sr-only">Close</span></button>-->
+                                <span id="msg" style="color: red;"></span>
+                            </div>
+                            <!--alert box end-->
+                        </div>
+                        <div class="row"  style="padding: 15px 15%;text-align: left;">
+                            <div class="col-xs-12 col-md-12 col-lg-12">
+                                <p>
+                                    Contact a staff member if you are experiencing
+                                    difficulty logging in.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-12" >
+            <hr style="border-top: 3px solid #eee">
+            <div style="float: left;">
+                © 2016 Alcatel-Lucent
+            </div>
+        </div>
+    </div>
+    <div class="col-xs-12 text-center">
+        <font style="font-size: 8px;color: darkgray;"></font>
+    </div>
+</div>
+<script src="static/js/jquery.js"></script>
+<script src="static/js/bootstrap.min.js"></script>
+<script src="static/js/hammer.js"></script>
+<script src="static/js/jquery.hammer.js"></script>
+<script src="static/js/jquery.storageapi.js"></script>
+<script>
+    $(document).ready(function () {
+        //去除登录标识
+        if ($.localStorage.isSet('isLogin')) {
+            $.localStorage.remove('isLogin');
+        }
+        $('#declaration').click(function () {
+            window.location.href = "declaration.html";
+        });
+        //免责声明checkbox勾选处理
+        $('#agreeText').change(function () {
+            if (!$(this).is(':checked')) {
+                $('#loginbyaccount').attr('disabled', 'disabled');
+            } else {
+                $('#loginbyaccount').removeAttr('disabled');
+            }
+        });
+    })
+</script>
+</body>
+</html>

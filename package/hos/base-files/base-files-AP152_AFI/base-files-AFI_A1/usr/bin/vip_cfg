@@ -1,0 +1,11 @@
+#!/bin/sh
+sleep 5
+vip=`uci get cluster.cluster.cluster_vip`
+netmask=`uci get cluster.cluster.cluster_netmask`
+clusterid=`uci get cluster.cluster.cluster_id`
+role=`cluster_mgt -x show=self | grep $clusterid | awk  '{print  $3 }'`
+
+if [ "$role" = "PVC" ];then
+ifconfig br-wan:0 $vip up netmask $netmask
+fi
+

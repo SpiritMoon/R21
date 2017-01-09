@@ -1,0 +1,676 @@
+#! /bin/sh
+
+DOL=$
+
+ALL_CFG_FILE=/etc/config/wireless
+
+usage() {
+	echo -e "Usage:"
+	echo -e $0 "<operation> [<'mac'> <mac addr>] <ssid> [opt_1] [val_1] [opt_2] [val_2] ..."
+	echo -e "\t<operation>:"
+	echo -e "\t\tadd_wlan"
+	echo -e "\t\tdel_wlan"
+	echo -e "\t\tedit_wlan"
+	echo -e "\t\tlist_wlan"
+	echo -e "\t\tshow_opts"
+	echo -e "\t\tget_opt"
+	echo -e "\t\tget_wmm"
+	echo -e "\t\tadd_wlan_list"
+	echo -e "\t\tdel_wlan_list"
+	echo -e "\t\tdel_wlan_list_op"
+	echo -e "\t\tshow_wlan_list_op"
+	echo -e "\t\tsetcountry    (with no need for ssid)"
+	echo -e "\t\tradio_info      (with no need for ssid)"
+	echo -e "\t\tedit_radio      (with no need for ssid)"
+	echo -e "\t\tkickmac"
+
+	echo -e "\t[opts]:"
+	echo -e "\t\tssid           (a atring such as test)*"
+	echo -e "\t\tnewssid        (a atring such as test)*"
+	echo -e "\t\tfreq           (2G/5G/2G5G)*"
+	echo -e "\t\tdevice         (wifi0/wifi1)*"
+	echo -e "\t\thidden         (1:hidden/0:visible)"
+	echo -e "\t\tnetwork        (wan or others)"
+	echo -e "\t\tifname         (a string such as ath123)"
+	echo -e "\t\tenable         (1:enable/0:disable)"
+	echo -e "\t\tnetwork type   (employee/voice/guest)"
+	echo -e "\t\tmaxsta         (int number)"
+	echo -e "\t\tprobethreshold (int number)"
+	echo -e "\t\tmaclist        (mac address)"
+	echo -e "\t\tlistname       (a string)"
+	echo -e "\t\tlistval        (some value separate with space)"
+	echo -e "\t\tvlan           (an integer number)"
+
+	echo -e "\tIf the last  argument is 'noflush', the settings will not take effect immediately."
+	echo -e "\tIf set the global options(or lists), please add the postfix of '_global' after <operation>."
+}
+
+operation=$1
+global_operation=
+MAC=
+ssid=
+frequence=
+device=
+i=1
+
+[ ! `cat $ALL_CFG_FILE |egrep -o "global" |sed -n 1p` ] && cluster-cfg set wireless.global=wifi-global
+
+if [ $# -lt 1 ] || [ $operation != list_wlan -a $operation != radio_info ] && [ ! `echo $operation |egrep -o "_global"` ]  && [ $# -lt 2 ]; then
+	usage && exit 1
+fi
+
+if [ "$operation" = mac ]; then
+	MAC=$2
+	i=`expr $i + 2`
+	operation=$3
+fi
+
+if [ "$operation" != "list_wlan" ]; then
+	[ ! -f "/tmp/config_wlan.log" ] && >/tmp/config_wlan.log
+	logsize=`ls -l /tmp/config_wlan.log|awk '{print $5}'`
+	[ $logsize -ge 1048576 ] && >/tmp/config_wlan.log
+	echo -e `date`"\nCaller: "`ps |grep $PPID |grep -v grep |sed -n '1p'`"\nconfig_wlan $* \n" >> /tmp/config_wlan.log
+fi
+
+for opts in "$@"
+do
+	i=`expr $i + 1`
+	case $opts in
+		ssid)eval ssid="$DOL$i";;
+		freq)frequence=$(eval echo "$DOL$i");;
+		device)device=$(eval echo "$DOL$i");;
+	esac
+done
+
+if [ $operation != list_wlan -a $operation != setcountry -a $operation != radio_info -a $operation != edit_radio -a ! `echo $operation |egrep -o "_global"` ] && [ ! "$ssid" ]; then
+	usage
+	exit 1
+fi
+
+if [ `echo $operation |egrep -o "_global"` ]; then
+	global_operation=`echo $operation |sed 's/_global//g'`
+	operation=$global_operation
+fi
+
+_lock()
+{
+	local lock="/tmp/$1"
+	while [ -f $lock ]
+	do
+		sleep 1
+	done
+
+	> $lock
+}
+
+_unlock()
+{
+	local lock="/tmp/$1"
+	rm $lock
+}
+
+create_vlan()
+{
+	vid=$1
+
+	[ $vid != 0 ] && config_vlan_iface add $vid
+}
+
+del_vlan()
+{
+	vid=$1
+	[ `echo $vid |sed 's/[0-9]//g'` ] && return
+
+	using_vlan=`cat "$ALL_CFG_FILE" | grep "vlan$1'"`
+	if [ ! "$using_vlan" ]; then
+		config_vlan_iface del $vid
+	fi
+}
+
+mod_vlan()
+{
+	del_vlan $2
+	create_vlan $1
+}
+
+# change "." to "_PnTr-" and "=" to "_EqU-"
+PNT_Alias=_PnTr-
+EQU_Alias=_EqU-
+_user2uci()
+{
+	echo "$1" |sed "s/\./$PNT_Alias/g" |sed "s/=/$EQU_Alias/g"
+}
+
+# change "_Pntr-" to "." and "_EqU-" to "="
+_uci2user()
+{
+	echo "$1" |sed "s/$PNT_Alias/\./g" |sed "s/$EQU_Alias/=/g"
+}
+
+_list_wlan()
+{
+	wlans=`cluster-cfg $MAC show wireless |egrep -o "ssid=.*" |sed '/athscan/d' |sort -u |sed 's/ssid=//g'`
+	for ssid in $wlans
+	do
+		freq=
+		ssid=`_user2uci "$ssid"`
+		hex_ssid=`hantoolbox str2hexascii "$ssid"`
+		wlan_name=`cat "$ALL_CFG_FILE" | sed "s/'/ /g"| grep " ""$hex_ssid""_2G"`
+		if [ "$wlan_name" ]; then
+			freq="2G"
+			wlan_name="$hex_ssid""_2G"
+		fi
+	
+		wlan_name=`cat "$ALL_CFG_FILE" | sed "s/'/ /g"| grep " ""$hex_ssid""_5G"`
+		if [ "$wlan_name" ]; then
+			wlan_name="$hex_ssid""_5G"
+			if [ ! "$freq" ]; then
+				freq="5G"
+			else
+				freq="$freq"",5G"
+			fi
+		else
+			wlan_name="$hex_ssid""_2G"
+		fi
+	
+		ssid=`_uci2user "$ssid"`
+		echo "ssid=""$ssid"
+		echo "frequence=""$freq"
+		iface_name=`cat "$ALL_CFG_FILE" | sed "s/'/ /g"| grep " ""$hex_ssid""_" | sed "s/^config wifi-iface //g" |  sed "s/ //g" | sed -n 1p`
+		cluster-cfg $MAC show wireless.$iface_name | sed "s/wireless.$iface_name.//g" | sed "s/wifi-iface//g" | sed '/^$/d' | sed '/ssid/d' | sed '/device/d' #| sort
+		echo
+	done
+}
+
+raw_ssid="$ssid"
+ssid=`_user2uci "$ssid"`
+if [ "$operation" = add_wlan ]; then
+	if [ ! $frequence ] || [ ! $device ]; then
+		usage
+		exit 1
+	fi
+
+	hex_ssid=`hantoolbox str2hexascii "$ssid"`
+	is_re_add=`cat "$ALL_CFG_FILE" |grep "'${hex_ssid}_" |grep "$frequence" |grep "$device"`
+	[ -n "$is_re_add" ] && exit 0
+
+	if [ "$frequence" = "2G" ] || [ "$frequence" = "2g" ]; then
+		cluster-cfg $MAC $operation wireless."$ssid".2G.$device
+		cluster-cfg $MAC set wireless."${hex_ssid}_2G_"$device.ssid="$raw_ssid"
+		frequence="2G"
+	elif [ "$frequence" = "5G" ] || [ "$frequence" = "5g" ]; then
+		cluster-cfg $MAC $operation wireless."$ssid".5G.$device
+		cluster-cfg $MAC set wireless."${hex_ssid}_5G_"$device.ssid="$raw_ssid"
+		frequence="5G"
+	elif [ "$frequence" = "2G5G" ] || [ "$frequence" = "2g5g" ]; then
+		cluster-cfg $MAC $operation wireless."$ssid".2G.$device
+		cluster-cfg $MAC set wireless."${hex_ssid}_2G_"$device.ssid="$raw_ssid"
+		cluster-cfg $MAC $operation wireless."$ssid".5G.$device
+		cluster-cfg $MAC set wireless."${hex_ssid}_5G_"$device.ssid="$raw_ssid"
+		frequence="2G5G"
+	fi
+
+	# About 8 vif, modify athscanx
+	wlan_count=`cat "$ALL_CFG_FILE" |grep "wifi-iface" |grep "$device" |wc -l`
+	if [ $wlan_count -ge 8 ]; then 
+		athscan="athscan`echo $device |cut -c ${#device}`"
+		if [ "`cluster-cfg $MAC get wireless.$athscan`" != "wifi-iface" ]; then
+			if [ "$athscan" = "athscan0" ]; then
+				cluster-cfg $MAC rename "wireless.@wifi-iface[1]=athscan0"
+			elif [ "$athscan" = "athscan1" ]; then
+				cluster-cfg $MAC rename "wireless.@wifi-iface[0]=athscan1"
+			fi
+		fi
+		cluster-cfg $MAC set wireless.${athscan}.enable=0
+		wifi update ${athscan} enable 0 &
+		all_wlans=`uci list_wlan wireless 2>/dev/null`
+		for wlan in $all_wlans
+		do
+			hex_wlan=`hantoolbox str2hexascii "$wlan"`"_${frequence}_${device}"
+			dont_set_vif_monitor="`uci get wireless."${hex_wlan}".vif_monitor 2>/dev/null`"
+			[ -n "$dont_set_vif_monitor" ] && break
+		done
+		if [ ! "$dont_set_vif_monitor" ]; then
+			cluster-cfg $MAC set wireless."${hex_ssid}_${frequence}_${device}".vif_monitor="1"
+			cluster-cfg $MAC set wireless."${hex_ssid}_${frequence}_${device}".athnewind="1"
+		fi
+		
+	fi
+	# End of 8 vif, modify athscanx
+
+	encrypt="none"
+	i=2
+	ind_opt=`expr $i + 1`
+	for op in "$@"
+	do
+		i=`expr $ind_opt + 1`
+		ind_opt=`expr $i + 1`
+		[ $# -lt $i ] && break
+		opt="$(eval echo "$DOL$i")"
+		opt_val=$(echo $DOL$ind_opt)
+		eval opt_val="$opt_val"
+		if [ "$opt" != "ssid" ] && [ "$opt" != "freq" ] && [ "$opt" != "device" ]; then
+			if [ "$opt" = "vlan" ]; then
+				[ "$opt_val" = 0 ] && continue;
+				cluster-cfg $MAC edit_wlan "wireless.${ssid}.network=vlan$opt_val"
+				create_vlan "$opt_val" &
+			else
+				cluster-cfg $MAC edit_wlan "wireless.${ssid}.$opt=$opt_val"
+			fi
+			[ "$opt" = "encryption" ] && encrypt="seted"
+		fi
+	done
+
+	cluster-cfg $MAC edit_wlan wireless."$ssid".stream_limit_sw=1
+	[ $encrypt = "none" ] && cluster-cfg $MAC edit_wlan "wireless.${ssid}.encryption=$encrypt"
+
+elif [ "$operation" = del_wlan ]; then
+	# About 8 vif, modify athscanx
+	hex_ssid=`hantoolbox str2hexascii $ssid`
+	athscan_to_wifi0=`uci get wireless."${hex_ssid}_2G_wifi0.vif_monitor" 2>/dev/null`
+	athscan_to_wifi1=`uci get wireless."${hex_ssid}_5G_wifi1.vif_monitor" 2>/dev/null`
+	need_create_athscan="$athscan_to_wifi0$athscan_to_wifi1"
+	# End of 8 vif, modify athscanx
+
+	vlan=`cluster-cfg $MAC get_wlan wireless."$ssid".network 2>/dev/null`
+	cluster-cfg $MAC del_wlan wireless."$ssid"
+	del_vlan `echo $vlan | sed "s/vlan//g" 2>/dev/null`
+
+	# About 8 vif, modify athscanx
+	if [ -n "$need_create_athscan" ]; then
+		wifi flush "$ssid"
+		if [ -n "$athscan_to_wifi0" ]; then 
+			cluster-cfg $MAC set wireless.athscan0.enable=1
+			cluster-cfg set "bg-s"."bs"."scan_iface0"="athscan0"
+			wifi update athscan0 enable 1 &
+		fi
+		if [ -n "$athscan_to_wifi1" ]; then 
+			cluster-cfg $MAC set wireless.athscan1.enable=1
+			cluster-cfg set "bg-s"."bs"."scan_iface1"="athscan1"
+			wifi update athscan1 enable 1 &
+		fi
+	fi
+	# End of 8 vif, modify athscanx
+
+elif [ "$operation" = edit_wlan ]; then
+	oldssid="$ssid"
+	i=2
+	[ "$1" = mac ] && i=4
+
+	if [ ! $global_operation ]; then
+		encr="0"
+		ind_opt=`expr $i + 1`
+		for op in "$@"
+		do
+			i=`expr $ind_opt + 1`
+			ind_opt=`expr $i + 1`
+			[ $# -lt $i ] && break
+			opt="$(eval echo "$DOL$i")"
+			if [ "$opt" != "ssid" ] && [ "$opt" != "freq" ] && [ "$opt" != "device" ]; then
+				vl=`cluster-cfg get_wlan wireless.$oldssid.network | sed "s/vlan//g"`
+				if [ "$opt" = "newssid" ]; then 
+					newssid=$(eval echo "$DOL$ind_opt")
+					cluster-cfg $MAC edit_wlan "wireless.${oldssid}.ssid=`_user2uci "$newssid"`"
+					exist2g=`cat "$ALL_CFG_FILE" |grep "_2G_"`
+					exist5g=`cat "$ALL_CFG_FILE" |grep "_5G_"`
+					newssid=`_user2uci "$newssid"`
+					[ "$exist2g" ] && cluster-cfg $MAC set wireless.`hantoolbox str2hexascii "$newssid"`"_2G_wifi0".ssid="`_uci2user "$newssid"`"
+					[ "$exist5g" ] && cluster-cfg $MAC set wireless.`hantoolbox str2hexascii "$newssid"`"_5G_wifi1".ssid="`_uci2user "$newssid"`"
+					wifi update "$ssid" ssid "$newssid" &
+					encr="1"
+					oldssid="$newssid"
+				else
+					if [ "$opt" = "vlan" ]; then
+						if [ "$(eval echo "$DOL$ind_opt")" = 0 ]; then
+							cluster-cfg $MAC edit_wlan "wireless.${oldssid}.network=wan"
+							mod_vlan $(eval echo "$DOL$ind_opt") $vl &
+							wifi update "$ssid" vlan $(eval echo "$DOL$ind_opt") &
+							continue;
+						fi
+						cluster-cfg $MAC edit_wlan "wireless.${oldssid}.network=vlan$(eval echo "$DOL$ind_opt")"
+						mod_vlan $(eval echo "$DOL$ind_opt") $vl &
+						wifi update "$ssid" vlan $(eval echo "$DOL$ind_opt") &
+					else
+						local val=$(echo $DOL$ind_opt)
+						eval val="$val"
+						[ "$val" = "noflush" ] && val=
+						cluster-cfg $MAC edit_wlan wireless."$oldssid"."$opt"="$val"
+
+						# For 8 VAP
+						if [ "$opt" = "enable" ]; then
+							hex_ssid=`hantoolbox str2hexascii $ssid`
+							if [ "$val" = 0 ]; then
+								cluster-cfg $MAC edit_wlan wrieless."$ssid".ifname=
+								need_create_athscan=`cluster-cfg $MAC get_wlan wireless."$ssid".vif_monitor`
+								athscan_to_wifi0=`cat "$ALL_CFG_FILE" |grep "$hex_ssid.*wifi0"`
+								athscan_to_wifi1=`cat "$ALL_CFG_FILE" |grep "$hex_ssid.*wifi1"`
+								if [ -n "$need_create_athscan" ]; then
+									wifi update "$oldssid" "$opt" "$val" &
+									if [ -n "$athscan_to_wifi0" ]; then 
+										cluster-cfg $MAC set wireless.athscan0.enable=1
+										cluster-cfg set "bg-s"."bs"."scan_iface0"="athscan0"
+										wifi update athscan0 enable 1 &
+									fi
+									if [ -n "$athscan_to_wifi1" ]; then 
+										cluster-cfg $MAC set wireless.athscan1.enable=1
+										cluster-cfg set "bg-s"."bs"."scan_iface1"="athscan1"
+										wifi update athscan1 enable 1 &
+									fi
+									cluster-cfg $MAC edit_wlan wireless."$ssid".vif_monitor=
+									cluster-cfg $MAC edit_wlan wireless."$ssid".athnewind=
+									continue
+								fi
+							else
+								local vaps=`iwconfig 2>/dev/null |grep ath`
+								local exist_athscan0=`echo $vaps |egrep -o athscan0`
+								local exist_athscan1=`echo $vaps |egrep -o athscan1`
+								local wifi_ifaces=`cat $ALL_CFG_FILE |sed "s/'/ /g" |egrep -o " ""$hex_ssid""_.G_wifi." |sed "s/ //g"`
+								local is_2G=`echo "$wifi_ifaces" |grep "2G"`
+								local is_5G=`echo "$wifi_ifaces" |grep "5G"`
+
+								if [ -n "$is_2G" ]; then
+									if [ -n "$exist_athscan0" ]; then
+										local counter2G=`echo "$vaps" |grep "ath0." |wc -l`
+										if [ $counter2G -eq 7 ]; then
+											cluster-cfg $MAC set wireless.athscan0.enable=0
+											wifi update athscan0 enable 0 &
+											cluster-cfg $MAC edit_wlan wireless."$ssid".vif_monitor="1"
+											cluster-cfg $MAC edit_wlan wireless."$ssid".athnewind="1"
+										fi
+									fi
+								fi
+
+								if [ -n "$is_5G" ]; then
+									if [ -n "$exist_athscan1" ]; then
+										local counter5G=`echo "$vaps" |grep "ath1." |wc -l`
+										if [ $counter5G -eq 7 ]; then
+											cluster-cfg $MAC set wireless.athscan1.enable=0
+											wifi update athscan1 enable 0 &
+											cluster-cfg $MAC edit_wlan wireless."$ssid".vif_monitor="1"
+											cluster-cfg $MAC edit_wlan wireless."$ssid".athnewind="1"
+										fi
+									fi
+								fi
+							fi
+						fi
+						# End for 8 VAP
+						local mod_opt="$opt"
+						if [ "$mod_opt" = "newssid" -o "$mod_opt" = "encryption" -o "$mod_opt" = "key" -o "$mod_opt" = "ieee80211r" -o "$mod_opt" = "okc" -o "$mod_opt" = "auth_server" -o "$mod_opt" = "acct_server" -o "$mod_opt" = "auth_port" -o "$mod_opt" = "acct_port" -o "$mod_opt" = "auth_secret" -o "$mod_opt" = "acct_secret" ]; then
+							encr="1"
+							continue
+						fi
+
+						wifi update "$oldssid" "$opt" "$val" &
+					fi
+				fi
+			fi
+		done
+		[ "$encr" = "1" ] && wifi update "$oldssid" "encr" "1" &
+		_lock "config_wlan_lock"
+		_list_wlan >/tmp/wlan_info
+		cp /tmp/wlan_info /etc/wlan_info
+		_unlock "config_wlan_lock"
+		exit 0
+	else	#global_operation
+		i=`expr $i - 2`
+		ind_opt=`expr $i + 1`
+		for op in "$@"
+		do
+			i=`expr $ind_opt + 1`
+			ind_opt=`expr $i + 1`
+			[ $# -lt $i ] && break
+			if [ "$(eval echo "$DOL$i")" != "ssid" ] && [ "$(eval echo "$DOL$i")" != "freq" ] && [ "$(eval echo "$DOL$i")" != "device" ]; then
+				vl=`cluster-cfg get wireless.global.network | sed "s/vlan//g"`
+				if [ "$(eval echo "$DOL$i")" = "vlan" ]; then
+					if [ "$(eval echo "$DOL$ind_opt")" = 0 ]; then
+						cluster-cfg $MAC set wireless.global.network="wan"
+						mod_vlan $(eval echo "$DOL$ind_opt") $vl &
+						continue;
+					fi
+					cluster-cfg $MAC set wireless.global.network="vlan""$(eval echo "$DOL$ind_opt")"
+					mod_vlan $(eval echo "$DOL$ind_opt") $vl &
+				else
+					val="$(eval echo "$DOL$ind_opt")"
+					[ "$val" = "noflush" ] && val=
+					cluster-cfg $MAC set wireless.global.$(eval echo "$DOL$i")="$val"
+					wifi global option "$(eval echo "$DOL$i")" "$val"
+				fi
+			fi
+		done
+		_lock "config_wlan_lock"
+		_list_wlan >/tmp/wlan_info
+		cp /tmp/wlan_info /etc/wlan_info
+		_unlock "config_wlan_lock"
+		exit 0
+	fi	#global_operation
+
+elif [ "$operation" = show_opts ]; then
+	if [ ! $global_operation ]; then
+		freq=
+		hex_ssid=`hantoolbox str2hexascii "$ssid"`
+		wlan_name=`cat "$ALL_CFG_FILE" | sed "s/'/ /g"| grep " ""$hex_ssid""_2G"`
+		if [ "$wlan_name" ]; then
+			freq="2G"
+			wlan_name="$hex_ssid""_2G"
+		fi
+
+		wlan_name=`cat "$ALL_CFG_FILE" | sed "s/'/ /g"| grep " ""$hex_ssid""_5G"`
+		if [ "$wlan_name" ]; then
+			wlan_name="$hex_ssid""_5G"
+			if [ ! "$freq" ]; then
+				freq="5G"
+			else
+				freq="$freq"",5G"
+			fi
+		else
+			wlan_name="$hex_ssid""_2G"
+		fi
+
+		ssid=`_uci2user "$ssid"`
+		echo "ssid=""$ssid"
+		echo "frequence=""$freq"
+		iface_name=`cat "$ALL_CFG_FILE" | sed "s/'/ /g"| grep " ""$hex_ssid""_" | sed "s/^config wifi-iface //g" |  sed "s/ //g" | sed -n 1p`
+		cluster-cfg $MAC show wireless.$iface_name | sed "s/wireless.$iface_name.//g" | sed "s/wifi-iface//g" | sed '/^$/d' | sed '/ssid/d' | sed '/device/d' #| sort
+	else	#global_operation
+		cluster-cfg $MAC show wireless.global |sed '1d' |sed "s/wireless.global.//g"
+	fi	#global_operation
+
+elif [ "$operation" = get_opt ]; then
+	opt=$4
+	[ "$1" = mac ] && opt=$6
+
+	if [ ! $global_operation ]; then
+		if [ "$opt" = "ifname" ]; then
+			hex_ssid=`hantoolbox str2hexascii "$ssid"`
+			uci get wireless."${hex_ssid}_2G_wifi0".ifname 2>/dev/null
+			uci get wireless."${hex_ssid}_5G_wifi1".ifname 2>/dev/null
+		else
+			cluster-cfg ${MAC} get_wlan wireless."$ssid".$opt
+		fi
+	else	#global_operation
+		opt=$2
+		cluster-cfg ${MAC} get wireless.global.$opt
+	fi	#global_operation
+
+elif [ "$operation" = list_wlan ]; then
+	if [ -f "/etc/wlan_info" ]; then
+		cat /etc/wlan_info
+	else
+		_list_wlan
+	fi
+
+elif [ "$operation" = add_wlan_list ]; then
+	i=5
+	[ "$1" = mac ] && i=`expr $i + 2`
+
+	if [ ! $global_operation ]; then
+		list_name=$(eval echo "$DOL$i")
+		i=`expr $i + 1`
+		for op in "$@"
+		do
+			maclist_count=`cluster-cfg show_wlan_list_op wireless."$ssid".maclist | awk '{print NF}'`
+			[ ! "$maclist_count" ] && maclist_count=0
+			[ $maclist_count -ge 256 -a "$list_name" = "maclist" ] && break
+
+			i=`expr $i + 1`
+			[ $# -lt $i -o "$(eval echo "$DOL$i")" = "noflush" ] && break
+			is_repeat=`cluster-cfg show_wlan_list_op wireless."$ssid".$list_name |grep "$(eval echo "$DOL$i")"`
+			[ ! "$is_repeat" ] && cluster-cfg $MAC add_wlan_list wireless."$ssid".$list_name="$(eval echo "$DOL$i")"
+		done
+	else	#global_operation
+		i=`expr $i - 2`
+		list_name=$(eval echo "$DOL$i")
+		i=`expr $i + 1`
+		for op in "$@"
+		do
+			maclist_count=`cluster-cfg show wireless.global.maclist |sed 's/wireless.global.maclist=//g' | awk '{print NF}'`
+			[ ! "$maclist_count" ] && maclist_count=0
+			[ $maclist_count -ge 256 -a "$list_name" = "maclist" ] && break
+
+			i=`expr $i + 1`
+			[ $# -lt $i -o "$(eval echo "$DOL$i")" = "noflush" ] && break
+			is_repeat=`cluster-cfg show wireless.global.$list_name |sed 's/wireless.global.maclist=//g' |grep "$(eval echo "$DOL$i")"`
+			if [ ! "$is_repeat" ]; then
+				cluster-cfg $MAC add_list wireless.global.$list_name="$(eval echo "$DOL$i")"
+				wifi global list "$list_name" "$(eval echo "$DOL$i")" add
+			fi
+		done
+
+	fi	#global_operation
+
+elif [ "$operation" = del_wlan_list ]; then
+	i=5
+	if [ ! $global_operation ]; then
+	[ "$1" = mac ] && i=`expr $i + 2`
+		list_name=$(eval echo "$DOL$i")
+		i=`expr $i + 2`
+		list_val=$(eval echo "$DOL$i")
+		cluster-cfg $MAC del_wlan_list wireless."$ssid".$list_name=$list_val
+	else    #global_operation
+		i=`expr $i - 2`
+		list_name=$(eval echo "$DOL$i")
+		i=`expr $i + 2`
+		list_val=$(eval echo "$DOL$i")
+		cluster-cfg $MAC del_list wireless.global.$list_name=$list_val
+		wifi global list "$list_name" "$list_val" del
+	fi      #global_operation
+
+elif [ "$operation" = del_wlan_list_op ]; then
+	i=5
+	[ "$1" = mac ] && i=`expr $i + 2`
+	if [ ! $global_operation ]; then
+		list_name=$(eval echo "$DOL$i")
+		cluster-cfg $MAC del_wlan_list_op wireless."$ssid".$list_name
+	else    #global_operation
+		i=`expr $i - 2`
+		list_name=$(eval echo "$DOL$i")
+		cluster-cfg $MAC delete wireless.global.$list_name
+	fi      #global_operation
+
+elif [ "$operation" = show_wlan_list_op ]; then
+	i=5
+	[ "$1" = mac ] && i=`expr $i + 2`
+	if [ ! $global_operation ]; then
+		list_name=$(eval echo "$DOL$i")
+		cluster-cfg $MAC show_wlan_list_op wireless."$ssid".$list_name
+	else    #global_operation
+		i=`expr $i - 2`
+		list_name=$(eval echo "$DOL$i")
+		cluster-cfg $MAC get wireless.global.$list_name |sed 's/wireless.global.maclist=//g'
+	fi      #global_operation
+
+elif [ "$operation" = get_wmm ]; then
+	hex_ssid=`hantoolbox str2hexascii "$ssid"`
+	iface_name=`cat "$ALL_CFG_FILE" | sed "s/'/ /g"| grep " ""$hex_ssid""_" | sed "s/^config wifi-iface //g" |  sed "s/ //g" | sed -n 1p`
+	cluster-cfg $MAC show wireless.$iface_name | sed "s/wireless.$iface_name.//g" | sed "s/wifi-iface//g" | sed '/^$/d' | grep -E 'dscp_enable|dot1p_enable|dscp_to_bk|dscp_to_be|dscp_to_vi|dscp_to_vo|bk_to_dscp|be_to_dscp|vi_to_dscp|vo_to_dscp|dot1p_to_bk|dot1p_to_be|dot1p_to_vi|dot1p_to_vo|bk_to_dot1p|be_to_dot1p|vi_to_dot1p|vo_to_dot1p' | sort
+
+elif [ "$operation" = "setcountry" ]; then
+	i=2
+	[ "$1" = mac ] && i=`expr $i + 2`
+#	MAC=`showsysinfo |grep "MAC:" |sed 's/MAC://g' |sed 's/ //g'`
+	country_code=$(eval echo "$DOL$i")
+
+	radios=`cat "$ALL_CFG_FILE" |grep "wifi-device" |egrep -o "wifi[0,1]"`
+	for wifi in $radios
+	do
+		cluster-cfg $MAC set wireless."$wifi".country="$country_code"
+		iwpriv $wifi setCountry "$country_code"
+	done
+
+elif [ "$operation" = "radio_info" ]; then
+	ifname=
+	ifname=`iwconfig 2>/dev/null |grep -E "athscan0|ath0" |awk '{print $1}' |sed -n 1p`
+	if [ "$ifname" ]; then
+		channel=`iwlist $ifname channel 2>/dev/null |egrep -o "\(Channel .*)" |sed "s/(//g" |sed "s/)//g" |sed "s/ /=/g"`
+		echo "wifi0_$channel"
+		txpower=`iwlist $ifname txpower 2>/dev/null |egrep -o "Tx-Power=.*dBm" |sed "s/dBm//g"`
+		echo "wifi0_$txpower"
+	fi
+	cluster-cfg $MAC show wireless.wifi0 |sed '/channel/d' |sed '/txpower/d'|sed '/wifi-device/d' |sed 's/wireless.//g' |sed 's/wifi0./wifi0_/g'
+	echo
+
+	ifname=
+	ifname=`iwconfig 2>/dev/null |grep -E "athscan1|ath1" |awk '{print $1}' |sed -n 1p`
+	if [ "$ifname" ]; then
+		channel=`iwlist $ifname channel 2>/dev/null |egrep -o "\(Channel .*)" |sed "s/(//g" |sed "s/)//g" |sed "s/ /=/g"`
+		echo "wifi1_$channel"
+		txpower=`iwlist $ifname txpower 2>/dev/null |egrep -o "Tx-Power=.*dBm" |sed "s/dBm//g"`
+		echo "wifi1_$txpower"
+	fi
+	cluster-cfg $MAC show wireless.wifi1 |sed '/channel/d' |sed '/txpower/d'|sed '/wifi-device/d' |sed 's/wireless.//g' |sed 's/wifi1./wifi1_/g'
+
+elif [ "$operation" = "edit_radio" ]; then
+	i=2
+	[ "$1" = "mac" ] && i=`expr $i + 2`
+	[ $(eval echo "$DOL$i") != "device" ] && echo "Please appoint the device." && exit 1
+	MAC=`showsysinfo |grep MAC |sed "s/MAC://g" |sed "s/ //g"`
+	
+	shift $i
+	local args=$@
+	local device=$1
+	shift
+	i=1;
+	while [ $i -le $# ]
+	do
+		local opt=$(eval echo "$DOL$i")
+		i=`expr $i + 1`
+		local val=$(eval echo "$DOL$i")
+		i=`expr $i + 1`
+		cluster-cfg $MAC set wireless.$device.$opt=$val
+	done
+
+	wifi radio_update $args
+
+elif [ "$operation" = "kickmac" ]; then
+	i=1
+	for macaddr in "$@"
+	do
+		if [ $macaddr = "mac" ]; then
+			i=`expr $i + 1`
+			macaddr=$(eval echo "$DOL$i")
+		fi
+		i=`expr $i + 1`
+	done
+
+	ifnames=`iwconfig 2>/dev/null |grep "$ssid" |egrep -o "ath.."`
+	for ifname in $ifnames
+	do
+		iwpriv $ifname kickmac $macaddr
+	done
+
+else
+	usage
+	exit 1
+fi
+
+[ "$(eval echo "$DOL$#")"x = "noflush"x ] && exit 0
+
+if  [ -n "$ssid" -a "$operation" != "list_wlan" -a "$operation" != "show_opts" -a "$operation" != "get_opt" -a "$operation" != "show_wlan_list_op" -a "$operation" != "get_wmm" -a "$operation" != "kickmac" ]; then
+	wifi flush "`_uci2user "$ssid"`" &
+	[ -n "$newssid" ] && [ "$ssid" != "$newssid" ] && wifi flush "`_uci2user "$newssid"`" &
+	_lock "config_wlan_lock"
+	_list_wlan >/tmp/wlan_info
+	cp /tmp/wlan_info /etc/wlan_info
+	_unlock "config_wlan_lock"
+fi
+

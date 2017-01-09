@@ -1,0 +1,176 @@
+#!/bin/sh
+
+###
+### output info to STDOUT for cluster capture usage
+### if all success output "done" to STDOUT
+### else output error info started with "[error]"
+###
+
+### global variables declarations
+
+PVC_IP=""
+PVC_PWD="sync-cfg"
+PVC_INFO_FILE="/tmp/pvc-info"
+
+TMP_LOG_FILE="/tmp/portalsync.log"
+
+TMP_DIR="/tmp/portalsync/"
+
+ERR_HEADER="[error]"
+LOGHEAD="logger -t [portalsync] -p 3 "
+
+PORTAL_DIR="/www/internal_portal/static/img/"
+
+### function declarations
+
+check_run_env()
+{
+	# prepare for scp
+	export HOME=/root
+	rm -rf /root/.ssh/* 2>/dev/null
+	rm -rf /.ssh/* 2>/dev/null
+	
+	mkdir $TMP_DIR >/dev/null 2>&1
+}
+
+clean()
+{
+	cd /tmp
+	rm -rf $TMP_DIR
+}	
+
+success_info()
+{
+    echo "done"
+    echo "[`date`] - done" >> $TMP_LOG_FILE
+    logger -t [portalsync] "### config sync job done ###"
+}
+
+check_is_pvc()
+{
+    local state=`cat $PVC_INFO_FILE | awk -F ':' '{print $3}'`
+    if [ "x1" = "x$state" ]; then
+		clean
+        exit 1
+    fi
+
+    local role=`cat $PVC_INFO_FILE | awk -F ':' '{print $1}'`
+    if [ -z "$role" ]; then
+        echo "$ERR_HEADER No ROLE found!"
+        $LOGHEAD "No ROLE found"
+		clean
+        exit 1
+    fi
+
+    logger -t [portalsync] "ap role [$role]"
+    if [ "$role" -eq 1 ]; then
+        echo "[`date`] - I'm $role - PVC" >> $TMP_LOG_FILE
+        success_info
+		clean
+        exit
+    elif [ "$role" -eq 2 ]; then
+        echo "[`date`] - I'm $role - SVC" >> $TMP_LOG_FILE
+    elif [ "$role" -eq 3 ]; then
+        echo "[`date`] - I'm $role - VC" >> $TMP_LOG_FILE
+    fi
+}
+
+get_pvc_ip()
+{
+    PVC_IP=`cat $PVC_INFO_FILE | awk -F ':' '{print $2}'`
+    if [ -z "$PVC_IP" ]; then
+        echo "[`date`] - No PVC found!" >> $TMP_LOG_FILE
+        echo "$ERR_HEADER No PVC found!"
+        $LOGHEAD "No PVC Found!"
+		clean
+        exit
+    fi
+
+    logger -t [portalsync] "pvc ip [$PVC_IP]"
+    echo "[`date`] - pvc ip = $PVC_IP" >> $TMP_LOG_FILE
+}
+
+# download and check if download ok
+atom_download()
+{
+    echo "[`date`] - portalsync begin ###" >> $TMP_LOG_FILE
+    logger -t [portalsync] "begin sync"
+
+	local ret_str=`expect -c "
+    spawn scp -r scp@$PVC_IP:$PORTAL_DIR/* $TMP_DIR/
+    set timeout 30
+    expect {
+        \"(y/n)\" {
+            set timeout 30
+            send \"y\r\"; exp_continue }
+        \"password:\" {
+            set timeout 30
+            send \"$PVC_PWD\r\"}
+    }
+    expect eof"`
+
+	echo "[`date`] - $ret_str" >> $TMP_LOG_FILE
+
+	# check if the last line contain 100%
+	tail -n 1 $TMP_LOG_FILE | grep -q "100%"
+	if [ $? -eq 0 ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+# if download fails, try 3 times, all fail, generate error log, quit
+download()
+{
+	local ret=1
+	atom_download
+	if [ $? -eq 0 ]; then
+		ret=0
+	fi
+
+	if [ $ret = 1 ]; then
+		echo "[`date`] - download failed!" >> $TMP_LOG_FILE
+		echo "$ERR_HEADER download failed!"
+        logger -t [portalsync] "download failed"
+		clean
+		exit 1
+	fi
+
+	cd $TMP_DIR
+	md5sum * > md5file
+	cd $PORTAL_DIR
+	md5sum * > $TMP_DIR/md5fileo
+	cd $TMP_DIR
+	copy="no"
+	grep -vqwf md5file md5fileo && copy="yes"
+	grep -vqwf md5fileo md5file && copy="yes"
+
+	if [ $copy = "yes" ]; then
+		#now in $TMP_DIR
+		rm md5file md5fileo
+		rm $PORTAL_DIR/* -f
+		cp * $PORTAL_DIR/
+		echo "[`date`] - portalsync success ###" >> $TMP_LOG_FILE
+		logger -t [portalsync] "portalsync success"
+	fi
+}
+
+
+
+
+# in case log file too large
+log_size=`du $TMP_LOG_FILE | awk '{print $1}'`
+if [ $log_size -gt "100" ]; then
+    echo "delete last 100k log" > $TMP_LOG_FILE
+fi
+
+
+check_run_env
+
+check_is_pvc
+get_pvc_ip
+download
+clean
+
+exit 0

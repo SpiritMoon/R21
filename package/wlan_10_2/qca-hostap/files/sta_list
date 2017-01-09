@@ -1,0 +1,19 @@
+#!/bin/sh
+
+if [ -d /var/run/wam-wifi0 ];then
+	var=`ls /var/run/wam-wifi0`
+
+	for vif in $var
+	do
+		wam_cli -p /var/run/wam-wifi0 -i $vif sta_list
+	done
+fi
+
+if [ -d /var/run/wam-wifi1 ];then
+	var=`ls /var/run/wam-wifi1`
+
+	for vif in $var
+	do
+        	wam_cli -p /var/run/wam-wifi1 -i $vif sta_list
+	done
+fi

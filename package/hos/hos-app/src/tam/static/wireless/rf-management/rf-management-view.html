@@ -1,0 +1,56 @@
+<div class="panel" ng-class="{'border_purple':skin.isPurple, 'border_blue':skin.isBlue}"  ng-controller="RfManagementViewController">
+	<div tooltip="{{'RFTip'|translate}}" hover mnuelevel="2" tooltip-enable="{{helpTip.isEabled}}"  class="panel-heading delTBPadding second_level_header" id="function8" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+			<div class="col-md-6 col-lg-7 col-sm-6 col-xs-5 setHeight" ng-click="openConfigPage()" >
+				<h3 class="panel-title">{{"RF"|translate}}</h3>
+			</div>
+			<div class="col-md-6 col-lg-5 col-sm-6 col-xs-7 setHeight">
+				<div style="float: right;">
+					<label style="font-size:12px;"><input type="radio" value="2.4G" ng-model="RF.type">2.4GHz</label>
+					&nbsp;&nbsp;
+					<label style="font-size:12px;"><input type="radio" value="5G" ng-model="RF.type">5GHz</label>
+				</div>
+			</div>
+	</div>
+	<div class="panel-body second_level_content">
+		<div style="width: 390px; height:280px; margin-top:2%; margin-left: auto; margin-right: auto; padding-right:15px;">
+			<div ng-if="RF.type == '2.4G'" align="center" style="float:left;">
+				<p style="margin-top: 2%";><b style="font-size: medium;">2.4GHz {{"Channel Distribution"|translate}}</b></p>
+			</div>
+			<div ng-if="(RF.type == '2.4G') && (!RF.noData)" align="center" style="float:left;">
+				<nvd3-pie-chart
+						data="twoChannelData"
+						id="twoChannelData"
+						width="390"
+						height="280"
+						x="xFunction()"
+						y="yFunction()"
+						showLegend="true"
+						tooltips="true"
+						tooltipcontent="toolTipContentFunction()"
+						noData='{{"mainLoadingData"|translate}}'>
+				</nvd3-pie-chart>
+			</div>
+			<div ng-if="RF.type == '5G'" align="center" style="float: left;">
+				<p style="margin-top: 2%";><b style="font-size: medium;">5GHz {{"Channel Distribution"|translate}}</b></p>
+			</div>
+			<div ng-if="(RF.type == '5G') && (!RF.noData)" align="center" style="float: left;">
+				<nvd3-pie-chart
+						data="fiveChannelData"
+						id="fiveChannelData"
+						width="390"
+						height="280"
+						x="xFunction()"
+						y="yFunction()"
+						showLegend="true"
+						tooltips="true"
+						tooltipcontent="toolTipContentFunction()"
+						noData='{{"mainLoadingData"|translate}}'>
+				</nvd3-pie-chart>
+			</div>
+			<div ng-if="RF.noData" align="center" class="chart_error" style="width: 100%;">
+				<br/>
+				<p><b style="font-size: medium">{{"wirelessNoData"|translate}}</b></p>
+			</div>
+		</div>
+	</div>
+</div>

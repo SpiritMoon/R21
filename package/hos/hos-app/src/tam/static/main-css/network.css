@@ -1,0 +1,14 @@
+.uplink{
+    width: 30%;
+}
+.uplink_line{
+    width: 70%;
+    border: solid 2px #000000;
+}
+#wmm_css table tr td input[type="text"]{
+    width: 150px;
+}
+
+#wmm_css table tr {
+    height: 30px;
+}

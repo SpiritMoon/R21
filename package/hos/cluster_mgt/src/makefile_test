@@ -1,0 +1,26 @@
+CFLAGS += -Wall -g -O0
+
+RM = /bin/rm -f
+
+CLUSTER_MGT_OBJS = cluster_mgt.o timerlib.o
+
+CLUSTER_MGT_SRCS = $(CLUSTER_MGT_OBJS:.o=.c)
+
+CLUSTER_MGT_DEPS := $(CLUSTER_MGT_OBJS:.o=.d)
+
+CLUSTER_MGT_APP = cluster_mgt
+
+helloworld: helloworld.o timerlib.o
+	$(CC) -o helloworld $(CFLAGS) -luci -lpthread  helloworld.o timerlib.o
+	chmod 755 helloworld
+	exit 1
+
+timerlib.o: timerlib.c timerlib.h
+	$(CC) -c timerlib.c
+
+helloworld.o: helloworld.c
+	$(CC) -c helloworld.c
+
+
+
+

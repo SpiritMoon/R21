@@ -1,0 +1,84 @@
+#!/bin/sh
+ . $IPKG_INSTROOT/lib/functions.sh
+
+if [  $# -lt 2 ] ; then
+     echo "Usage: test  add chenjun001 "
+     exit 1;
+fi
+essid=$2
+
+case $1 in
+add)
+	count=`cat /etc/config/captive_portal |grep essid |grep \'$essid\' |wc -l`
+	if [ $count -eq 0 ];then
+		cluster-cfg add_list captive_portal.eag.essid=$essid
+	fi
+	break
+	;;
+
+del)
+	count=`cat /etc/config/captive_portal |grep essid |grep \'$essid\' |wc -l`
+	if [ $count -eq 1 ];then
+		cluster-cfg del_list captive_portal.eag.essid=$essid
+   	fi
+	break
+	;;
+get)
+	count=`cat /etc/config/captive_portal |grep essid |grep \'$essid\' |wc -l`
+	if [ $count -ne 0 ];then                                   
+		echo 1
+	else
+		echo 0
+	fi
+	break	 
+	;;
+add_whitelist)
+	count=`cat /etc/config/captive_portal |grep $2 |wc -l`   
+    if [ $count -eq 0 ];then 
+		cluster-cfg add_list captive_portal.eag.white_list=$2
+	fi
+	break
+	;;
+del_whitelist)                                                                               
+        cluster-cfg del_list captive_portal.eag.white_list=$2                          
+        break                                                                                   
+        ;;  
+local_database)
+	cluster-cfg set captive_portal.eag.local_database=$2
+	break
+	;;
+switch)                                                                              
+        cluster-cfg set captive_portal.eag.switch=$2                          
+        break                                                                      
+        ;; 
+idletime)                                                                              
+        cluster-cfg set captive_portal.eag.idletime=$2                          
+        break                                                                      
+        ;;
+idleflow)                                                                              
+        cluster-cfg set captive_portal.eag.idleflow=$2                          
+        break                                                                      
+        ;;
+account_interval)                                                                              
+        uci set captive_portal.eag.account_interval=$2                          
+        break                                                                      
+        ;;  
+add_mac_white_rule)                                                                               
+        cluster-cfg add_list captive_portal.eag.mac_white_rule=$2                    
+        break                                                                                   
+        ;; 		
+del_mac_white_rule)                                                                               
+        cluster-cfg del_list captive_portal.eag.mac_white_rule=$2                      
+        break                                                                                   
+        ;; 
+auth_mode)                                                                               
+        cluster-cfg set captive_portal.eag.auth_mode=$2                      
+        break                                                                                   
+        ;; 
+dns_redir)
+	cluster-cfg set captive_portal.eag.dns_redir=$2
+	break
+	;;
+esac
+#uci commit
+

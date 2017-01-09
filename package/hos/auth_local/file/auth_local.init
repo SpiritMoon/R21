@@ -1,0 +1,46 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+USE_PROCD=1
+
+userdbPath="/var/run/userdb/"
+start_service()
+{
+	local var
+	config_load auth_local
+	config_get var accout userinfo
+	accout_num=1
+	if [ -d $userdbPath ];then
+		rm -rf "$userdbPath"
+	fi
+	for param in $var
+	do
+		eval "a${accout_num}=$"param"" 
+#		eval "echo \$a${accout_num}"
+		if [[ $accout_num -eq "9" ]];then
+			userm_cli -a $a1 $a2 $a3 $a4 $a5 $a6 $a7 $a8 $a9
+			accout_num=1
+		else
+			accout_num=$(( $accout_num + 1 ))
+		fi
+	done
+	config_get var accesscode code 
+	accesscode_num=1
+	for param in $var
+	do
+		eval "a${accesscode_num}=$param"
+#		eval "echo \$a${accesscode_num}"
+		if [[ $accesscode_num -eq "1" ]];then
+			userm_cli -A $a1
+			accesscode_num=1
+		fi
+	done
+}
+
+stop_service(){
+	killall auth_local
+}
+
+service_triggers(){
+	        procd_add_reload_trigger "auth_local"
+}

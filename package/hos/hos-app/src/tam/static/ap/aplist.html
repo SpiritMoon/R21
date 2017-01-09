@@ -1,0 +1,412 @@
+<div class="modal-header modal_type" ng-class="{'foldedlv1menupurple':skin.isPurple, 'foldedlv1menublue':skin.isBlue}">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">&times;</button>
+    <div class="modal-title">{{"AP Information"|translate}}</div>
+</div>
+    <div class="modal-body ">
+        <div class="row">
+            <!--table list-->
+            <div class="col-md-7">
+                <table class="table table-hover table-condensed table-striped"  style="margin-bottom:0px;">
+                        <thead ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}" >
+                        <tr>
+                            <td ng-if=false style="width: 10%"><input id="apmulti_all" type="checkbox" ng-model="select.selectall"  ng-change="checkAll(select.selectall)"></td>
+                            <td style="width: 25%">{{"Primary Name"|translate}}</td>
+                            <td style="width: 25%">{{"IP"|translate}}</td>
+                            <td style="width: 15%">{{"Firmware"|translate}}</td>
+                            <td style="width: 35%">{{"Operate"|translate}}</td>
+                        </tr>
+                        </thead>
+                </table>
+                <div style="overflow: auto;height: 400px">
+                    <table class="table table-condensed" id="ap_list">
+                        <tbody>
+                        <tr ><td style="width: 100%;text-align:center"  colspan="4" >{{"PVC"|translate}}</td></tr>
+                        <tr ng-repeat="item in aplistdetailinfo.PVC track by $index"  high-light>
+                            <td ng-if=false style="width: 10%;vertical-align: middle"><p ><input  name="checkmulti" type="checkbox"  ng-model="item.$checked"></p></td>
+                            <td style="width: 25%;vertical-align: middle" ><p ng-click="funDetailInfo(item)" title="{{item.mac}}" data-toggle="tooltip">{{item.apname}}</p></td>
+                            <td style="width: 25%;vertical-align: middle"><p ng-click="funDetailInfo(item)" >{{item.ip}}(AP)</br>{{clusterInfo.cluster_vip}}(M)</p></td>
+                            <td style="width: 15%;vertical-align: middle"><p ng-click="funDetailInfo(item)" >{{item.version}}</p></td>
+                            <td style="width: 35%;vertical-align: middle">
+                                <button type="button"  display-permission='!Permission_Guest' class="btn btn-link glyphicon glyphicon-eye-open"  ng-click="funcfg(item)">{{"cfg"|translate}}&nbsp;</button>
+                                <button type="button"  display-permission='Permission_Admin' ng-class="(item.uploadFaseFlag==100) ? 'btn-link':((item.uploadFaseFlag==101)?'btn-link-red':'btn-link-green')" class="btn glyphicon glyphicon-upload"  ng-click="funupdate(item)">{{"firmware"|translate}}</button>
+                                <button type="button" display-permission='Permission_Admin' class="btn btn-link glyphicon glyphicon-off"  ng-click="reboot(item)">{{"reboot"|translate}}</button>
+                            </td>
+                        </tr>
+                        <tr ><td style="width: 100%;text-align:center"  colspan="4" >{{"SVC"|translate}}</td></tr>
+                        <tr  ng-repeat="item in aplistdetailinfo.SVC track by $index" high-light>
+                            <td ng-if=false style="width: 10%"><p><input  name="checkmulti" type="checkbox"  ng-model="item.$checked"></p></td>
+                            <td style="width: 25%;vertical-align: middle" ><p ng-click="funDetailInfo(item)" title="{{item.mac}}" data-toggle="tooltip">{{item.apname}}</p></td>
+                            <td style="width: 25%"><p ng-click="funDetailInfo(item)" >{{item.ip}}</p></td>
+                            <td style="width: 15%;vertical-align: middle"><p ng-click="funDetailInfo(item)" >{{item.version}}</p></td>                            
+                            <td style="width: 35%">
+                                <button type="button" display-permission='!Permission_Guest' ng-disabled="item.state==4" class="btn btn-link glyphicon glyphicon-eye-open"  ng-click="funcfg(item)">{{"cfg"|translate}}&nbsp;</button>
+                                <button type="button" display-permission='Permission_Admin' ng-class="(item.uploadFaseFlag==100) ? 'btn-link':((item.uploadFaseFlag==101)?'btn-link-red':'btn-link-green')" ng-disabled="item.state==4" class="btn btn-link glyphicon glyphicon-upload"  ng-click="funupdate(item)">{{"firmware"|translate}}</button>
+                                <button type="button" display-permission='Permission_Admin' ng-disabled="item.state==4" class="btn btn-link glyphicon glyphicon-off" ng-click="reboot(item)">{{"reboot"|translate}}</button>
+                            </td>
+                        </tr>
+                        <tr ><td style="width: 100%;text-align:center" colspan="4">{{"MEMBER"|translate}}</td></tr>
+                        <tr  ng-repeat="item in aplistdetailinfo.MEM track by $index" high-light>
+                            <td ng-if=false style="width: 10%"><p><input  name="checkmulti" type="checkbox"  ng-model="item.$checked"></p></td>
+                            <td style="width: 25%;vertical-align: middle" ><p ng-click="funDetailInfo(item)" title="{{item.mac}}" data-toggle="tooltip">{{item.apname}}</p></td>
+                            <td style="width: 25%"><p ng-click="funDetailInfo(item)" >{{item.ip}}</p></td>
+                            <td style="width: 15%;vertical-align: middle"><p ng-click="funDetailInfo(item)" >{{item.version}}</p></td>                            
+                            <td style="width: 35%">
+                                <button type="button" display-permission='!Permission_Guest' ng-disabled="item.state==4" class="btn btn-link glyphicon glyphicon-eye-open"  ng-click="funcfg(item)">{{"cfg"|translate}}&nbsp;</button>
+                                <button type="button" display-permission='Permission_Admin' ng-disabled="item.state==4" ng-class="(item.uploadFaseFlag==100) ? 'btn-link':((item.uploadFaseFlag==101)?'btn-link-red':'btn-link-green')" class="btn btn-link glyphicon glyphicon-upload"  ng-click="funupdate(item)">{{"firmware"|translate}}</button>
+                                <button type="button" display-permission='Permission_Admin' ng-disabled="item.state==4" class="btn btn-link glyphicon glyphicon-off" ng-click="reboot(item)">{{"reboot"|translate}}</button>
+                            </td>
+                        </tr>
+                        <tr ><td style="width: 100%;text-align:center" colspan="4">{{"Joining"|translate}}</td></tr>
+                        <tr  ng-repeat="item in aplistdetailinfo.joining track by $index" >
+                            <td ng-if=false style="width: 10%"><p ><input  name="checkmulti" type="checkbox"  ng-checked="selectall" value="{{item}}"></p></td>
+                            <td style="width: 25%"><p ng-click="funDetailInfo(item)">{{item.mac}}</p></td>
+                            <td style="width: 25%"><p ng-click="funDetailInfo(item)" >{{item.ip}}</p></td>
+                            <td style="width: 15%;vertical-align: middle"><p ng-click="funDetailInfo(item)" >{{item.version}}</p></td>
+                            <td style="width: 35%">
+                                 <span ng-if="(aplistdetailinfo.PVC[0].version).localeCompare(item.version) != 1">
+                                    <button  hover mnuelevel="1" tooltip-placement="bottom"  type="button" display-permission='Permission_Admin'  class="btn btn-link glyphicon glyphicon-upload"  ng-click="funupdate(item)">{{"firmware"|translate}}</button>
+                                </span>
+                                <span ng-if="(aplistdetailinfo.PVC[0].version).localeCompare(item.version) == 1">
+                                    <button tooltip="{{'JoiningAPTips'|translate}}"  tooltip-placement="bottom"  type="button" display-permission='Permission_Admin'  style="color: red;"  class="btn btn-link glyphicon glyphicon-upload"  ng-click="funupdate(item)">{{"firmware"|translate}}</button>
+                                </span>
+                            </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                    </div>
+            </div>
+            <div class="col-md-5" >
+                 <div id="myTabContent" class="tab-content"><!--show in same space-->
+                     <div ng-class="tabflag.updatetab ? 'tab-pane fade in active' : 'tab-pane fade'" id="update">
+                         <div class="panel" style="height: 453px" ng-class="{'border_purple':skin.isPurple, 'border_blue':skin.isBlue}">
+                             <div id="updateFirmware" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}" class="panel-heading" >
+                                 <div class="panel-title">
+                                     {{"Update Firmware"|translate}}
+                                 </div>
+                             </div>
+                             <div class="panel-body " style="height:400px">
+                                 <div class="row">
+                                     <div class="col-md-12">
+                                         <label class="text-danger">{{"UpgrateTips"|translate}}</label>
+                                     </div>
+                                 </div>
+                                 <div class="row">
+                                     <div class="col-sm-12">
+                                         <form role="form" class="form-horizontal">
+                                                 <div class="form-group" > 
+                                                     <label class="checkbox-inline">
+                                                         <input type="radio" class="col-md-offset-2" name="firmware" ng-model="iSurlorloc" value="false">{{"Image File"|translate}}
+                                                     </label>
+                                                     <label class="checkbox-inline">
+                                                         <input type="radio" name="firmware"  ng-model="iSurlorloc" value="true">{{"Image URL"|translate}}
+                                                     </label>
+                                                 </div>
+                                         </form>
+                                     </div>
+                                 </div>
+                                 <div class="row"  >
+                                     <div class="col-md-12">
+                                         <form role="form" class="form-horizontal" name="byurlform" ng-show="iSurlorloc=='true'" novalidate>
+                                             <div class="form-group" ng-class="{'has-error':byurlform.updateurl.$dirty && byurlform.updateurl.$invalid}">
+                                                 <label  class="col-md-3 control-label">{{"URL"|translate}}:</label>
+                                                 <div class="col-md-8">
+                                                     <input type="text" name="updateurl" ng-model="byurl.url" ng-pattern="/((^[T|t][F|f][T|t][P|p]://([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])/[\w -\.]{1,}\.bin$)|(^[F|f][T|t][P|p]://([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])\.([1-9]?\d|1\d\d|2[0-4]\d|25[0-5])(:\d{1,5}){0,1}(/[^/]{1,})*/[\w -\.]{1,}\.bin:\w+:\w+$))/" class="form-control" required>
+                                                 </div>
+                                             </div>
+                                             <div class="form-group" ng-show="byurlform.updateurl.$dirty && byurlform.updateurl.$invalid">
+                                                 <div class="col-sm-offset-3 col-sm-8">
+                                                     <span class="text-danger" ng-show="byurlform.updateurl.$error.pattern" ng-bind="InterService.validFTP()"></span>
+                                                 </div>
+                                             </div>
+                                             <div class="form-group" >
+                                                 <div class="col-sm-offset-1">
+                                                     <label for class="control-label">{{"TFTPINFO_1"|translate}}</label>
+                                                 </div>
+                                             </div>
+                                             <div class="form-group">
+                                                 <div class="col-sm-offset-1">
+                                                     <label class="control-label">
+                                                         {{"TFTPINFO_2"|translate}}
+                                                     </label>
+                                                 </div>
+
+                                             </div>
+                                             <div class="form-group" >
+                                                 <div class="col-sm-offset-3">
+                                                    <button class="btn btn-custommenu" ng-show="!flag.upload2one" ng-click="UpdateByUrl(100)" ng-disabled="byurlform.updateurl.$invalid">{{"Upload to all"|translate}}</button>
+                                                    <button class="btn btn-custommenu" ng-show="flag.upload2one" ng-click="UpdateByUrl(200)" ng-disabled="byurlform.updateurl.$invalid">{{"Upload"|translate}}</button>
+                                                 </div>
+                                             </div>
+                                         </form>
+                                     </div>
+                                 </div>
+                                 <div ng-show="iSurlorloc =='false'">
+                                     <input type="file" nv-file-select="" uploader="uploaderfirm" ng-click="clearItemsfirm()" />
+                                     <ul>
+                                         <li ng-repeat="item in uploaderfirm.queue">
+                                             <div>{{"Name"|translate}}: {{ item.file.name }}</div>
+                                             <div ng-if="item.file.size/1024 > 10">{{"Size"|translate}}: {{ item.file.size/1024/1024|number:2 }} MB</div>
+                                             <div ng-if="item.file.size/1024 <= 10">{{"Size"|translate}}: 0.01 MB</div>
+                                             <div ng-show="uploader.isHTML5">
+                                                 <div class="progress" style="margin-bottom: 0;">
+                                                     <div class="progress-bar" role="progressbar" ng-style="{ 'width': item.progress + '%' }"></div>
+                                                 </div>
+                                             </div>
+                                             <div>
+                                                 <br>
+                                                 <button class="btn btn-custommenu" ng-click="clearItemsfirm()">{{"Remove"|translate}}</button>
+                                                 <button class="btn btn-custommenu" ng-show="!flag.upload2one" ng-click="UpdatetoAll(item,2)" >{{"Upload to all"|translate}}</button>
+                                                 <button class="btn btn-custommenu" ng-show="flag.upload2one" ng-click="UpdatetoAll(item,1)" >{{"Upload"|translate}}</button>
+                                                 <!--<button ng-click="item.cancel()" ng-disabled="!item.isUploading">{{"Cancel"|translate}}</button>-->
+                                             </div>
+                                         </li>
+                                     </ul>
+                                 </div>
+                             </div>
+                        </div>
+                    </div>
+
+                 <div ng-class="tabflag.restoretab ? 'tab-pane fade in active' : 'tab-pane fade'" id="restore">
+                     <div class="panel" style="height: 453px" ng-class="{'border_purple':skin.isPurple, 'border_blue':skin.isBlue}">
+                         <div id="restoreFirmware" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}"  class="panel-heading">
+                             <div class="panel-title">
+                                 {{"Restore All Config"|translate}}
+                             </div>
+                         </div>
+                         <div class="panel-body " id="restoreFirmfile">
+                             <input type="file" id="file_restore" nv-file-select="" uploader="uploader" ng-click="clearItems()" />
+                             <ul>
+                                 <li ng-repeat="item in uploader.queue">
+                                     <div class="ssidbreak">{{"Name"|translate}}: {{ item.file.name }}</div>
+                                     <div ng-if="item.file.size/1024 > 10">{{"Size"|translate}}: {{ item.file.size/1024/1024|number:2 }} MB</div>
+                                     <div ng-if="item.file.size/1024 <= 10">{{"Size"|translate}}: 0.01 MB</div>
+                                     <div ng-show="uploader.isHTML5">
+                                         <div class="progress" style="margin-bottom: 0;">
+                                             <div class="progress-bar" role="progressbar" ng-style="{ 'width': item.progress + '%' }"></div>
+                                         </div>
+                                     </div>
+                                     <div>
+                                         <button class="btn btn-custommenu" ng-click="clearItems()">{{"Remove"|translate}}</button> 
+                                         <button class="btn btn-custommenu" ng-click="restorefile(item)" >{{"Upload"|translate}}</button>
+                                         <!--<button ng-click="item.cancel()" ng-disabled="!item.isUploading">{{"Cancel"|translate}}</button>-->
+
+                                     </div>
+                                 </li>
+                             </ul>
+                        </div>
+                    </div>
+                 </div>
+
+                 <div ng-class="tabflag.detailtab ? 'tab-pane fade in active' : 'tab-pane fade'" id="DetailInfo">
+                     <div class="panel"  ng-class="{'border_purple':skin.isPurple, 'border_blue':skin.isBlue}">
+                      <div id="apDetailInfo" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}" class="panel-heading">
+                          <div class="panel-title">
+                              {{"Detailed Info"|translate}}
+                          </div>
+                      </div>
+                         <div  class="panel-body">
+                             <table class="aplistTable" style="width: 100%;height: 150px;margin-top: 10px" ng-show="flag.apinfoshow">
+                                 <tr>
+                                     <td style="width: 135px">{{"nameofap"|translate}}:</td>
+                                     <td ng-show="!flag.isEditApname">
+                                         {{apInfo.apName}}&nbsp;&nbsp;&nbsp;<a display-permission='Permission_Admin' ng-show="currentApInfo.state==3||currentApInfo.state==2" ng-click="saveOrCancelApName(100)">{{"Edit"|translate}}</a>
+                                     </td>
+                                     <td ng-show="flag.isEditApname">
+                                         <form role="form" name="apNameForm" novalidate>
+                                             <input  type="text" style="width:80px;"  ng-model="edit.apNewName"  name="apname" tooltip="1-20 characters(0-9a-zA-Z.:-_)" tooltip-trigger="mouseenter" ng-minlength="1" ng-maxlength="20" ng-pattern="{{InterService.pattern.APName}}" required>&nbsp;
+                                             <button class="btn btn-warning btn-xs" ng-click="saveOrCancelApName(102)">{{"Cancel"|translate}}</button>                               
+                                             <button class="btn btn-primary btn-xs" ng-click="saveOrCancelApName(101)" ng-disabled="apNameForm.apname.$invalid">{{"Save"|translate}}</button>
+                                         </form>
+                                         <div ng-show="apNameForm.apname.$dirty && apNameForm.apname.$invalid">
+                                             <small class="text-danger" ng-show="apNameForm.apname.$error.pattern" ng-bind="InterService.errorTip.APName"></small>
+                                             <!--<small class="text-danger" ng-show="apNameForm.apname.$error.required" ng-bind="InterService.valueNotNull('ap name');"></small>-->
+                                         </div>
+                                     </td>
+                                 </tr>
+                                 <tr>
+                                     <td style="width: 135px;">{{"MAC"|translate}}:</td>
+                                     <td>
+                                        {{apInfo.mac}}
+                                     </td>
+                                 </tr>
+                                 <tr >
+                                     <td style="width: 135px;">{{"Location"|translate}}:</td>
+                                     <td ng-show="flag.noeditloc" >
+                                         <div>
+                                            <span class="ssidbreak">{{apInfo.apLoc}}</span>&nbsp;&nbsp;&nbsp;
+                                             <a display-permission='Permission_Admin' ng-show="currentApInfo.state==3||currentApInfo.state==2" ng-click="saveOrCancelApLocation(100)">{{"Edit"|translate}}</a>
+                                         </div>
+                                     </td>
+                                     <td ng-show="!flag.noeditloc">
+                                         <form role="form" name="apLocationForm"  novalidate>
+                                            <div  ng-class="{'has-error': apLocationForm.aploc.$dirty && apLocationForm.aploc.$invalid}">
+                                                <input  type="text" style="width:80px;"  ng-model="editloc.aploc"  name="aploc" tooltip="1-32 chars(letters digits underlines)" tooltip-trigger="mouseenter" ng-minlength="1" ng-maxlength="32" ng-pattern="{{InterService.pattern.ldu1to32}}" required>&nbsp;
+                                                <button class="btn btn-warning btn-xs" ng-click="saveOrCancelApLocation(102)">{{"Cancel"|translate}}</button>                                                
+                                                <button class="btn btn-primary btn-xs" ng-click="saveOrCancelApLocation(101)" ng-disabled="apLocationForm.aploc.$invalid">{{"Save"|translate}}</button>
+                                            </div>
+                                             <div  ng-show="apLocationForm.aploc.$dirty && apLocationForm.aploc.$invalid && !apLocationForm.aploc.$focused && editloc.aploc!='' ">
+                                                 <div>
+                                                     <small class="text-danger" ng-show="apLocationForm.aploc.$error.required" ng-bind="InterService.valueNotNull('Location')"></small>
+                                                     <small class="text-danger" ng-show="apLocationForm.aploc.$error.pattern" ng-bind="InterService.lduLengthRangeTip(1,32)"></small>
+                                                 </div>
+                                             </div>
+                                         </form>
+                                     </td>
+                                 </tr>
+
+                                 <tr >
+                                     <td>{{"Status"|translate}}:</td>
+                                     <td ng-if="currentApInfo.role!=1">{{currentApInfo.state| apStatusFilter}}&nbsp;&nbsp;
+                                         <span display-permission='Permission_Admin' ng-if="currentApInfo.state ==1"><a ng-click="acceptAp()">{{"Accept"|translate}}</a></span>
+                                         <span display-permission='Permission_Admin' ng-if="currentApInfo.state ==2||currentApInfo.state ==3"><a ng-click="kickOffAp()">{{"Kick Off"|translate}}</a></span>
+                                         <span display-permission='Permission_Admin' ng-if="currentApInfo.state ==4"><a ng-click="deleteAp()">{{"Delete"|translate}}</a></span>
+                                     </td>
+                                     <td ng-if="currentApInfo.role==1">{{currentApInfo.state| apStatusFilter}}</td>
+                                 </tr>
+                                 <tr >
+                                     <td>{{"Role in Cluster"|translate}}:</td>
+                                     <td ng-if="currentApInfo.role==3&&currentApInfo.state==3">
+                                         <span>{{currentApInfo.role | rolechange}}</span>&nbsp;&nbsp;
+                                         <span display-permission='Permission_Admin'><a  ng-click="Update2PVC()">Update to PVC</a></span>
+                                     </td>
+                                     <td ng-if="currentApInfo.role!=3||currentApInfo.state!=3">
+                                         <span>{{currentApInfo.role | rolechange}}</span>&nbsp;&nbsp;
+                                         <span ng-if="currentApInfo.role==2" display-permission='Permission_Admin' ><a  ng-click="Update2PVC()">Update to PVC</a></span>
+                                     </td>
+                                 </tr>
+                                 <tr >
+                                     <td>{{"Serial Number"|translate}}:</td>
+                                     <td>{{apInfo.SN}}</td>
+                                 </tr>
+                                 <tr >
+                                     <td>{{"Mode"|translate}}:</td>
+                                     <td>{{apInfo.Model}}</td>
+                                 </tr>
+                                 <tr >
+                                     <td>{{"Firmware"|translate}}:</td>
+                                     <td>{{apInfo.Firmware}}</td>
+                                 </tr>
+                                 <tr >
+                                     <td>{{"upgradetime"|translate}}:</td>
+                                     <td>{{apInfo.uploadtime}}</td>
+                                 </tr>
+                                 <tr >
+                                     <td>{{"upgradeflag"|translate}}:</td>
+                                     <td ng-if="apInfo.uploadflag==1">{{"success"|translate}}</td>
+                                     <td ng-if="apInfo.uploadflag==0">{{"failed"|translate}}</td>
+                                 </tr>
+                             </table>
+                             <table style="width: 100%;height: 150px;margin-top: 20px" ng-show="!flag.apinfoshow">
+                                 <tr >
+                                     <td>{{"Status"|translate}}:</td>
+                                     <td >{{currentApInfo.state| apStatusFilter}}&nbsp;&nbsp;
+                                         <span display-permission='Permission_Admin' ng-if="currentApInfo.state ==1 && (aplistdetailinfo.PVC[0].version).localeCompare(currentApInfo.version) != 1 && ('2.1.0.68').localeCompare(currentApInfo.version)!=1"><a ng-click="acceptAp()">{{"Accept"|translate}}</a></span>
+                                         <span display-permission='Permission_Admin' ng-if="currentApInfo.state ==4"><a ng-click="deleteAp()">{{"Delete"|translate}}</a></span>
+                                     </td>
+                                 </tr>
+                             </table>
+                             <hr>
+                           <div  id="myTabContentip" class="tab-content" ng-show="flag.apinfoshow">
+                              <div  ng-show="flag.showdhcp">
+                                  <table class="aplistTable"  style="width: 100%;margin-top: 30px;">
+                                    <tr>
+                                      <td style="width: 135px">{{"IP Mode"|translate}}:</td>
+                                      <td>{{apInfo.netproto}}&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                                          <span display-permission='Permission_Admin'><a ng-show="currentApInfo.state==2||currentApInfo.state==3" ng-click="saveDhcpOpration(100)">{{"Edit"|translate}}</a>
+                                          </span>
+                                      </td>
+                                    </tr>
+                                    <tr >
+                                      <td>{{"IP"|translate}}:</td>
+                                      <td>{{apInfo.ip}}</td>
+                                    </tr>
+                                    <tr >
+                                      <td>{{"Netmask"|translate}}:</td>
+                                      <td>{{apInfo.netmask}}</td>
+                                    </tr>
+                                    <tr >
+                                      <td>{{"Default Gateway"|translate}}:</td>
+                                      <td>{{apInfo.gateway}}</td>
+                                    </tr>
+                                  </table>
+                              </div>
+                              <div  ng-show="!flag.showdhcp" >
+                               <input type="radio" name="dhcp" ng-model="edit.proto" value="dhcp" ng-click="show_ip_edit(100)">{{"DHCP"|translate}}&nbsp;&nbsp;
+                               <input type="radio" name="dhcp" ng-model="edit.proto" value="static" ng-click="show_ip_edit(101)">{{"Static"|translate}}&nbsp;&nbsp;
+                               <span>
+                                    <button class="btn btn-warning btn-xs"  ng-click="saveDhcpOpration(102)">{{"Cancel"|translate}}</button>                                    
+                                    <button class="btn btn-primary btn-xs"  ng-disabled="apdhcp.$invalid&&flag.isEditip" ng-click="saveDhcpOpration(101)">{{"Save"|translate}}</button>&nbsp;&nbsp;
+                               </span>
+
+                               <form role="form" name="apdhcp" novalidate style="margin-top: 5px;">
+                                   <div  class="form-group" ng-show="flag.isEditip">
+                                       <table style="width: 100%">
+                                           <tr ng-class="{'has-error': apdhcp.apIP.$dirty && apdhcp.apIP.$invalid && edit.ipaddr != ''}">
+                                               <td style="width: 135px">{{"IP"|translate}}: </td>
+                                               <td><input type="text" class="form-control input-sm" ng-model="edit.ipaddr" name="apIP" style="height: 30px;" placeholder={{apInfo.ip}} ng-pattern="{{InterService.pattern.IP}}" tooltip="x.x.x.x" tooltip-trigger="mouseenter" required></td>
+                                           </tr>
+                                           <tr ng-show="apdhcp.apIP.$dirty && apdhcp.apIP.$invalid && edit.ipaddr != ''">
+                                                <td colspan="2">
+                                                    <small class="text-danger" ng-show="apdhcp.apIP.$error.required" ng-bind="InterService.valueNotNull('IP');"></small>
+                                                    <small class="text-danger" ng-show="apdhcp.apIP.$error.pattern" ng-bind="InterService.validIP()"></small>
+                                                </td>
+                                           </tr>
+
+                                           <tr ng-class="{'has-error': apdhcp.apnetmask.$dirty && apdhcp.apnetmask.$invalid && edit.netmask != ''}">
+                                               <td>{{"Netmask"|translate}}: </td>
+                                               <td><input type="text" class="form-control input-sm" ng-model="edit.netmask" style="height: 30px;" name="apnetmask" placeholder={{apInfo.netmask}} tooltip="x.x.x.x" tooltip-trigger="mouseenter" ng-pattern="{{InterService.pattern.IP}}" required></td>
+                                           </tr>
+                                           <tr ng-show="apdhcp.apnetmask.$dirty && apdhcp.apnetmask.$invalid && edit.netmask != ''">
+                                               <td colspan="2">
+                                                   <small class="text-danger" ng-show="apdhcp.apnetmask.$error.required" ng-bind="InterService.valueNotNull('netmask');"></small>
+                                                   <small class="text-danger" ng-show="apdhcp.apnetmask.$error.pattern" ng-bind="InterService.validIP()"></small>
+                                               </td>
+                                           </tr>
+
+                                           <tr  ng-class="{'has-error': apdhcp.apgateway.$dirty && apdhcp.apgateway.$invalid && edit.gateway!= ''}">
+                                               <td>{{"Default Gateway"|translate}}: </td>
+                                               <td><input type="text" class="form-control input-sm" ng-model="edit.gateway" style="height: 30px;" name="apgateway" placeholder={{apInfo.gateway}} tooltip="x.x.x.x" tooltip-trigger="mouseenter" ng-pattern="{{InterService.pattern.IP}}" required></td>
+                                           </tr>
+                                           <tr ng-show="apdhcp.apgateway.$dirty && apdhcp.apgateway.$invalid && edit.gateway!= '' ">
+                                               <td colspan="2">
+                                                   <small class="text-danger" ng-show="apdhcp.apgateway.$error.required" ng-bind="InterService.valueNotNull('default gateway');"></small>
+                                                   <small class="text-danger" ng-show="apdhcp.apgateway.$error.pattern" ng-bind="InterService.validIP()"></small>
+                                               </td>
+                                           </tr>
+                                       </table>
+                                   </div>
+                               </form>
+                           </div>
+                           </div>
+                       </div>
+                    </div>
+                 </div>
+                 <div ng-class="tabflag.cfgtab ? 'tab-pane fade in active' : 'tab-pane fade'" id="cfg">
+                     <div class="panel" style="height: 453px" ng-class="{'border_purple':skin.isPurple, 'border_blue':skin.isBlue}">
+                         <div id="cfgFirmware" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}" class="panel-heading">
+                             <div class="panel-title">
+                                 {{"Current Configuration"|translate}}
+                             </div>
+                         </div>
+                         <div  class="panel-body">
+                             <textarea id="CurrentCfg" style="width:100%;height: 380px;resize:none;overflow:auto;" readonly="true">{{cfgtext.content}}</textarea>
+                             <!--button class="btn btn-primary" ng-click="editCfg()">Edit</button-->
+                         </div>
+                      </div>
+                 </div>
+                </div>
+            </div>
+        </div>
+            <hr>
+        <div class="row">
+             <div class="col-md-offset-2 col-md-10">
+                <button display-permission='Permission_Admin' class="btn btn-custommenu" ng-click="clearAllCfg()">{{"Clear All Config"|translate}}</button>
+                <button display-permission='Permission_Admin' class="btn btn-custommenu" ng-click="downloadServerDetailList()">{{"Backup All Config"|translate}}</button>
+                <button display-permission='Permission_Admin' class="btn btn-custommenu" ng-click="showRestore()">{{"Restore All Config"|translate}}</button>
+                <button display-permission='Permission_Admin' class="btn btn-custommenu" ng-click="showbashupload()">{{"Upgrade all Firmware"|translate}}</button>
+            </div>
+        </div>
+        <br/>
+    </div>
+
+

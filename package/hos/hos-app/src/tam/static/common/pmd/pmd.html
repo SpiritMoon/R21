@@ -1,0 +1,28 @@
+    <div class="modal-header modal_type" ng-class="{'foldedlv1menupurple':skin.isPurple, 'foldedlv1menublue':skin.isBlue}">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">&times;</button>
+        <div class="modal-title">PMD</div>
+    </div>
+    <div class="modal-body">
+        <form role="form" class="form-inline" name="toolsform" novalidate>
+            <div class="form-group">
+                Post Mortem Dump(PMD) is mainly for identifying root cause of a
+                core dump and exception pointers after crash.
+                when enabled, PMD will be generated and pushed to a server for
+                analysis.By default, PMD is disabled.
+            </div>
+            <br>
+            <br>
+            <div class="form-group">
+                <label class="control-label">{{"PMD"|translate}}:</label>
+                <toggle-switch display-permission='Permission_Admin' ng-model="pmdInformation.pmdSwitch"  ng-change="configStatus()"></toggle-switch>
+                <span display-permission='!Permission_Admin'>{{ pmdInformation.pmdSwitch | switchFilter }}</span>
+            </div>
+            <br>
+            <br>
+            <div class="form-group"  ng-class="{'has-error': toolsform.hostname.$dirty && toolsform.hostname.$invalid}">
+                <label class="control-label">{{"TFTP Server"|translate}}:</label>
+                <input type="text" ng-disabled="userName!='Administrator'"  class="form-control" name="hostname" ng-model="pmdInformation.tftpServer"  tooltip="x.x.x.x" tooltip-trigger="mouseenter" placeholder="IP Address" ng-pattern="{{InterService.pattern.IPAndDomain}}" required>
+                <button class="btn btn-custommenu" ng-disabled="userName!='Administrator'" ng-click="savePmd()">{{"Save"|translate}}</button>
+            </div>
+        </form>
+    </div>

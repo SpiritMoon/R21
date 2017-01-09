@@ -1,0 +1,37 @@
+<div ui-view>
+    <div class="modal-header modal_type" ng-class="{'foldedlv1menupurple':skin.isPurple, 'foldedlv1menublue':skin.isBlue}">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">&times;</button>
+        <div class="modal-title">{{"aboutInformation"|translate}}</div>
+    </div>
+    <div class="modal-body">
+        <div style="height: 300px;">
+            <div class="row">
+                <div class="col-md-6 col-md-offset-3 text-center">
+                    <div><img style="height:100px;" src="assets/images/about_logo.png" /></div>
+                </div>
+            </div>
+            <table class="table-condensed layout_center">
+                <tr>
+                    <td style="width:25%">{{"aboutName"|translate}}:</td>
+                    <td>&nbsp;{{aboutInfo.name}}</td>
+                </tr>
+                <tr>
+                    <td>{{"aboutVersion"|translate}}:</td>
+                    <td>&nbsp;{{aboutInfo.softVersion}}</td>
+                </tr>
+                <tr>
+                    <td>{{"aboutCountry"|translate}}:</td>
+                    <td>&nbsp;{{aboutInfo.countryCode}}</td>
+                </tr>                
+                <tr>
+                    <td>{{"aboutWebsite"|translate}}:</td>
+                    <td>&nbsp;<a href="{{aboutInfo.website}}" target="_blank">{{aboutInfo.website}}</a></td>
+                </tr>
+                <tr>
+                    <td>{{"aboutLegal"|translate}}:</td>
+                    <td>&nbsp;{{aboutInfo.legal}}</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+</div>

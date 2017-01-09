@@ -1,0 +1,6 @@
+config bg-scanning 'bs'
+    option enable '1'
+    option scan_interval '10'
+    option foreign_ch_dur '20'
+    option scan_iface0 'athscan0'
+    option scan_iface1 'athscan1'

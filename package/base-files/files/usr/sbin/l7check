@@ -1,0 +1,9 @@
+#!/bin/sh
+
+if [ $# != 1 ]; then
+	exit 1;
+fi
+
+conntrack -s $1 -m 16777216/16777216 -L 2>/dev/null 1> /tmp/l7check.out
+conntrack -d $1 -m 16777216/16777216 -L 2>/dev/null 1>> /tmp/l7check.out
+cat /tmp/l7check.out | wc -l

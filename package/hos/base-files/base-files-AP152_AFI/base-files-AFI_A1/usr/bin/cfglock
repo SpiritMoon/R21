@@ -1,0 +1,13 @@
+#!/bin/sh
+
+SN_NAME="/etc/cfm/lock"
+
+ln -s /dev/null $SN_NAME 2> /dev/null
+
+if [ $? -eq 0 ]; then
+	echo "locked"
+	exit 0
+else
+	echo "busy"
+	exit 1
+fi

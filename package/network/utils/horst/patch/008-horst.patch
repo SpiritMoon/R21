@@ -1,0 +1,66 @@
+diff -urN a/han.c b/han.c
+--- a/han.c	2016-05-24 02:34:47.826746063 -0700
++++ b/han.c	2016-05-24 02:38:05.656177398 -0700
+@@ -107,7 +107,7 @@
+ 					ai->u.ci.qos = 1;
+ 				else 
+ 					ai->u.ci.qos = 0;
+-				ai->inact = conf.reload_inact;
++				ai->inact = conf.client_reload_inact;
+ 			}
+ 			pthread_mutex_unlock(&client_head[hash].lock);
+ 		}		
+@@ -134,7 +134,7 @@
+ 					ai->u.wi.encryption_type = ENCRYPTION_WEP;
+ 				else 
+ 					ai->u.wi.encryption_type = ENCRYPTION_OPEN;
+-				ai->inact = conf.reload_inact;
++				ai->inact = conf.wlan_reload_inact;
+ 			}
+ 			pthread_mutex_unlock(&wlan_head[hash].lock);
+ 		}
+@@ -154,7 +154,7 @@
+ 				ai->rss = pi->phy_signal;
+ 				ai->u.ci.ip = 0;
+ 				ai->u.ci.qos = 0;
+-				ai->inact = conf.reload_inact;
++				ai->inact = conf.client_reload_inact;
+ 			}
+ 			pthread_mutex_unlock(&client_head[hash].lock);
+ 		}		
+diff -urN a/main.c b/main.c
+--- a/main.c	2016-05-24 02:34:35.158746624 -0700
++++ b/main.c	2016-05-24 02:38:50.087208539 -0700
+@@ -65,7 +65,8 @@
+ #if HAN_VERSION
+ 	.ifname_2g		= INTERFACE_NAME_2G,
+ 	.ifname_5g		= INTERFACE_NAME_5G,
+-	.reload_inact	= RELOAD_INACT,
++	.client_reload_inact = CLIENT_RELOAD_INACT,
++	.wlan_reload_inact = WLAN_RELOAD_INACT,
+ 	.sun_path		= SUN_PATH,
+ 	.scanning_intval	= 5,
+ 	.duration_on_foreign	= 50,
+diff -urN a/main.h b/main.h
+--- a/main.h	2016-05-24 02:34:28.938746707 -0700
++++ b/main.h	2016-05-24 02:39:06.431029657 -0700
+@@ -99,7 +99,8 @@
+ #if HAN_VERSION
+ #define INTERFACE_NAME_2G		"athscan0"
+ #define INTERFACE_NAME_5G  		"athscan1"
+-#define RELOAD_INACT		6
++#define WLAN_RELOAD_INACT		30 //five minutes
++#define CLIENT_RELOAD_INACT		360 //one hour
+ #define SUN_PATH			"/tmp/unix-bgscan"
+ #endif
+ #define NODE_TIMEOUT		60	/* seconds */
+@@ -332,7 +333,8 @@
+ 	int				num_channels_5g;
+ 	int				duration_on_foreign;
+ 	char			scanning_intval;
+-	char 			reload_inact;
++	short 			client_reload_inact;
++	short 			wlan_reload_inact;
+ 	char* 			sun_path;
+ 	char* 			dump_file;
+ #endif

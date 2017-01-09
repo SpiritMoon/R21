@@ -1,0 +1,195 @@
+<div class="modal-header modal_type" ng-class="{'foldedlv1menupurple':skin.isPurple, 'foldedlv1menublue':skin.isBlue}">
+    <button type="button" class="close"
+            data-dismiss="modal" aria-hidden="true" ng-click="cancel()">&times;</button>
+    <div class="modal-title">{{"wIDS/wIPSConf"|translate}}</div>
+</div>
+<div class="panel-body">
+    <div class="row">
+        <div class="col-md-8" id="RogueAP_list">
+            <div name="dvThead" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}">
+                <table  class="table  table-striped table-hover table-condensed  tableLayoutFixed" style="margin-bottom: 0px;width: 97%;">
+                    <thead >
+                        <tr >
+                            <td class="col-md-3" ng-click="col='MAC';desc=!desc">{{"Unknown AP"|translate}}</td>
+                            <td class="col-md-2" ng-click="col='SSID';desc=!desc">{{"SSID"|translate}}</td>
+                            <td class="col-md-2" ng-click="col='TYPE';desc=!desc">{{"Type"|translate}}</td>
+                            <td class="col-md-3" ng-click="col='apInfo';desc=!desc">AP</td>
+                            <td>{{"Operate"|translate}}</td>
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+            <div name="dvTbody" style="height: 400px; overflow: auto;" class="detailBorder detailBgColor">
+                <table class="table tableLayoutFixed table-condensed ">
+                    <tbody>
+                        <tr ng-repeat='item in rogueApListParams | orderBy:col:desc' high-light>
+                            <td class="col-md-3" ng-click="showDetail(item)"><div class="self_adaptation_td" ng-bind="item.MAC" title="{{item.MAC}}"></div></td>
+                            <td class="col-md-2" ng-click="showDetail(item)"><div class="self_adaptation_td" ng-bind="item.SSID" title="{{item.SSID}}"></div></td>
+                            <td class="col-md-2" ng-click="showDetail(item)"><div class="self_adaptation_td" ng-bind="item.TYPE | typeFilter" title="{{item.TYPE | typeFilter}}"></div></td>
+                            <td class="col-md-3" ng-click="showDetail(item)"><div class="self_adaptation_td" ng-bind="item.apInfo" title="{{item.hapMac}}">}</div></td>
+                            <td >
+                                <a display-permission='Permission_Admin' href="" ng-click="trust(item.MAC)">{{"Trust"|translate}}</a>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div style="margin-top: 15px">
+                <button class="btn btn-custommenu" ng-click="showWhiteList()">{{"White List"|translate}}</button>
+                <button class="btn btn-custommenu" ng-click="showDynamicBlackList()">{{"Black List"|translate}}</button>
+            </div>
+        </div>
+        <div class="col-md-4 paddingL0">
+            <div class="row" ng-show="rogueApDetail">
+                <div class="col-sm-12">
+                    <div class="detailBorder detailBgColor">
+                        <div class="rogueAPDetailHead text-center font16" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}" >
+                            <span>{{"Unknown AP Information"|translate}}</span>
+                        </div>
+                        <div class="rogueAPDetailBody">
+                            <table  style="width:100%;" class="tableLayoutFixed">
+                                <tr>
+                                    <td>{{"Unknown AP"|translate}}:</td>
+                                    <td>{{currentRogueAP.MAC}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{"RSSI"|translate}}:</td>
+                                    <td>{{currentRogueAP.RSSI}}</td>
+                                </tr>
+                                <tr >
+                                    <td >{{"SSID"|translate}}:</td>
+                                    <td ><div  class="ssidbreak" ng-bind="currentRogueAP.SSID" title="{{currentRogueAP.SSID}}"></div></td>
+                                </tr>
+                                <tr>
+                                    <td>{{"Channel"|translate}}:</td>
+                                    <td>{{currentRogueAP.CHANNEL}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{"Type"|translate}}:</td>
+                                    <td>{{currentRogueAP.TYPE | typeFilter}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{"AlreadyInBlack"|translate}}:</td>
+                                    <td>{{currentRogueAP.BLACK | alreadyInBlackFilter}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{"HAN AP Name"|translate}}:</td>
+                                    <td>{{currentRogueAP.apName}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{"HAN AP MAC"|translate}}:</td>
+                                    <td>{{currentRogueAP.hapMac}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{"HAN AP Location"|translate}}:</td>
+                                    <td>{{currentRogueAP.hapLocation}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{"Distance"|translate}}:</td>
+                                    <td>{{currentRogueAP.RSSI | distanceFilter}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{"Encryption Style"|translate}}:</td>
+                                    <td>{{currentRogueAP.AUTH_TYPE | authTypeFilter}}</td>
+                                </tr>
+                                <tr>
+                                    <td>{{"Attached Clients"|translate}}:</td>
+                                    <td>{{currentRogueAP.STA_NUM}}</td>
+                                </tr>
+                                <tr ng-show="currentRogueAP.STA_NUM > 0">
+                                    <td colspan="2">
+                                        <div style="height:100px;overflow:auto;">
+                                            <table class="table table-hover table-striped table-bordered">
+                                                <tr ng-repeat='client in currentRogueAP.STAMAC'>
+                                                    <td>{{client}}</td>
+                                                </tr>
+                                            </table>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" ng-show="whiteList">
+                <div class="col-sm-12">
+                    <div class="detailBorder detailBgColor" >
+                        <div class="rogueAPDetailHead text-center font16"  ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}" >
+                            <span>{{"White List"|translate}}</span>
+                        </div>
+                        <div class="rogueAPDetailBody">
+                            <form name="whitelistForm" class="form-inline" novalidate role="form">
+                                <div name="dvThead">
+                                    <table class="table table-striped table-hover table-condensed" style="margin-bottom: 0px;">
+                                        <thead ><!--ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}" -->
+                                        <tr>
+                                            <td style="width:60%" ng-click="col='whitelistMac';desc=!desc">{{"MAC"|translate}}</td>
+                                            <td display-permission='Permission_Admin' style="width:40%"></td>
+                                        </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                                <div name="dvTbody" style="height: 310px; overflow: auto;padding:5px;">
+                                    <table class="table table-striped table-bordered table-hover table-condensed">
+                                        <tbody>
+                                        <tr ng-repeat="item in whiteListParams.whitelist | orderBy:col:desc">
+                                            <td style="width:80%">{{item.whitelistMac}}</td>
+                                            <td display-permission='Permission_Admin' style="width:20%"><a href="" class="glyphicon glyphicon-remove del_color" ng-click="deleteWhitelist(item.whitelistMac)"></a></td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="form-group marginL15" ng-class="{'has-error':whitelistForm.rogueapwhitelist.$dirty && whitelistForm.rogueapwhitelist.$invalid}">
+                                    <input display-permission='Permission_Admin' type="text" style="margin-right: 10px" name="rogueapwhitelist"  ng-model="submitPara.whitelistValue"
+                                           tooltip='{{"wirelessWhitelist"|translate}}' tooltip-trigger="mouseenter"
+                                           required ng-pattern="{{InterService.pattern.WhitelistMAC}}" onKeypress="javascript:if(event.keyCode == 32) event.returnValue = false;">
+                                    <button display-permission='Permission_Admin' type="button" class="btn btn-addbtn  btn-sm" ng-click="addWhitelist()" ng-disabled="whitelistForm.$invalid">{{"Add"|translate}}</button>
+                                    <div class="" ng-show="whitelistForm.rogueapwhitelist.$dirty && whitelistForm.rogueapwhitelist.$invalid">
+                                        <small class="text-danger" ng-show="whitelistForm.rogueapwhitelist.$error.pattern" ng-bind="InterService.validMac()"></small>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row" ng-show="dynamicBlackList">
+                <div class="col-sm-12">
+                    <div class="detailBorder detailBgColor" >
+                        <div class="rogueAPDetailHead text-center font16"  ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}" >
+                            <span>{{"Black List"|translate}}</span>
+                        </div>
+                        <div class="rogueAPDetailBody">
+                            <form name="dynamicBlacklistForm" class="form-inline" role="form">
+                                <div name="dvThead">
+                                    <table class="table table-striped table-hover table-condensed" style="margin-bottom: 0px;">
+                                        <thead ><!--ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}" -->
+                                        <tr>
+                                            <td style="width:40%" ng-click="col='blacklistMac';desc=!desc">{{"MAC"|translate}}</td>
+                                            <td style="width:40%" ng-click="col='ssid';desc=!desc">{{"SSID"|translate}}</td>
+                                            <td display-permission='Permission_Admin' style="width:20%"></td>
+                                        </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                                <div name="dvTbody" style="height: 310px; overflow: auto;padding:5px;">
+                                    <table class="table table-striped table-bordered table-hover table-condensed">
+                                        <tbody>
+                                        <tr ng-repeat="item in dynamicBlackListParams | orderBy:col:desc">
+                                            <td style="width:40%">{{item.MAC}}</td>
+                                            <td style="width:40%">{{item.SSID}}</td>
+                                            <td style="width:20%"><a display-permission='Permission_Admin' href="" ng-click="deleteDynamicBlackList(item.MAC)">{{"Trust"|translate}}</a></td>
+                                            <!--<td display-permission='Permission_Admin' style="width:20%"><a href="" class="glyphicon glyphicon-remove del_color" ng-click="deleteDynamicBlackList(item.blacklistMac)"></a></td>-->
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

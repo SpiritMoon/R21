@@ -1,0 +1,124 @@
+.acl_add_btn{
+    margin-top:10px;
+}
+#acltbl table tr td:hover{
+    cursor:pointer;
+}
+#Auth_account table tr td:hover{
+    cursor:pointer;
+}
+
+.form-horizontal .control-label{
+    text-align:left;
+    font-weight:normal;
+}
+.form-horizontal .leftlabel {
+    text-align:left;
+    font-size:15px;
+    font-weight:normal;
+}
+.portal_table table{
+    width:90%;
+}
+
+#auth_configpanel form{
+    margin-top:20px;
+    margin-left:5px;
+}
+#auth_configpanel form> label{
+    font-weight:normal;
+}
+
+form[name="editportalserver"] .form-group{
+    margin-bottom:5px;
+}
+form[name="addportalserver"] .form-group{
+    margin-bottom:5px;
+}
+#access_params{
+    margin-top:25px;
+}
+#access_whitelist{
+    margin-top:10px;
+}
+.paddingL0{
+    padding-left:0px;
+}
+.paddingR0{
+    padding-right:0px;
+}
+.vertical_line_long{
+    border-right:1px solid #bfbfbf;
+    height:400px;
+}
+.dashed_line{
+    border-top:2px dashed #d2d2d2;
+    margin-top:10px;
+}
+
+#Access_code{
+    margin-top:20px;
+}
+#Mac_auth_account{
+    margin-top:20px;
+}
+#acldetail table tr{
+    height:45px;
+}
+#authSummary table tr{
+    height:40px;
+}
+.nav-tabs.nav-justified>li>a{
+    font-size:16px;
+}
+.btn.btn-link.glyphicon{
+    padding:0;
+}
+.whitelisttable{
+    height:120px;
+    overflow:auto;
+    width:90%;
+}
+.overflowUpload{
+    overflow:auto;
+    /*height:493px;*/
+}
+.overflowHidden{
+    overflow:hidden;
+}
+.overflowauto{
+    overflow: auto;
+}
+.aclDetailHead{
+    margin-top:40px;
+    height:32px;
+    line-height:32px;
+}
+.aclDetailBody{
+    height:435px;
+    padding: 5px;
+    padding-top:15px;
+}
+.aclListBody{
+    height:435px;
+    overflow: auto;
+}
+.authDetailHead{
+    height:30px;
+    line-height:30px;
+}
+.authDetailBody{
+    padding-left:5px;
+    height:530px;
+    /*overflow:auto;*/
+}
+.cursorPoint{
+    cursor:pointer;
+}
+
+form[name="add_local_mac"] div.form-group {
+    margin-bottom:10px;
+}
+form[name="add_whitelist"] div.form-group{
+    margin-bottom:10px;
+}

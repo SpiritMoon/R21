@@ -1,0 +1,43 @@
+#!/bin/sh
+#
+# Copyright (C) 2010 OpenWrt.org
+#
+country=`showsysinfo | grep Country | awk -F : '{print $2}' | awk -F " " '{print $1}'`
+if [ "$country" = "country" ]; then
+	exit
+fi
+
+PUB_CFG_DIR="/etc/cfm/config/config-pub"
+
+# config timezone when timezone is not set
+grep -q timezone /etc/config/system || \
+	(if [ "$country" = "US" ]; then
+		uci set system.sysinfo.timezone="UTC+8"
+		uci set system.sysinfo.city="Pacific-Time"
+		uci commit
+		uci -c $PUB_CFG_DIR set system.sysinfo.timezone="UTC+8"
+		uci -c $PUB_CFG_DIR set system.sysinfo.city="Pacific-Time"
+		uci -c $PUB_CFG_DIR commit system
+	elif [ "$country" = "JP" ]; then
+		uci set system.sysinfo.timezone="UTC-9"
+		uci set system.sysinfo.city="Osaka,Sapporo,Tokyo"
+		uci commit
+		uci -c $PUB_CFG_DIR set system.sysinfo.timezone="UTC-9"
+		uci -c $PUB_CFG_DIR set system.sysinfo.city="Osaka,Sapporo,Tokyo"
+		uci -c $PUB_CFG_DIR commit system
+	elif [ "$country" = "IL" ]; then
+		uci set system.sysinfo.timezone="UTC-2"
+		uci set system.sysinfo.city="Jerusalem"
+		uci commit
+		uci -c $PUB_CFG_DIR set set system.sysinfo.timezone="UTC-2"
+		uci -c $PUB_CFG_DIR set set system.sysinfo.city="Jerusalem"
+		uci -c $PUB_CFG_DIR commit system
+	else # rw, default
+		uci set system.sysinfo.timezone="UTC-0"
+		uci set system.sysinfo.city="Coordinated-Universal-Time"
+		uci commit
+		uci -c $PUB_CFG_DIR set system.sysinfo.timezone="UTC-0"
+		uci -c $PUB_CFG_DIR set system.sysinfo.city="Coordinated-Universal-Time"
+		uci -c $PUB_CFG_DIR commit system
+	fi;\
+		cd $PUB_CFG_DIR; rm -f pub-cfg-md5; md5sum * > pub-cfg-md5)

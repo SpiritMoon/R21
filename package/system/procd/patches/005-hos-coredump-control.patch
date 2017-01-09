@@ -1,0 +1,148 @@
+--- a/system.c
++++ b/system.c
+@@ -21,6 +21,9 @@
+ #include <signal.h>
+ #include <unistd.h>
+ 
++#include <sys/time.h>
++#include <sys/resource.h>
++
+ #include <libubox/uloop.h>
+ 
+ #include "procd.h"
+@@ -315,6 +318,76 @@ static int proc_signal(struct ubus_conte
+ 	return 0;
+ }
+ 
++static int proc_coredump_reload(struct ubus_context *ctx, struct ubus_object *obj,
++		struct ubus_request_data *req, const char *method,
++		struct blob_attr *msg)
++{
++	FILE *fp;
++	struct rlimit rlim;
++
++	fp = popen("uci get upload_core.upload_core.enable 2>/dev/null", "r");
++	if(fp != NULL)
++	{
++		char buf[4]={0};
++		fgets(buf, sizeof(buf), fp);
++		if(strncmp(buf, "1", 1) == 0)
++		{
++			rlim.rlim_cur = RLIM_INFINITY;
++			rlim.rlim_max = RLIM_INFINITY;
++			setrlimit(RLIMIT_CORE, &rlim);
++		}
++		else
++		{
++			rlim.rlim_cur = 0;
++			rlim.rlim_max = RLIM_INFINITY;
++			setrlimit(RLIMIT_CORE, &rlim);
++		}
++	}
++	pclose(fp);
++
++	return 0;
++}
++
++enum {
++	COREDUMP_SWITCH,
++	__COREDUMP_MAX
++};
++
++static const struct blobmsg_policy coredump_policy[__COREDUMP_MAX] = {
++	[COREDUMP_SWITCH] = { .name = "switch", .type = BLOBMSG_TYPE_BOOL },
++};
++
++static int proc_coredump(struct ubus_context *ctx, struct ubus_object *obj,
++		struct ubus_request_data *req, const char *method,
++		struct blob_attr *msg)
++{
++	struct blob_attr *tb[__COREDUMP_MAX];
++	struct rlimit rlim = {0};
++
++	if (!msg)
++		return UBUS_STATUS_INVALID_ARGUMENT;
++
++	blobmsg_parse(coredump_policy, __COREDUMP_MAX, tb, blob_data(msg), blob_len(msg));
++
++	if(!tb[COREDUMP_SWITCH])
++		return UBUS_STATUS_INVALID_ARGUMENT;
++
++	if(blobmsg_get_bool(tb[COREDUMP_SWITCH]))
++	{
++		rlim.rlim_cur = RLIM_INFINITY;
++		rlim.rlim_max = RLIM_INFINITY;
++		setrlimit(RLIMIT_CORE, &rlim);
++	}
++	else
++	{
++		rlim.rlim_cur = 0;
++		rlim.rlim_max = RLIM_INFINITY;
++		setrlimit(RLIMIT_CORE, &rlim);
++	}
++
++	return 0;
++}
++
+ enum {
+ 	NAND_PATH,
+ 	__NAND_MAX
+@@ -371,6 +444,8 @@ static const struct ubus_method system_m
+ 	UBUS_METHOD_NOARG("upgrade", system_upgrade),
+ 	UBUS_METHOD("watchdog", watchdog_set, watchdog_policy),
+ 	UBUS_METHOD("signal", proc_signal, signal_policy),
++	UBUS_METHOD("coredump", proc_coredump, coredump_policy),
++	UBUS_METHOD_NOARG("coredump_reload", proc_coredump_reload),
+ 
+ 	/* must remain at the end as it ia not always loaded */
+ 	UBUS_METHOD("nandupgrade", nand_set, nand_policy),
+--- a/procd.c
++++ b/procd.c
+@@ -20,6 +20,9 @@
+ #include <getopt.h>
+ #include <libgen.h>
+ 
++#include <sys/time.h>
++#include <sys/resource.h>
++
+ #include "procd.h"
+ #include "watchdog.h"
+ #include "plug/hotplug.h"
+@@ -41,6 +44,25 @@ int main(int argc, char **argv)
+ {
+ 	int ch;
+ 	char *dbglvl = getenv("DBGLVL");
++	FILE *fp;
++
++	fp = popen("uci get upload_core.upload_core.enable 2>/dev/null", "r");
++	if(fp != NULL)
++	{
++		char buf[4]={0};
++		struct rlimit rlim;
++
++		rlim.rlim_cur = 0;
++		rlim.rlim_max = RLIM_INFINITY;
++
++		fgets(buf, sizeof(buf), fp);
++		if(strncmp(buf, "1", 1) == 0)
++			rlim.rlim_cur = RLIM_INFINITY;
++
++		setrlimit(RLIMIT_CORE, &rlim);
++	}
++	pclose(fp);
++
+ 
+ 	if (dbglvl) {
+ 		debug = atoi(dbglvl);
+--- a/service/instance.c
++++ b/service/instance.c
+@@ -238,7 +238,8 @@ instance_exit(struct uloop_process *p, i
+ 	} else if (in->restart) {
+ 		instance_start(in);
+ 	} else if (in->respawn) {
+-        LOG("procd respawn instance %s::%s\n", in->srv->name, in->name);
++		system("upload_core");
++		LOG("procd respawn instance %s::%s\n", in->srv->name, in->name);
+ 		if (runtime < in->respawn_threshold)
+ 			in->respawn_count++;
+ 		else

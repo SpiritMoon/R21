@@ -1,0 +1,630 @@
+--- a/ntpdate/ntpdate.c
++++ b/ntpdate/ntpdate.c
+@@ -330,7 +330,7 @@ ntpdatemain (
+ 	key_file = key_file_storage;
+ 
+ 	if (!ExpandEnvironmentStrings(KEYFILE, key_file, MAX_PATH))
+-		msyslog(LOG_ERR, "ExpandEnvironmentStrings(KEYFILE) failed: %m\n");
++		msyslog(LOG_DEBUG, "ExpandEnvironmentStrings(KEYFILE) failed: %m\n");
+ 
+ 	ssl_applink();
+ #endif /* SYS_WINNT */
+@@ -474,7 +474,7 @@ ntpdatemain (
+ 	}
+ 
+ 	if (debug || verbose)
+-		msyslog(LOG_NOTICE, "%s", Version);
++		msyslog(LOG_DEBUG, "%s", Version);
+ 
+ 	/*
+ 	 * Add servers we are going to be polling
+@@ -504,7 +504,7 @@ ntpdatemain (
+ #endif
+ 
+ 	if (sys_numservers == 0) {
+-		msyslog(LOG_ERR, "no servers can be used, exiting");
++		msyslog(LOG_DEBUG, "no servers can be used, exiting");
+ 		exit(1);
+ 	}
+ 
+@@ -514,12 +514,12 @@ ntpdatemain (
+ 	if (sys_authenticate) {
+ 		init_auth();
+ 		if (!authreadkeys(key_file)) {
+-			msyslog(LOG_ERR, "no key file <%s>, exiting", key_file);
++			msyslog(LOG_DEBUG, "no key file <%s>, exiting", key_file);
+ 			exit(1);
+ 		}
+ 		authtrust(sys_authkey, 1);
+ 		if (!authistrusted(sys_authkey)) {
+-			msyslog(LOG_ERR, "authentication key %lu unknown",
++			msyslog(LOG_DEBUG, "authentication key %lu unknown",
+ 				(unsigned long) sys_authkey);
+ 			exit(1);
+ 		}
+@@ -579,7 +579,7 @@ ntpdatemain (
+ #else
+ 				if (WSAGetLastError() != WSAEINTR)
+ #endif
+-					msyslog(LOG_ERR,
++					msyslog(LOG_DEBUG,
+ #ifdef HAVE_POLL_H
+ 						"poll() error: %m"
+ #else
+@@ -834,7 +834,7 @@ receive(
+ 	if (LEAP_NOTINSYNC == PKT_LEAP(rpkt->li_vn_mode) &&
+ 	    STRATUM_PKT_UNSPEC == rpkt->stratum &&
+ 	    !memcmp("RATE", &rpkt->refid, 4)) {
+-		msyslog(LOG_ERR, "%s rate limit response from server.\n",
++		msyslog(LOG_DEBUG, "%s rate limit response from server.\n",
+ 			stoa(&rbufp->recv_srcadr));
+ 		server->event_time = 0;
+ 		complete_servers++;
+@@ -1266,7 +1266,7 @@ clock_adjust(void)
+ 	}
+ 
+ 	if (server == 0) {
+-		msyslog(LOG_ERR,
++		msyslog(LOG_DEBUG,
+ 			"no server suitable for synchronization found");
+ 		return(1);
+ 	}
+@@ -1284,14 +1284,14 @@ clock_adjust(void)
+ 
+ 	if (dostep) {
+ 		if (simple_query || debug || l_step_systime(&server->offset)){
+-			msyslog(LOG_NOTICE, "step time server %s offset %s sec",
++			msyslog(LOG_DEBUG, "step time server %s offset %s sec",
+ 				stoa(&server->srcadr),
+ 				lfptoa(&server->offset, 6));
+ 		}
+ 	} else {
+ #ifndef SYS_WINNT
+ 		if (simple_query || l_adj_systime(&server->offset)) {
+-			msyslog(LOG_NOTICE, "adjust time server %s offset %s sec",
++			msyslog(LOG_DEBUG, "adjust time server %s offset %s sec",
+ 				stoa(&server->srcadr),
+ 				lfptoa(&server->offset, 6));
+ 		}
+@@ -1379,13 +1379,13 @@ addserver(
+ 			   by waiting for resolution of several servers */
+ 			fprintf(stderr, "Exiting, name server cannot be used: %s (%d)",
+ 				gai_strerror(error), error);
+-			msyslog(LOG_ERR, "name server cannot be used: %s (%d)\n",
++			msyslog(LOG_DEBUG, "name server cannot be used: %s (%d)\n",
+ 				gai_strerror(error), error);
+ 			exit(1);
+ 		}
+ 		fprintf(stderr, "Error resolving %s: %s (%d)\n", serv,
+ 			gai_strerror(error), error);
+-		msyslog(LOG_ERR, "Can't find host %s: %s (%d)\n", serv,
++		msyslog(LOG_DEBUG, "Can't find host %s: %s (%d)\n", serv,
+ 			gai_strerror(error), error);
+ 		return;
+ 	}
+@@ -1611,7 +1611,7 @@ init_alarm(void)
+ 
+ 	/* get the current process token handle */
+ 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
+-		msyslog(LOG_ERR, "OpenProcessToken failed: %m");
++		msyslog(LOG_DEBUG, "OpenProcessToken failed: %m");
+ 		exit(1);
+ 	}
+ 	/* get the LUID for system-time privilege. */
+@@ -1622,7 +1622,7 @@ init_alarm(void)
+ 	AdjustTokenPrivileges(hToken, FALSE, &tkp, 0,(PTOKEN_PRIVILEGES) NULL, 0);
+ 	/* cannot test return value of AdjustTokenPrivileges. */
+ 	if (GetLastError() != ERROR_SUCCESS)
+-		msyslog(LOG_ERR, "AdjustTokenPrivileges failed: %m");
++		msyslog(LOG_DEBUG, "AdjustTokenPrivileges failed: %m");
+ 
+ 	/*
+ 	 * Set up timer interrupts for every 2**EVENT_TIMEOUT seconds
+@@ -1633,7 +1633,7 @@ init_alarm(void)
+ 
+ 	/* determine max and min resolution supported */
+ 	if(timeGetDevCaps(&tc, sizeof(TIMECAPS)) != TIMERR_NOERROR) {
+-		msyslog(LOG_ERR, "timeGetDevCaps failed: %m");
++		msyslog(LOG_DEBUG, "timeGetDevCaps failed: %m");
+ 		exit(1);
+ 	}
+ 	wTimerRes = min(max(tc.wPeriodMin, TARGET_RESOLUTION), tc.wPeriodMax);
+@@ -1649,7 +1649,7 @@ init_alarm(void)
+ 		(DWORD) dwUser,			/* User data */
+ 		TIME_PERIODIC);			/* Event type (periodic) */
+ 	if (wTimerID == 0) {
+-		msyslog(LOG_ERR, "timeSetEvent failed: %m");
++		msyslog(LOG_DEBUG, "timeSetEvent failed: %m");
+ 		exit(1);
+ 	}
+ #endif /* SYS_WINNT */
+@@ -1706,14 +1706,14 @@ init_io(void)
+ 	hints.ai_socktype = SOCK_DGRAM;
+ 
+ 	if (getaddrinfo(NULL, service, &hints, &res) != 0) {
+-		msyslog(LOG_ERR, "getaddrinfo() failed: %m");
++		msyslog(LOG_DEBUG, "getaddrinfo() failed: %m");
+ 		exit(1);
+ 		/*NOTREACHED*/
+ 	}
+ 
+ #ifdef SYS_WINNT
+ 	if (check_ntp_port_in_use && ntp_port_inuse(AF_INET, NTP_PORT)){
+-		msyslog(LOG_ERR, "the NTP socket is in use, exiting: %m");
++		msyslog(LOG_DEBUG, "the NTP socket is in use, exiting: %m");
+ 		exit(1);
+ 	}
+ #endif
+@@ -1737,13 +1737,13 @@ init_io(void)
+ 		    err == WSAEPFNOSUPPORT)
+ #endif
+ 			continue;
+-		msyslog(LOG_ERR, "socket() failed: %m");
++		msyslog(LOG_DEBUG, "socket() failed: %m");
+ 		exit(1);
+ 		/*NOTREACHED*/
+ 		}
+ 		/* set socket to reuse address */
+ 		if (setsockopt(fd[nbsock], SOL_SOCKET, SO_REUSEADDR, (void*) &optval, sizeof(optval)) < 0) {
+-				msyslog(LOG_ERR, "setsockopt() SO_REUSEADDR failed: %m");
++				msyslog(LOG_DEBUG, "setsockopt() SO_REUSEADDR failed: %m");
+ 				exit(1);
+ 				/*NOTREACHED*/
+ 		}
+@@ -1751,7 +1751,7 @@ init_io(void)
+ 		/* Restricts AF_INET6 socket to IPv6 communications (see RFC 2553bis-03) */
+ 		if (res->ai_family == AF_INET6)
+ 			if (setsockopt(fd[nbsock], IPPROTO_IPV6, IPV6_V6ONLY, (void*) &optval, sizeof(optval)) < 0) {
+-				   msyslog(LOG_ERR, "setsockopt() IPV6_V6ONLY failed: %m");
++				   msyslog(LOG_DEBUG, "setsockopt() IPV6_V6ONLY failed: %m");
+ 					exit(1);
+ 					/*NOTREACHED*/
+ 		}
+@@ -1770,9 +1770,9 @@ init_io(void)
+ 			rc = bind(fd[nbsock], &addr.sa, SOCKLEN(&addr));
+ 			if (rc < 0) {
+ 				if (EADDRINUSE == socket_errno())
+-					msyslog(LOG_ERR, "the NTP socket is in use, exiting");
++					msyslog(LOG_DEBUG, "the NTP socket is in use, exiting");
+ 				else
+-					msyslog(LOG_ERR, "bind() fails: %m");
++					msyslog(LOG_DEBUG, "bind() fails: %m");
+ 				exit(1);
+ 			}
+ 		}
+@@ -1796,21 +1796,21 @@ init_io(void)
+ 			int on = TRUE;
+ 
+ 			if (ioctl(fd[nbsock],FIONBIO, &on) == ERROR) {
+-				msyslog(LOG_ERR, "ioctl(FIONBIO) fails: %m");
++				msyslog(LOG_DEBUG, "ioctl(FIONBIO) fails: %m");
+ 				exit(1);
+ 			}
+ 		}
+ # else /* not SYS_VXWORKS */
+ #  if defined(O_NONBLOCK)
+ 		if (fcntl(fd[nbsock], F_SETFL, O_NONBLOCK) < 0) {
+-			msyslog(LOG_ERR, "fcntl(FNDELAY|FASYNC) fails: %m");
++			msyslog(LOG_DEBUG, "fcntl(FNDELAY|FASYNC) fails: %m");
+ 			exit(1);
+ 			/*NOTREACHED*/
+ 		}
+ #  else /* not O_NONBLOCK */
+ #	if defined(FNDELAY)
+ 		if (fcntl(fd[nbsock], F_SETFL, FNDELAY) < 0) {
+-			msyslog(LOG_ERR, "fcntl(FNDELAY|FASYNC) fails: %m");
++			msyslog(LOG_DEBUG, "fcntl(FNDELAY|FASYNC) fails: %m");
+ 			exit(1);
+ 			/*NOTREACHED*/
+ 		}
+@@ -1821,7 +1821,7 @@ init_io(void)
+ # endif /* SYS_VXWORKS */
+ #else /* SYS_WINNT */
+ 		if (ioctlsocket(fd[nbsock], FIONBIO, (u_long *) &on) == SOCKET_ERROR) {
+-			msyslog(LOG_ERR, "ioctlsocket(FIONBIO) fails: %m");
++			msyslog(LOG_DEBUG, "ioctlsocket(FIONBIO) fails: %m");
+ 			exit(1);
+ 		}
+ #endif /* SYS_WINNT */
+@@ -1857,7 +1857,7 @@ sendpkt(
+ 	}
+ 
+ 	if (INVALID_SOCKET == sock) {
+-		msyslog(LOG_ERR, "cannot find family compatible socket to send ntp packet");
++		msyslog(LOG_DEBUG, "cannot find family compatible socket to send ntp packet");
+ 		exit(1);
+ 		/*NOTREACHED*/
+ 	}
+@@ -1872,7 +1872,7 @@ sendpkt(
+ 		err = WSAGetLastError();
+ 		if (err != WSAEWOULDBLOCK && err != WSAENOBUFS)
+ #endif /* SYS_WINNT */
+-			msyslog(LOG_ERR, "sendto(%s): %m", stohost(dest));
++			msyslog(LOG_DEBUG, "sendto(%s): %m", stohost(dest));
+ 	}
+ }
+ 
+@@ -1942,7 +1942,7 @@ input_handler(void)
+ 			return;
+ 		else if (n == -1) {
+ 			if (errno != EINTR)
+-				msyslog(LOG_ERR,
++				msyslog(LOG_DEBUG,
+ #ifdef HAVE_POLL_H
+ 					"poll() error: %m"
+ #else
+@@ -2043,7 +2043,7 @@ l_adj_systime(
+ 
+ 	if (adjtv.tv_usec != 0 && !debug) {
+ 		if (adjtime(&adjtv, &oadjtv) < 0) {
+-			msyslog(LOG_ERR, "Can't adjust the time of day: %m");
++			msyslog(LOG_DEBUG, "Can't adjust the time of day: %m");
+ 			return 0;
+ 		}
+ 	}
+--- a/ntpdate/ntptime_config.c
++++ b/ntpdate/ntptime_config.c
+@@ -183,7 +183,7 @@ loadservers(
+ 	} else {
+ 		temp = CONFIG_FILE;
+ 		if (!ExpandEnvironmentStrings((LPCTSTR)temp, (LPTSTR)config_file_storage, (DWORD)sizeof(config_file_storage))) {
+-			msyslog(LOG_ERR, "ExpandEnvironmentStrings CONFIG_FILE failed: %m\n");
++			msyslog(LOG_DEBUG, "ExpandEnvironmentStrings CONFIG_FILE failed: %m\n");
+ 			exit(1);
+ 		}
+ 		config_file = config_file_storage;
+@@ -191,7 +191,7 @@ loadservers(
+ 
+ 	temp = ALT_CONFIG_FILE;
+ 	if (!ExpandEnvironmentStrings((LPCTSTR)temp, (LPTSTR)alt_config_file_storage, (DWORD)sizeof(alt_config_file_storage))) {
+-		msyslog(LOG_ERR, "ExpandEnvironmentStrings ALT_CONFIG_FILE failed: %m\n");
++		msyslog(LOG_DEBUG, "ExpandEnvironmentStrings ALT_CONFIG_FILE failed: %m\n");
+ 		exit(1);
+ 	}
+ 	alt_config_file = alt_config_file_storage;
+@@ -201,7 +201,7 @@ M
+ 	if ((fp = fopen(FindConfig(config_file), "r")) == NULL)
+ 	{
+ 		fprintf(stderr, "getconfig: Couldn't open <%s>\n", FindConfig(config_file));
+-		msyslog(LOG_INFO, "getconfig: Couldn't open <%s>", FindConfig(config_file));
++		msyslog(LOG_DEBUG, "getconfig: Couldn't open <%s>", FindConfig(config_file));
+ #ifdef SYS_WINNT
+ 		/* Under WinNT try alternate_config_file name, first NTP.CONF, then NTP.INI */
+ 
+@@ -213,7 +213,7 @@ M
+ 			 */
+ 
+ 			fprintf(stderr, "getconfig: Couldn't open <%s>\n", FindConfig(alt_config_file));
+-			msyslog(LOG_INFO, "getconfig: Couldn't open <%s>", FindConfig(alt_config_file));
++			msyslog(LOG_DEBUG, "getconfig: Couldn't open <%s>", FindConfig(alt_config_file));
+ 			return;
+ 		}
+ #else  /* not SYS_WINNT */
+@@ -228,7 +228,7 @@ M
+ 		    case CONFIG_SERVER:
+ 			
+ 			if (ntokens < 2) {
+-				msyslog(LOG_ERR,
++				msyslog(LOG_DEBUG,
+ 					"No address for %s, line ignored",
+ 					tokens[0]);
+ 				break;
+@@ -243,7 +243,7 @@ M
+ 				/* Shouldn't be able to specify multicast */
+ 				if (IN_CLASSD(ntohl(peeraddr.sin_addr.s_addr))
+ 				    || ISBADADR(&peeraddr)) {
+-					msyslog(LOG_ERR,
++					msyslog(LOG_DEBUG,
+ 						"attempt to configure invalid address %s",
+ 						ntoa(&peeraddr));
+ 					break;
+@@ -260,7 +260,7 @@ M
+ 			    switch (matchkey(tokens[i], mod_keywords)) {
+ 				case CONF_MOD_VERSION:
+ 				    if (i >= ntokens-1) {
+-					    msyslog(LOG_ERR,
++					    msyslog(LOG_DEBUG,
+ 						    "peer/server version requires an argument");
+ 					    errflg = 1;
+ 					    break;
+@@ -268,7 +268,7 @@ M
+ 				    peerversion = atoi(tokens[++i]);
+ 				    if ((u_char)peerversion > NTP_VERSION
+ 					|| (u_char)peerversion < NTP_OLDVERSION) {
+-					    msyslog(LOG_ERR,
++					    msyslog(LOG_DEBUG,
+ 						    "inappropriate version number %s, line ignored",
+ 						    tokens[i]);
+ 					    errflg = 1;
+@@ -277,7 +277,7 @@ M
+ 					
+ 				case CONF_MOD_KEY:
+ 				    if (i >= ntokens-1) {
+-					    msyslog(LOG_ERR,
++					    msyslog(LOG_DEBUG,
+ 						    "key: argument required");
+ 					    errflg = 1;
+ 					    break;
+@@ -289,7 +289,7 @@ M
+ 
+ 				case CONF_MOD_MINPOLL:
+ 				    if (i >= ntokens-1) {
+-					    msyslog(LOG_ERR,
++					    msyslog(LOG_DEBUG,
+ 						    "minpoll: argument required");
+ 					    errflg = 1;
+ 					    break;
+@@ -301,7 +301,7 @@ M
+ 
+ 				case CONF_MOD_MAXPOLL:
+ 				    if (i >= ntokens-1) {
+-					    msyslog(LOG_ERR,
++					    msyslog(LOG_DEBUG,
+ 						    "maxpoll: argument required"
+ 						    );
+ 					    errflg = 1;
+@@ -326,7 +326,7 @@ M
+ 
+ 				case CONF_MOD_TTL:
+ 				    if (i >= ntokens-1) {
+-					    msyslog(LOG_ERR,
++					    msyslog(LOG_DEBUG,
+ 						    "ttl: argument required");
+ 					    errflg = 1;
+ 					    break;
+@@ -337,7 +337,7 @@ M
+ 
+ 				case CONF_MOD_MODE:
+ 				    if (i >= ntokens-1) {
+-					    msyslog(LOG_ERR,
++					    msyslog(LOG_DEBUG,
+ 						    "mode: argument required");
+ 					    errflg = 1;
+ 					    break;
+@@ -351,7 +351,7 @@ M
+ 				    break;
+ 			    }
+ 			if (minpoll > maxpoll) {
+-				msyslog(LOG_ERR, "config error: minpoll > maxpoll");
++				msyslog(LOG_DEBUG, "config error: minpoll > maxpoll");
+ 				errflg = 1;
+ 			}
+ 			if (errflg == 0) {
+@@ -524,7 +524,7 @@ getnetnum(
+ 
+ 	if (i < 4) {
+ 		if (complain)
+-			msyslog(LOG_ERR,
++			msyslog(LOG_DEBUG,
+ 				"getnetnum: \"%s\" invalid host number, line ignored",
+ 				num);
+ #ifdef DEBUG
+--- a/ntpdate/ntptimeset.c
++++ b/ntpdate/ntptimeset.c
+@@ -417,7 +417,7 @@ ntptimesetmain(
+ 
+ 	wVersionRequested = MAKEWORD(1,1);
+ 	if (WSAStartup(wVersionRequested, &wsaData)) {
+-		msyslog(LOG_ERR, "No useable winsock.dll: %m");
++		msyslog(LOG_DEBUG, "No useable winsock.dll: %m");
+ 		exit(1);
+ 	}
+ #endif /* SYS_WINNT */
+@@ -548,16 +548,16 @@ ntptimesetmain(
+ 		if (debug)
+ 			setlogmask(LOG_UPTO(LOG_DEBUG));
+ 		else
+-			setlogmask(LOG_UPTO(LOG_INFO));
++			setlogmask(LOG_UPTO(LOG_DEBUG));
+ # endif /* LOG_DAEMON */
+ #endif	/* SYS_WINNT */
+ 	}
+ 
+ 	if (debug || verbose)
+-		msyslog(LOG_INFO, "%s", Version);
++		msyslog(LOG_DEBUG, "%s", Version);
+ 
+ 	if (horrible)
+-		msyslog(LOG_INFO, "Dropping %d out of %d packets",
++		msyslog(LOG_DEBUG, "Dropping %d out of %d packets",
+ 			horrible,horrible+HORRIBLEOK);
+ 	/*
+ 	 * Add servers we are going to be polling
+@@ -565,7 +565,7 @@ ntptimesetmain(
+ 	loadservers(cfgpath);
+ 
+ 	if (sys_numservers < min_servers) {
+-		msyslog(LOG_ERR, "Found %d servers, require %d servers",
++		msyslog(LOG_DEBUG, "Found %d servers, require %d servers",
+ 			sys_numservers,min_servers);
+ 		exit(2);
+ 	}
+@@ -585,7 +585,7 @@ ntptimesetmain(
+ 		if (!key_file) key_file = KEYFILE;
+ 		if (!ExpandEnvironmentStrings(key_file, key_file_storage, MAX_PATH))
+ 		{
+-			msyslog(LOG_ERR, "ExpandEnvironmentStrings(%s) failed: %m\n",
++			msyslog(LOG_DEBUG, "ExpandEnvironmentStrings(%s) failed: %m\n",
+ 				key_file);
+ 		} else {
+ 			key_file = key_file_storage;
+@@ -593,14 +593,14 @@ ntptimesetmain(
+ #endif /* SYS_WINNT */
+ 
+ 		if (!authreadkeys(key_file)) {
+-			msyslog(LOG_ERR, "no key file, exiting");
++			msyslog(LOG_DEBUG, "no key file, exiting");
+ 			exit(1);
+ 		}
+ 		if (!authistrusted(sys_authkey)) {
+ 			char buf[10];
+ 
+ 			(void) sprintf(buf, "%lu", (unsigned long)sys_authkey);
+-			msyslog(LOG_ERR, "authentication key %s unknown", buf);
++			msyslog(LOG_DEBUG, "authentication key %s unknown", buf);
+ 			exit(1);
+ 		}
+ 	}
+@@ -622,7 +622,7 @@ ntptimesetmain(
+ #ifdef SYS_WINNT
+ 	process_handle = GetCurrentProcess();
+ 	if (!SetPriorityClass(process_handle, (DWORD) REALTIME_PRIORITY_CLASS)) {
+-		msyslog(LOG_ERR, "SetPriorityClass failed: %m");
++		msyslog(LOG_DEBUG, "SetPriorityClass failed: %m");
+ 	}
+ #endif /* SYS_WINNT */
+ 
+@@ -688,7 +688,7 @@ ntptimesetmain(
+ 				(void)input_handler(&ts);
+ 			}
+ 			else if (nfound == -1 && errno != EINTR)
+-				msyslog(LOG_ERR, "select() error: %m");
++				msyslog(LOG_DEBUG, "select() error: %m");
+ 			else if (debug) {
+ # if !defined SYS_VXWORKS && !defined SYS_CYGWIN32 /* to unclutter log */
+ 				msyslog(LOG_DEBUG, "select(): nfound=%d, error: %m", nfound);
+@@ -1738,7 +1738,7 @@ init_alarm(void)
+ 
+ 	/* get the current process token handle */
+ 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
+-		msyslog(LOG_ERR, "OpenProcessToken failed: %m");
++		msyslog(LOG_DEBUG, "OpenProcessToken failed: %m");
+ 		exit(1);
+ 	}
+ 	/* get the LUID for system-time privilege. */
+@@ -1749,7 +1749,7 @@ init_alarm(void)
+ 	AdjustTokenPrivileges(hToken, FALSE, &tkp, 0,(PTOKEN_PRIVILEGES) NULL, 0);
+ 	/* cannot test return value of AdjustTokenPrivileges. */
+ 	if (GetLastError() != ERROR_SUCCESS)
+-		msyslog(LOG_ERR, "AdjustTokenPrivileges failed: %m");
++		msyslog(LOG_DEBUG, "AdjustTokenPrivileges failed: %m");
+ #endif
+ #else	/* SYS_WINNT */
+ 	_tzset();
+@@ -1760,7 +1760,7 @@ init_alarm(void)
+ 
+ 	/* get the current process token handle */
+ 	if (!OpenProcessToken(GetCurrentProcess(), TOKEN_ADJUST_PRIVILEGES | TOKEN_QUERY, &hToken)) {
+-		msyslog(LOG_ERR, "OpenProcessToken failed: %m");
++		msyslog(LOG_DEBUG, "OpenProcessToken failed: %m");
+ 		exit(1);
+ 	}
+ 	/* get the LUID for system-time privilege. */
+@@ -1771,7 +1771,7 @@ init_alarm(void)
+ 	AdjustTokenPrivileges(hToken, FALSE, &tkp, 0,(PTOKEN_PRIVILEGES) NULL, 0);
+ 	/* cannot test return value of AdjustTokenPrivileges. */
+ 	if (GetLastError() != ERROR_SUCCESS)
+-		msyslog(LOG_ERR, "AdjustTokenPrivileges failed: %m");
++		msyslog(LOG_DEBUG, "AdjustTokenPrivileges failed: %m");
+ 
+ 	/*
+ 	 * Set up timer interrupts for every 2**EVENT_TIMEOUT seconds
+@@ -1782,7 +1782,7 @@ init_alarm(void)
+ 
+ 	/* determine max and min resolution supported */
+ 	if(timeGetDevCaps(&tc, sizeof(TIMECAPS)) != TIMERR_NOERROR) {
+-		msyslog(LOG_ERR, "timeGetDevCaps failed: %m");
++		msyslog(LOG_DEBUG, "timeGetDevCaps failed: %m");
+ 		exit(1);
+ 	}
+ 	wTimerRes = min(max(tc.wPeriodMin, TARGET_RESOLUTION), tc.wPeriodMax);
+@@ -1797,7 +1797,7 @@ init_alarm(void)
+ 		(DWORD) dwUser, 	 /* User data */
+ 		TIME_PERIODIC); 	 /* Event type (periodic) */
+ 	if (wTimerID == 0) {
+-		msyslog(LOG_ERR, "timeSetEvent failed: %m");
++		msyslog(LOG_DEBUG, "timeSetEvent failed: %m");
+ 		exit(1);
+ 	}
+ #endif /* SYS_WINNT */
+@@ -1829,7 +1829,7 @@ init_io(void)
+ 	wVersionRequested = MAKEWORD(1,1);
+ 	if (WSAStartup(wVersionRequested, &wsaData))
+ 	{
+-		msyslog(LOG_ERR, "No useable winsock.dll: %m");
++		msyslog(LOG_DEBUG, "No useable winsock.dll: %m");
+ 		exit(1);
+ 	}
+ #endif /* SYS_WINNT */
+@@ -1838,7 +1838,7 @@ init_io(void)
+ 
+ 	/* create a datagram (UDP) socket */
+ 	if ((fd = socket(AF_INET, SOCK_DGRAM, 0)) < 0) {
+-		msyslog(LOG_ERR, "socket() failed: %m");
++		msyslog(LOG_DEBUG, "socket() failed: %m");
+ 		exit(1);
+ 		/*NOTREACHED*/
+ 	}
+@@ -1859,10 +1859,10 @@ init_io(void)
+ #else
+ 			if (WSAGetLastError() == WSAEADDRINUSE)
+ #endif
+-				msyslog(LOG_ERR,
++				msyslog(LOG_DEBUG,
+ 				    "the NTP socket is in use, exiting");
+ 			else
+-				msyslog(LOG_ERR, "bind() fails: %m");
++				msyslog(LOG_DEBUG, "bind() fails: %m");
+ 			exit(1);
+ 		}
+ 	}
+@@ -1886,21 +1886,21 @@ init_io(void)
+ #if defined(O_NONBLOCK) /* POSIX */
+ 	if (fcntl(fd, F_SETFL, O_NONBLOCK) < 0)
+ 	{
+-		msyslog(LOG_ERR, "fcntl(O_NONBLOCK) fails: %m");
++		msyslog(LOG_DEBUG, "fcntl(O_NONBLOCK) fails: %m");
+ 		exit(1);
+ 		/*NOTREACHED*/
+ 	}
+ #elif defined(FNDELAY)
+ 	if (fcntl(fd, F_SETFL, FNDELAY) < 0)
+ 	{
+-		msyslog(LOG_ERR, "fcntl(FNDELAY) fails: %m");
++		msyslog(LOG_DEBUG, "fcntl(FNDELAY) fails: %m");
+ 		exit(1);
+ 		/*NOTREACHED*/
+ 	}
+ #elif defined(O_NDELAY) /* generally the same as FNDELAY */
+ 	if (fcntl(fd, F_SETFL, O_NDELAY) < 0)
+ 	{
+-		msyslog(LOG_ERR, "fcntl(O_NDELAY) fails: %m");
++		msyslog(LOG_DEBUG, "fcntl(O_NDELAY) fails: %m");
+ 		exit(1);
+ 		/*NOTREACHED*/
+ 	}
+@@ -1915,14 +1915,14 @@ init_io(void)
+ # endif
+ 	   )
+ 	{
+-		msyslog(LOG_ERR, "ioctl(FIONBIO) fails: %m");
++		msyslog(LOG_DEBUG, "ioctl(FIONBIO) fails: %m");
+ 		exit(1);
+ 		/*NOTREACHED*/
+ 	}
+ #elif defined(FIOSNBIO)
+ 	if (ioctl(fd,FIOSNBIO,&on) < 0)
+ 	{
+-		msyslog(LOG_ERR, "ioctl(FIOSNBIO) fails: %m");
++		msyslog(LOG_DEBUG, "ioctl(FIOSNBIO) fails: %m");
+ 		exit(1);
+ 		/*NOTREACHED*/
+ 	}
+@@ -1977,7 +1977,7 @@ sendpkt(
+ 		err = WSAGetLastError();
+ 		if (err != WSAEWOULDBLOCK && err != WSAENOBUFS)
+ #endif /* SYS_WINNT */
+-			msyslog(LOG_ERR, "sendto(%s): %m", ntoa(dest));
++			msyslog(LOG_DEBUG, "sendto(%s): %m", ntoa(dest));
+ 		return -1;
+ 	}
+ 	return 0;
+@@ -2015,7 +2015,7 @@ input_handler(l_fp *xts)
+ 			return;
+ 		else if (n == -1) {
+ 			if (errno != EINTR) {
+-				msyslog(LOG_ERR, "select() error: %m");
++				msyslog(LOG_DEBUG, "select() error: %m");
+ 			}
+ 			return;
+ 		}

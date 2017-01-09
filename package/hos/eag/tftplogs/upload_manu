@@ -1,0 +1,66 @@
+#!/bin/sh
+
+CMD=$1
+LOCAL_LOG_NAME=/var/log/auth_local.log
+HWADDR=`ifconfig br-wan|grep HWaddr|awk '{print $5}'|sed 's/://g'`
+DATE=$(date +%Y%m%d_%H%M%S)
+UPLOAD_LOG_PATH=/tmp
+UPLOAD_LOG_NAME=User_Behavior_${HWADDR}_${DATE}.log
+
+echo "DATE = $DATE, FILE_NAME = $UPLOAD_LOG_NAME"
+
+start() {	
+	IP=`uci get tftplog.tftp.ip_manu`
+	if [ ! -n $IP ];then
+		echo "IP is NULL"
+                logger -t tftplog -p notice "upload_manu IP is NULL"
+		return
+	fi
+	echo "IP = $IP"
+
+	pingtime=`ping -c 1 $IP |grep "100% packet loss"|wc -l`
+	echo "pingtime = $pingtime"
+	if [ $pingtime -eq 1 ];then
+		echo "ping $IP timeout"
+                logger -t tftplog -p notice "upload_manu tftp server connection aborted"
+		return
+	fi
+	
+        cp $LOCAL_LOG_NAME $UPLOAD_LOG_PATH/$UPLOAD_LOG_NAME
+        > $LOCAL_LOG_NAME
+        cd $UPLOAD_LOG_PATH
+        tftp -p -l $UPLOAD_LOG_NAME $IP
+        rm $UPLOAD_LOG_NAME
+	cd -
+}
+
+upload() {
+            M=$(sed -n '/upload/p' /etc/crontabs/root|awk '{print $1}')
+            H=$(sed -n '/upload/p' /etc/crontabs/root|awk '{print $2}')
+            STEP=$(uci get tftplog.tftp.timer)
+            IP=$(uci get tftplog.tftp.ip_auto)
+            let "H=(H+STEP)%24"
+            sed -i '/upload_manu/d' /etc/crontabs/root
+            echo "$M $H * * * /usr/sbin/upload_manu upload $IP" >> /etc/crontabs/root
+
+	    pingtime=`ping -c 1 $1 |grep "100% packet loss"|wc -l`
+	    echo "pingtime = $pingtime"
+	    if [ $pingtime -eq 1 ];then
+		 echo "ping $IP timeout"
+                 logger -t tftplog -p notice "upload_auto tftp server connection aborted"
+	         return
+	     fi         
+       
+	    cp $LOCAL_LOG_NAME $UPLOAD_LOG_PATH/$UPLOAD_LOG_NAME
+            > $LOCAL_LOG_NAME
+	    cd $UPLOAD_LOG_PATH
+            tftp -p -l $UPLOAD_LOG_NAME $1
+            rm $UPLOAD_LOG_NAME
+	    cd -
+
+}                                                                   
+                                                                     
+case "$CMD" in                                                       
+        start)  start;;                                              
+        upload) upload $2;;                                          
+esac 

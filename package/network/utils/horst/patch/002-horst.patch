@@ -1,0 +1,159 @@
+diff -urN a/han.c b/han.c
+--- a/han.c	2016-04-10 22:55:41.635034367 -0700
++++ b/han.c	2016-04-11 03:26:54.386813242 -0700
+@@ -9,6 +9,8 @@
+ #include <pthread.h>
+ #include <arpa/inet.h>
+ #include <linux/un.h>
++#include <linux/netlink.h>
++#include <linux/rtnetlink.h>
+ 
+ 
+ #define dec_and_check_inact(info) \
+@@ -187,6 +189,79 @@
+ 	exit(0);
+ }
+ 
++extern int rtnl_fd;
++extern int mon_2g;
++extern int mon_5g;
++extern int
++open_packet_socket(char* devname, int recv_buffer_size);
++
++static void
++rebind_monitor_interface(char *ifname)
++{
++	int fd = open_packet_socket(ifname, 0);
++
++	printf("ifname: %s\n", ifname);
++	if (fd > 0) {
++		if (!memcmp(ifname, "athscan0", strlen("athscan0"))) {
++			close(mon_2g);
++			mon_2g = fd;
++		}
++		else {
++			close(mon_5g);
++			mon_5g = fd;
++		}
++	}
++	
++}
++
++
++void
++try_rebind_monitor_interface(void)
++{
++	struct {
++		struct nlmsghdr nlh;
++		struct ifinfomsg msg;
++		u_int8_t pad[4000];
++	} resp;
++	ssize_t read_bytes = -1;
++	char ifname[IFNAMSIZ]= {0};
++
++	memset(&resp, 0, sizeof(resp));
++	read_bytes = recv(rtnl_fd, &resp, sizeof(resp), 0);
++	if (read_bytes < 0 || !NLMSG_OK(&resp.nlh, read_bytes) 
++		|| resp.nlh.nlmsg_type != RTM_NEWLINK) 
++		return;
++	if_indextoname(resp.msg.ifi_index, ifname);
++	if (memcmp(ifname, "athscan", strlen("athscan")))
++		return;
++	
++	if ((resp.msg.ifi_change & IFF_UP) && //flag changes
++		(resp.msg.ifi_flags & IFF_UP)) //up operation
++		rebind_monitor_interface(ifname);
++}
++
++void 
++init_rtnl_fd(void)
++{
++	struct sockaddr_nl s_addr;
++
++	rtnl_fd = socket(PF_NETLINK, SOCK_DGRAM, NETLINK_ROUTE);
++	if (rtnl_fd > 0) {
++		bzero(&s_addr, sizeof(s_addr));
++		s_addr.nl_family = AF_NETLINK;
++		s_addr.nl_pid = getpid();
++		s_addr.nl_groups = RTNLGRP_LINK;
++		if (bind(rtnl_fd, (struct sockaddr *) &s_addr, sizeof(s_addr)) < 0) {
++			perror("Bind rtnl_fd failed");
++			exit(0);
++		}
++		return ;
++	}
++	perror("Socket rtnl_fd failed");
++	exit(0);
++}
++
++
+ 
+ void
+ dump_file_open(char *mode)
+diff -urN a/han.h b/han.h
+--- a/han.h	2016-04-10 22:55:41.635034367 -0700
++++ b/han.h	2016-04-11 01:38:49.671912926 -0700
+@@ -110,7 +110,13 @@
+ dump_wlan_table(void);
+ void
+ dump_status(void);
++void
++try_rebind_monitor_interface(void);
++void 
++init_rtnl_fd(void);
+ 
++char * 
++if_indextoname(int, char *);
+ 
+ extern int deliver_fd;
+ extern struct chan_freq channels_2g[MAX_CHANNELS];
+diff -urN a/main.c b/main.c
+--- a/main.c	2016-04-10 22:55:41.635034367 -0700
++++ b/main.c	2016-04-11 01:39:03.496792517 -0700
+@@ -80,6 +80,7 @@
+ char *mon_2g_interface = "athscan0";
+ int mon_5g;
+ char *mon_5g_interface = "athscan1";
++int rtnl_fd;
+ 
+ static FILE* DF = NULL;
+ 
+@@ -420,6 +421,7 @@
+ #else
+ 	FD_SET(mon_2g, &read_fds);
+ 	FD_SET(mon_5g, &read_fds);
++	FD_SET(rtnl_fd, &read_fds);
+ #endif
+ 	if (srv_fd != -1)
+ 		FD_SET(srv_fd, &read_fds);
+@@ -435,6 +437,7 @@
+ #else
+ 	mfd = max(mon_2g, srv_fd);
+ 	mfd = max(mfd, mon_5g);
++	mfd = max(mfd, rtnl_fd);
+ #endif
+ 	mfd = max(mfd, ctlpipe);
+ 	mfd = max(mfd, cli_fd) + 1;
+@@ -474,9 +477,11 @@
+ #else 
+ 		
+ 	if (FD_ISSET(mon_2g, &read_fds))
+-			local_receive_packet(mon_2g, buffer, sizeof(buffer));
+-		if (FD_ISSET(mon_5g, &read_fds))
+-			local_receive_packet(mon_5g, buffer, sizeof(buffer));
++		local_receive_packet(mon_2g, buffer, sizeof(buffer));
++	if (FD_ISSET(mon_5g, &read_fds))
++		local_receive_packet(mon_5g, buffer, sizeof(buffer));
++	if (FD_ISSET(rtnl_fd, &read_fds))
++		try_rebind_monitor_interface();
+ #endif
+ 	/* named pipe */
+ 	if (ctlpipe > -1 && FD_ISSET(ctlpipe, &read_fds))
+@@ -831,6 +836,7 @@
+ 	channel_init();
+ 
+ 	init_deliver_fd();
++	init_rtnl_fd();
+ 	//thread
+ 	pthread_create(&pth_do_2g_scan, NULL, do_2g_scan, NULL);
+ 	pthread_create(&pth_do_5g_scan, NULL, do_5g_scan, NULL);

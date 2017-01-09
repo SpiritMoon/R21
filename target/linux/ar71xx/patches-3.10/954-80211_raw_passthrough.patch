@@ -1,0 +1,24 @@
+diff -urN a/net/bridge/br_input.c b/net/bridge/br_input.c
+--- a/net/bridge/br_input.c	2016-08-01 23:38:31.166051442 -0700
++++ b/net/bridge/br_input.c	2016-08-01 23:44:19.638046005 -0700
+@@ -155,6 +155,10 @@
+ 	return 0;	 /* process further */
+ }
+ 
++#ifndef ETH_P_80211_RAW
++#define ETH_P_80211_RAW (ETH_P_ECONET + 1)
++#endif
++
+ /*
+  * Return NULL if skb is handled
+  * note: already called with rcu_read_lock
+@@ -167,7 +171,8 @@
+ 	br_should_route_hook_t *rhook;
+ 
+ 	if (unlikely(skb->pkt_type == PACKET_LOOPBACK) ||
+-        skb->protocol == __constant_htons(ETH_P_PAE))
++        skb->protocol == __constant_htons(ETH_P_PAE) ||
++        skb->protocol == __constant_htons(ETH_P_80211_RAW))
+ 		return RX_HANDLER_PASS;
+ 
+ 	if (!is_valid_ether_addr(eth_hdr(skb)->h_source))

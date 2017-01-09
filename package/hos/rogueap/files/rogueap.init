@@ -1,0 +1,138 @@
+#!/bin/sh /etc/rc.common
+#
+# @@-COPYRIGHT-START-@@
+#
+# Copyright (c) 2013,2014 Qualcomm Atheros, Inc.
+# All Rights Reserved.
+# Qualcomm Atheros Confidential and Proprietary.
+# @@-COPYRIGHT-END-@@
+#
+
+START=99
+USE_PROCD=1
+
+ROGUEAP_BIN="/sbin/rogueap"
+ROGUEAP_CONFIG_FILE="/tmp/rogueap.conf"
+
+
+
+#write configure file
+__rogueap_cfg_append() {
+	echo "$1" >> "$ROGUEAP_CONFIG_FILE"
+}
+
+__rogueap_cfg_nl_append() {
+	echo "" >> "$ROGUEAP_CONFIG_FILE"
+	echo "$1" >> "$ROGUEAP_CONFIG_FILE"
+}
+
+# __rogueap_cfg_add_str <section> <option>
+__rogueap_cfg_add_str() {
+	local key="$2"
+	local section="$1"
+	local option="$2"
+
+	config_get val "${section}" "${option}"
+	#if [ ${option} = 'wildcard' ] 
+	#then 
+	#	val=`echo ${val} |sed 's/://g'`
+	#fi
+	[ -n "${val}" ] && __rogueap_cfg_append "${key}=${val}"
+}
+
+
+__rogueap_cfg_add_head() {
+	echo ";"	> "$ROGUEAP_CONFIG_FILE"
+	__rogueap_cfg_append ';  Automatically generated rogueap configure file,do not change it.'
+	__rogueap_cfg_append ';'
+	__rogueap_cfg_append ';RogueAP		rogueap basic config'
+	__rogueap_cfg_append ';Contain		include open and encrypt mode'
+	__rogueap_cfg_append ';WildCard		white wildcard config'
+	__rogueap_cfg_append ';BlackSwitch	auto add to black switch'
+	__rogueap_cfg_append ';Open:		open mode packet type'
+	__rogueap_cfg_append ';Encrypt:		encrypt mode packet type'
+
+}
+
+
+__rogueap_create_config() {
+	__rogueap_cfg_add_head
+	__rogueap_cfg_nl_append '[WildCard]'
+	__rogueap_cfg_add_str	RogueAP	wildcard
+	
+	__rogueap_cfg_nl_append '[Switch]'
+	__rogueap_cfg_add_str	RogueAP	BlackSwitch	
+		
+	__rogueap_cfg_nl_append '[OPEN]'
+	__rogueap_cfg_add_str	Open	ARP
+	__rogueap_cfg_add_str	Open	Deauth
+	__rogueap_cfg_add_str	Open	Disassoc
+
+	__rogueap_cfg_nl_append '[ENCRYPT]'
+	__rogueap_cfg_add_str	Encrypt		Deauth
+	__rogueap_cfg_add_str	Encrypt		Disassoc 
+
+}
+
+rogueap_start() {
+
+	config_load 'rogueap'
+	local switch debug 
+	local wildcard black_switch
+	
+	config_get_bool switch RogueAP 'SuppressSwitch' 
+	config_get_bool debug RogueAP 'Debug' 
+	config_get wildcard RogueAP 'WildCard'
+	config_get_bool black_switch RogueAP 'BlackSwitch'
+	
+#	[ -z $switch ] && return
+#	[ -z $wildcard ]&&return
+
+	echo rogueap "starting daemon"
+	# Create configuration file and start rogueap
+	__rogueap_create_config
+	#${SVCDBG}service_start ${ROGUEAP_BIN} -d -C "$ROGUEAP_CONFIG_FILE"
+	procd_open_instance
+	if [ $debug -ne 0 ]; then
+		procd_set_param command "$ROGUEAP_BIN" -s $switch  -D -C "$ROGUEAP_CONFIG_FILE"
+	else
+		procd_set_param command "$ROGUEAP_BIN" -s $switch -C "$ROGUEAP_CONFIG_FILE"
+	fi
+	procd_set_param respawn
+	procd_close_instance
+	echo rogueap start ...
+
+}
+
+start_service() 
+{
+
+	rogueap_start
+
+}
+
+rogueap_stop() {
+
+	# Workaround, sometimes service_stop does not kill lbd
+	start-stop-daemon -K -x ${ROGUEAP_BIN} -s SIGKILL > /dev/null
+	rm $ROGUEAP_CONFIG_FILE
+}
+
+stop_service() {
+	#__stop
+	rogueap_stop
+}
+
+service_triggers()
+{
+	procd_add_reload_trigger "rogueap"
+}
+
+restart() {
+
+	stop_service
+	uci export rogueap > /dev/null
+	sleep 2
+	start_service
+	echo rogueap restart ...
+}

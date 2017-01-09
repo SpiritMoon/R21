@@ -1,0 +1,17 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2015 OpenWrt.org
+
+START=22
+STOP=88
+
+start() {
+	iptables -t mangle -I FORWARD -m layer7 --l7proto rtp -m dscp --dscp 0 -j DSCP --set-dscp 0x30
+	iptables -t mangle -I FORWARD -m layer7 --l7proto sip -m dscp --dscp 0 -j DSCP --set-dscp 0x30
+	iptables -t mangle -I FORWARD -m layer7 --l7proto h323 -m dscp --dscp 0 -j DSCP --set-dscp 0x30
+}
+
+stop() {
+	iptables -t mangle -D FORWARD -m layer7 --l7proto h323 -m dscp --dscp 0 -j DSCP --set-dscp 0x30
+	iptables -t mangle -D FORWARD -m layer7 --l7proto sip -m dscp --dscp 0 -j DSCP --set-dscp 0x30
+	iptables -t mangle -D FORWARD -m layer7 --l7proto rtp -m dscp --dscp 0 -j DSCP --set-dscp 0x30
+}

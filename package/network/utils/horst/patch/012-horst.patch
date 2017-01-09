@@ -1,0 +1,464 @@
+diff -urN a/han.c b/han.c
+--- a/han.c	2016-06-14 03:18:58.842602169 -0700
++++ b/han.c	2016-06-14 03:20:11.796001800 -0700
+@@ -22,12 +22,22 @@
+ #define MAC_ADDR_COPY(d_addr, s_addr) \
+ 	(memcpy((d_addr), (s_addr), MAC_LEN))
+ 
+-#define TX_BUFSIZE		8192
++#define TX_BUFSIZE		2048
+ int deliver_fd = -1;
+ FILE *DUMP_FILE = NULL;
+ struct airinfo_head wlan_head[HASH_SIZE];
++pthread_mutex_t wlan_table_lock;
+ struct airinfo_head client_head[HASH_SIZE];
++pthread_mutex_t client_table_lock;
+ 
++#define HAN_DEBUG(...) \
++	do { \
++		if (conf.debug) { \
++			DUMP_FILE = fopen(conf.dump_file, "a+"); \
++			fprintf(DUMP_FILE, __VA_ARGS__); \
++			fclose(DUMP_FILE); \
++		} \
++	} while (0)
+ 
+ 
+ void
+@@ -35,13 +45,14 @@
+ {
+ 	u_int8_t i = 0;
+ 
++	pthread_mutex_init(&wlan_table_lock, NULL);
+ 	for (i=0; i<HASH_SIZE; i++) {
+ 		list_head_init(&wlan_head[i].head);
+-		pthread_mutex_init(&wlan_head[i].lock, NULL);
+ 	}
++
++	pthread_mutex_init(&client_table_lock, NULL);
+ 	for (i=0; i<HASH_SIZE; i++) {
+ 		list_head_init(&client_head[i].head);
+-		pthread_mutex_init(&client_head[i].lock, NULL);
+ 	}
+ 	
+ }
+@@ -97,7 +108,7 @@
+ 			if (mac[0] & 0x01) //multicast, drop
+ 				return;
+ 			hash = HASH(mac);
+-			pthread_mutex_lock(&client_head[hash].lock);
++			pthread_mutex_lock(&client_table_lock);
+ 			ai = find_airinfo_item(&client_head[hash].head, mac);
+ 			if (ai) {
+ 				MAC_ADDR_COPY(ai->u.ci.associate_wlan, pi->wlan_bssid);
+@@ -109,7 +120,7 @@
+ 					ai->u.ci.qos = 0;
+ 				ai->inact = conf.client_reload_inact;
+ 			}
+-			pthread_mutex_unlock(&client_head[hash].lock);
++			pthread_mutex_unlock(&client_table_lock);
+ 		}		
+ 	} else if ((pi->pkt_types & (PKT_TYPE_BEACON | PKT_TYPE_PROBE))) {
+ 		mac = pi->wlan_bssid;
+@@ -117,7 +128,7 @@
+ 			if (MAC_ADDR_MATCH(mac, invalid_mac))
+ 				return ;
+ 			hash = HASH(mac);
+-			pthread_mutex_lock(&wlan_head[hash].lock);
++			pthread_mutex_lock(&wlan_table_lock);
+ 			ai = find_airinfo_item(&wlan_head[hash].head, mac);
+ 			if (ai) {
+ 				ai->rss = pi->phy_signal;
+@@ -136,7 +147,7 @@
+ 					ai->u.wi.encryption_type = ENCRYPTION_OPEN;
+ 				ai->inact = conf.wlan_reload_inact;
+ 			}
+-			pthread_mutex_unlock(&wlan_head[hash].lock);
++			pthread_mutex_unlock(&wlan_table_lock);
+ 		}
+ 	 } else if (pi->pkt_types & PKT_TYPE_AUTH) {
+ 		if (WLAN_MODE_AP == pi->wlan_mode)
+@@ -147,7 +158,7 @@
+ 			if (mac[0] & 0x01) //multicast, drop
+ 				return;
+ 			hash = HASH(mac);
+-			pthread_mutex_lock(&client_head[hash].lock);
++			pthread_mutex_lock(&client_table_lock);
+ 			ai = find_airinfo_item(&client_head[hash].head, mac);
+ 			if (ai) {
+ 				MAC_ADDR_COPY(ai->u.ci.associate_wlan, pi->wlan_bssid);
+@@ -156,7 +167,7 @@
+ 				ai->u.ci.qos = 0;
+ 				ai->inact = conf.client_reload_inact;
+ 			}
+-			pthread_mutex_unlock(&client_head[hash].lock);
++			pthread_mutex_unlock(&client_table_lock);
+ 		}		
+ 	 }
+ }
+@@ -175,8 +186,8 @@
+ 	for(;;) {
+ 		sigwait(&signal_set, &sig_num);
+ 		if (SIGALRM == sig_num) {
++			pthread_mutex_lock(&wlan_table_lock);
+ 			for (i=0; i<HASH_SIZE; i++) {
+-				pthread_mutex_lock(&wlan_head[i].lock);
+ 				list_for_each_safe(&wlan_head[i].head, ai, n, list) {
+ 					if (dec_and_check_inact(ai)) { // aging
+ 						list_del(&ai->list);
+@@ -184,9 +195,11 @@
+ 						ai = NULL;
+ 					}
+ 				}
+-				pthread_mutex_unlock(&wlan_head[i].lock);
+-
+-				pthread_mutex_lock(&client_head[i].lock);
++			}
++			pthread_mutex_unlock(&wlan_table_lock);
++		
++			pthread_mutex_lock(&client_table_lock);
++			for (i=0; i<HASH_SIZE; i++) {
+ 				list_for_each_safe(&client_head[i].head, ai, n, list) {
+ 					if (dec_and_check_inact(ai)) { // aging
+ 						list_del(&ai->list);
+@@ -194,8 +207,8 @@
+ 						ai = NULL;
+ 					}
+ 				}
+-				pthread_mutex_unlock(&client_head[i].lock);
+ 			}
++			pthread_mutex_unlock(&client_table_lock);
+ 			alarm(10);
+ 		}
+ 	}
+@@ -383,8 +396,8 @@
+ 	
+ 	dump_file_open("w+");
+ 	fprintf(DUMP_FILE, "Wlan Table\t\t\n");
+-	for (i=0; i<HASH_SIZE; i++) {
+-        pthread_mutex_lock(&wlan_head[i].lock);
++	pthread_mutex_lock(&wlan_table_lock);
++	for (i=0; i<HASH_SIZE; i++) { 
+ 		list_for_each(&wlan_head[i].head, ai, list) {
+ 			fprintf(DUMP_FILE, "Mac: %s\t", ether_sprintf(ai->mac));
+ 			fprintf(DUMP_FILE, "Signal: %d\t", ai->rss);
+@@ -392,9 +405,9 @@
+ 			fprintf(DUMP_FILE, "Encryption Type: %s\t", 
+ 				entryption_type_to_string(ai->u.wi.encryption_type));
+ 			fprintf(DUMP_FILE, "Essid: %s\n", ai->u.wi.essid);
+-		}
+-		pthread_mutex_unlock(&wlan_head[i].lock);
++		}	
+ 	}
++	pthread_mutex_unlock(&wlan_table_lock);
+ 	dump_file_close();
+ }
+ 
+@@ -406,8 +419,8 @@
+ 	
+ 	dump_file_open("w+");
+ 	fprintf(DUMP_FILE, "Client Table\t\t\n");
++	pthread_mutex_lock(&client_table_lock);
+ 	for (i=0; i<HASH_SIZE; i++) {
+-        pthread_mutex_lock(&client_head[i].lock);
+ 		list_for_each(&client_head[i].head, ai, list) {
+ 			fprintf(DUMP_FILE, "Mac: %s\t", ether_sprintf(ai->mac));
+ 			fprintf(DUMP_FILE, "Signal: %d\t", ai->rss);
+@@ -417,126 +430,162 @@
+ 				((u_int8_t *)&ai->u.ci.ip)[0], ((u_int8_t *)&ai->u.ci.ip)[1],
+ 				((u_int8_t *)&ai->u.ci.ip)[2], ((u_int8_t *)&ai->u.ci.ip)[3]);
+ 		}
+-		pthread_mutex_unlock(&client_head[i].lock);
+ 	}
++	pthread_mutex_unlock(&client_table_lock);
+ 	dump_file_close();
+ }
+ 
++static void
++packet_dump(unsigned char * buf, int len, struct sockaddr_un *addr)
++{
++	int i;
++	if (conf.debug) {
++		dump_file_open("a+");
++		fprintf(DUMP_FILE, "\n");
++		if (addr) {
++			fprintf(DUMP_FILE, "******* Request *******\n");
++			fprintf(DUMP_FILE, "Peer addr: %s\n", addr->sun_path);
++		} else {
++			fprintf(DUMP_FILE, "******* Response *******\n");
++			fprintf(DUMP_FILE, "Msg Lenth: %d\n", len);
++		}
++		for (i = 0; i < len; i++) {
++			if (i && (i % 2) == 0)
++				fprintf(DUMP_FILE, " ");
++			if (i && (i % 16) == 0)
++				fprintf(DUMP_FILE, "\n");
++			fprintf(DUMP_FILE, "%02x", buf[i]);
++		}
++		fprintf(DUMP_FILE, "\n");
++		dump_file_close();
++	}
++}
++
++
++static void
++send_airinfo(char type, void *s, unsigned char *tx_buffer, unsigned int *size)
++{
++	struct msg_hdr *hdr = (struct msg_hdr *)tx_buffer;
++	struct {
++		int fd;
++		struct sockaddr_un c_addr;
++	} *s1 = s;
++
++	hdr->version = 1;
++	hdr->operation = MSG_RESPONSE;
++	hdr->msg_type = (type == WLAN_INFO) ? WLAN_INFO : CLIENT_INFO;
++	hdr->msg_lenth = *size;
++	*size += sizeof(struct msg_hdr);
++
++	if (0 > sendto(s1->fd, tx_buffer, *size, 
++			MSG_DONTWAIT, (struct sockaddr *)&s1->c_addr, sizeof(s1->c_addr)))
++			HAN_DEBUG("Call sendto failed\n");
++	
++
++	packet_dump(tx_buffer, *size, NULL);
++	bzero(tx_buffer, TX_BUFSIZE);
++	*size = 0;
++}
+ 
+-static unsigned int 
+-assemble_airinfo(char type, unsigned char *tx_buffer, int buffer_size)
++static void 
++assemble_wlan_airinfo(unsigned char *tx_buffer, int buffer_size, void *s)
+ {
+-#define ie_number(_ie, _type, _lenth, _value, _msg_len, _lock) \
++#define ie_number(_ie, _type, _lenth, _value) \
+ 	do { \
+ 		if (((unsigned char *)(_ie) + (_lenth) + 2) - (tx_buffer + buffer_size) > 0) { \
+-			pthread_mutex_unlock(_lock); \
+-			goto out; \
++			send_airinfo(WLAN_INFO, (void *)s, tx_buffer, &msg_len); \
++			(_ie) = (struct msg_ie *)(tx_buffer + sizeof(struct msg_hdr)); \
+ 		} \
+ 		(_ie)->ie_type = (_type); \
+ 		(_ie)->ie_lenth = _lenth; \
+ 		*(typeof((_value)) *)((_ie)->data) = (_value); \
+ 		(_ie) = (struct msg_ie *)((unsigned char *)(_ie) + (_lenth) + 2); \
+-		(_msg_len) += (unsigned int)((_lenth) + 2); \
++		(msg_len) += (unsigned int)((_lenth) + 2); \
+ 	} while (0)
+ 			
+-#define ie_string(_ie, _type, _lenth, _string, _msg_len, _lock) \
++#define ie_string(_ie, _type, _lenth, _string) \
+ 	do { \
+ 		if (((unsigned char *)(_ie) + (_lenth) + 2) - (tx_buffer + buffer_size) > 0) { \
+-			pthread_mutex_unlock(_lock); \
+-			goto out; \
++			send_airinfo(WLAN_INFO, (void *)s, tx_buffer, &msg_len); \
++			(_ie) = (struct msg_ie *)(tx_buffer + sizeof(struct msg_hdr)); \
+ 		} \
+ 		(_ie)->ie_type = (_type); \
+ 		(_ie)->ie_lenth = (_lenth); \
+ 		memcpy((ie)->data, (_string), (_lenth)); \
+ 		(_ie) = (struct msg_ie *)((unsigned char *)(_ie) + (_lenth) + 2); \
+-		(_msg_len) += (unsigned int)((_lenth) + 2); \
++		(msg_len) += (unsigned int)((_lenth) + 2); \
+ 	} while (0)
+ 	
+ 	u_int8_t i = 0;
+ 	struct airinfo *ai = NULL;
+-	unsigned int msg_len = 0, group_len = 0;
+-	struct msg_hdr *hdr = (struct msg_hdr *)tx_buffer;
++	unsigned int msg_len = 0;
+ 	struct msg_ie *ie = (struct msg_ie *)(tx_buffer + sizeof(struct msg_hdr));
+ 	
+-	if (WLAN_INFO == type) {
+-		hdr->version = 1;
+-		hdr->operation = MSG_RESPONSE;
+-		hdr->msg_type = WLAN_INFO;
+ 		
+-		for (i=0; i<HASH_SIZE; i++) {
+-            pthread_mutex_lock(&wlan_head[i].lock);
+-			list_for_each(&wlan_head[i].head, ai, list) {
+-				ie_string(ie, IE_WLAN_MAC, MAC_LEN, ai->mac, msg_len, &wlan_head[i].lock);
+-				ie_number(ie, IE_RSS, 1, ai->rss, msg_len, &wlan_head[i].lock);
+-				ie_string(ie, IE_ESSID, strlen(ai->u.wi.essid), ai->u.wi.essid, msg_len, &wlan_head[i].lock);
+-				ie_number(ie, IE_CHANNEL, 1, ai->u.wi.channel, msg_len, &wlan_head[i].lock);
+-				ie_number(ie, IE_ENCRYPTION_TYPE, 1, ai->u.wi.encryption_type, msg_len, &wlan_head[i].lock);
+-				group_len = msg_len;
+-			}
+-			pthread_mutex_unlock(&wlan_head[i].lock);
+-		}
+-	} else if (CLIENT_INFO == type) {
+-		hdr->version = 1;
+-		hdr->operation = MSG_RESPONSE;
+-		hdr->msg_type = CLIENT_INFO;
+-		for (i=0; i<HASH_SIZE; i++) {
+-			pthread_mutex_lock(&client_head[i].lock);
+-			list_for_each(&client_head[i].head, ai, list) {
+-				ie_string(ie, IE_STA_MAC, MAC_LEN, ai->mac, msg_len, &client_head[i].lock);
+-				ie_number(ie, IE_RSS, 1, ai->rss, msg_len, &client_head[i].lock);
+-				ie_string(ie, IE_WLAN_MAC, MAC_LEN, ai->u.ci.associate_wlan, msg_len, &client_head[i].lock);
+-				ie_number(ie, IE_IP, 4, ai->u.ci.ip, msg_len, &client_head[i].lock);
+-				ie_number(ie, IE_QOS, 1, ai->u.ci.qos, msg_len, &client_head[i].lock);
+-				group_len = msg_len;
+-			}
+-			pthread_mutex_unlock(&client_head[i].lock);
++	for (i=0; i<HASH_SIZE; i++) {
++		list_for_each(&wlan_head[i].head, ai, list) {
++			ie_string(ie, IE_WLAN_MAC, MAC_LEN, ai->mac);
++			ie_number(ie, IE_RSS, 1, ai->rss);
++			ie_string(ie, IE_ESSID, strlen(ai->u.wi.essid), ai->u.wi.essid);
++			ie_number(ie, IE_CHANNEL, 1, ai->u.wi.channel);
++			ie_number(ie, IE_ENCRYPTION_TYPE, 1, ai->u.wi.encryption_type);
+ 		}
+ 	}
+-out:
+-	if (group_len)
+-		hdr->msg_lenth = group_len;
+-	return (group_len + sizeof(struct msg_hdr));
++	send_airinfo(WLAN_INFO, (void *)s, tx_buffer, &msg_len);
+ 
+ #undef ie_string
+ #undef ie_number
+ }
+ 
+-static void
+-packet_dump(unsigned char * buf, int len, struct sockaddr_un *addr)
++static void 
++assemble_client_airinfo(unsigned char *tx_buffer, int buffer_size, void *s)
+ {
+-	int i;
+-	if (conf.debug) {
+-		dump_file_open("a+");
+-		fprintf(DUMP_FILE, "\n");
+-		if (addr) {
+-			fprintf(DUMP_FILE, "******* Request *******\n");
+-			fprintf(DUMP_FILE, "Peer addr: %s\n", addr->sun_path);
+-		} else {
+-			fprintf(DUMP_FILE, "******* Response *******\n");
+-			fprintf(DUMP_FILE, "Msg Lenth: %d\n", len);
+-		}
+-		for (i = 0; i < len; i++) {
+-			if (i && (i % 2) == 0)
+-				fprintf(DUMP_FILE, " ");
+-			if (i && (i % 16) == 0)
+-				fprintf(DUMP_FILE, "\n");
+-			fprintf(DUMP_FILE, "%02x", buf[i]);
+-		}
+-		fprintf(DUMP_FILE, "\n");
+-		dump_file_close();
+-	}
+-}
+-
+-
+-
+-#define HAN_DEBUG(...) \
++#define ie_number(_ie, _type, _lenth, _value) \
+ 	do { \
+-		if (conf.debug) { \
+-			DUMP_FILE = fopen(conf.dump_file, "a+"); \
+-			fprintf(DUMP_FILE, __VA_ARGS__); \
+-			fclose(DUMP_FILE); \
++		if (((unsigned char *)(_ie) + (_lenth) + 2) - (tx_buffer + buffer_size) > 0) { \
++			send_airinfo(CLIENT_INFO, (void *)s, tx_buffer, &msg_len); \
++			(_ie) = (struct msg_ie *)(tx_buffer + sizeof(struct msg_hdr)); \
+ 		} \
++		(_ie)->ie_type = (_type); \
++		(_ie)->ie_lenth = _lenth; \
++		*(typeof((_value)) *)((_ie)->data) = (_value); \
++		(_ie) = (struct msg_ie *)((unsigned char *)(_ie) + (_lenth) + 2); \
++		(msg_len) += (unsigned int)((_lenth) + 2); \
+ 	} while (0)
++			
++#define ie_string(_ie, _type, _lenth, _string) \
++	do { \
++		if (((unsigned char *)(_ie) + (_lenth) + 2) - (tx_buffer + buffer_size) > 0) { \
++			send_airinfo(CLIENT_INFO, (void *)s, tx_buffer, &msg_len); \
++			(_ie) = (struct msg_ie *)(tx_buffer + sizeof(struct msg_hdr)); \
++		} \
++		(_ie)->ie_type = (_type); \
++		(_ie)->ie_lenth = (_lenth); \
++		memcpy((ie)->data, (_string), (_lenth)); \
++		(_ie) = (struct msg_ie *)((unsigned char *)(_ie) + (_lenth) + 2); \
++		(msg_len) += (unsigned int)((_lenth) + 2); \
++	} while (0)
++	
++	u_int8_t i = 0;
++	struct airinfo *ai = NULL;
++	unsigned int msg_len = 0;
++	struct msg_ie *ie = (struct msg_ie *)(tx_buffer + sizeof(struct msg_hdr));
++	
++		
++	for (i=0; i<HASH_SIZE; i++) {
++		list_for_each(&client_head[i].head, ai, list) {
++			ie_string(ie, IE_STA_MAC, MAC_LEN, ai->mac);
++			ie_number(ie, IE_RSS, 1, ai->rss);
++			ie_string(ie, IE_WLAN_MAC, MAC_LEN, ai->u.ci.associate_wlan);
++			ie_number(ie, IE_IP, 4, ai->u.ci.ip);
++			ie_number(ie, IE_QOS, 1, ai->u.ci.qos);
++		}
++	}
++	send_airinfo(CLIENT_INFO, (void *)s, tx_buffer, &msg_len);
++
++#undef ie_string
++#undef ie_number
++}
+ 
+ void *
+ thread_deliver_handle(void *arg)
+@@ -545,8 +594,12 @@
+ 	socklen_t addr_len = sizeof(c_addr);
+ 	unsigned char rx_buffer[128] = {0};
+ 	unsigned char tx_buffer[TX_BUFSIZE] = {0};
+-	unsigned int len = 0, msg_len = 0;
++	unsigned int len = 0;
+ 	struct msg_hdr *hdr = NULL;
++	struct {
++		int fd;
++		struct sockaddr_un c_addr;
++	} s;
+ 
+ 	while (true) {
+ 		bzero(&c_addr, sizeof(c_addr));
+@@ -563,18 +616,17 @@
+ 			HAN_DEBUG("INFO TYPE: %d\n", hdr->msg_type);
+ 			
+ 			if (MSG_REQUEST == hdr->operation) {
+-				if (WLAN_INFO == hdr->msg_type)
+-					msg_len = assemble_airinfo(WLAN_INFO, tx_buffer, TX_BUFSIZE);
+-				else if (CLIENT_INFO == hdr->msg_type)
+-					msg_len = assemble_airinfo(CLIENT_INFO, tx_buffer, TX_BUFSIZE);
+-				if (msg_len) {
+-					
+-					packet_dump(tx_buffer, msg_len, NULL);
+-					
+-					sendto(deliver_fd, tx_buffer, msg_len, 
+-						MSG_DONTWAIT, (struct sockaddr *)&c_addr, sizeof(c_addr));
+-					msg_len = 0;
+-					bzero(tx_buffer, sizeof(tx_buffer));
++				s.fd = deliver_fd;
++				s.c_addr = c_addr;
++				if (WLAN_INFO == hdr->msg_type) {
++					pthread_mutex_lock(&wlan_table_lock);
++					assemble_wlan_airinfo(tx_buffer, TX_BUFSIZE, (void *)&s);
++					pthread_mutex_unlock(&wlan_table_lock);
++				}
++				else if (CLIENT_INFO == hdr->msg_type) {
++					pthread_mutex_lock(&client_table_lock);
++					assemble_client_airinfo(tx_buffer, TX_BUFSIZE, (void *)&s);
++					pthread_mutex_unlock(&client_table_lock);
+ 				}
+ 			}
+ 			len = 0;
+diff -urN a/han.h b/han.h
+--- a/han.h	2016-06-14 03:18:47.210600753 -0700
++++ b/han.h	2016-06-14 03:20:19.936149243 -0700
+@@ -50,7 +50,6 @@
+ 
+ struct airinfo_head {
+ 	struct list_head head;
+-	pthread_mutex_t lock;
+ };
+ 
+ #ifndef	IW_MAX_FREQUENCIES

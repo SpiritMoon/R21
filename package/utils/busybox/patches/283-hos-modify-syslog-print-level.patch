@@ -1,0 +1,21 @@
+diff -urN a/libbb/verror_msg.c b/libbb/verror_msg.c
+--- a/libbb/verror_msg.c	2016-08-21 16:50:45.059689674 +0800
++++ b/libbb/verror_msg.c	2016-08-21 16:55:29.699728236 +0800
+@@ -70,7 +70,7 @@
+ 	}
+ #if ENABLE_FEATURE_SYSLOG
+ 	if (logmode & LOGMODE_SYSLOG) {
+-		syslog(LOG_ERR, "%s", msg + applet_len);
++		syslog(LOG_WARNING, "%s", msg + applet_len);
+ 	}
+ #endif
+ 	free(msg);
+@@ -130,7 +130,7 @@
+ 	}
+ # if ENABLE_FEATURE_SYSLOG
+ 	if (logmode & LOGMODE_SYSLOG) {
+-		syslog(LOG_ERR, "%s", msgc);
++		syslog(LOG_WARNING, "%s", msgc);
+ 	}
+ # endif
+ 	free(msgc);

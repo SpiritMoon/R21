@@ -1,0 +1,319 @@
+diff -urN a/src/daemon/event.c b/src/daemon/event.c
+--- a/src/daemon/event.c	2016-04-20 07:12:44.298191000 +0800
++++ b/src/daemon/event.c	2016-04-20 07:48:45.676399596 +0800
+@@ -417,8 +417,14 @@
+ levent_send_now(struct lldpd *cfg)
+ {
+ 	struct lldpd_hardware *hardware;
++/* zhouke add for support LLDP packet interaction */
++    log_debug("event", "levent_send_now send null packet");
+ 	TAILQ_FOREACH(hardware, &cfg->g_hardware, h_entries)
++    {   
++        lldpd_send_null(hardware);
+ 		event_active(hardware->h_timer, EV_TIMEOUT, 1);
++    }
++/* zhouke add end */
+ }
+ 
+ static void
+diff -urN a/src/daemon/lldp.c b/src/daemon/lldp.c
+--- a/src/daemon/lldp.c	2016-04-20 07:12:44.287835000 +0800
++++ b/src/daemon/lldp.c	2016-04-20 07:49:09.635826495 +0800
+@@ -52,6 +52,118 @@
+ 	}
+ }
+ 
++/* zhouke add for support LLDP packet interaction */
++int
++lldp_send_null(struct lldpd *global,
++	  struct lldpd_hardware *hardware)
++{
++	struct lldpd_port *port;
++	struct lldpd_chassis *chassis;
++	struct lldpd_frame *frame;
++	int length;
++	u_int8_t *packet, *pos, *tlv;
++	struct lldpd_mgmt *mgmt;
++	int proto;
++
++	u_int8_t mcastaddr[] = LLDP_MULTICAST_ADDR;
++#ifdef ENABLE_DOT1
++	const u_int8_t dot1[] = LLDP_TLV_ORG_DOT1;
++	struct lldpd_vlan *vlan;
++	struct lldpd_ppvid *ppvid;
++	struct lldpd_pi *pi;
++#endif
++#ifdef ENABLE_DOT3
++	const u_int8_t dot3[] = LLDP_TLV_ORG_DOT3;
++#endif
++#ifdef ENABLE_LLDPMED
++	int i;
++	const u_int8_t med[] = LLDP_TLV_ORG_MED;
++#endif
++
++	log_debug("lldp", "send LLDP PDU to %s",
++	    hardware->h_ifname);
++
++	port = &hardware->h_lport;
++	chassis = port->p_chassis;
++	length = hardware->h_mtu;
++	if ((packet = (u_int8_t*)calloc(1, length)) == NULL)
++		return ENOMEM;
++	pos = packet;
++
++	/* Ethernet header */
++	if (!(
++	      /* LLDP multicast address */
++	      POKE_BYTES(mcastaddr, sizeof(mcastaddr)) &&
++	      /* Source MAC address */
++	      POKE_BYTES(&hardware->h_lladdr, sizeof(hardware->h_lladdr)) &&
++	      /* LLDP frame */
++	      POKE_UINT16(ETHERTYPE_LLDP)))
++		goto toobig;
++
++	/* Chassis ID */
++	if (!(
++	      POKE_START_LLDP_TLV(LLDP_TLV_CHASSIS_ID) &&
++	      POKE_UINT8(chassis->c_id_subtype) &&
++	      POKE_BYTES(chassis->c_id, chassis->c_id_len) &&
++	      POKE_END_LLDP_TLV))
++		goto toobig;
++
++	/* Port ID */
++	if (!(
++	      POKE_START_LLDP_TLV(LLDP_TLV_PORT_ID) &&
++	      POKE_UINT8(port->p_id_subtype) &&
++	      POKE_BYTES(port->p_id, port->p_id_len) &&
++	      POKE_END_LLDP_TLV))
++		goto toobig;
++
++	/* Time to live */
++	if (!(
++	      POKE_START_LLDP_TLV(LLDP_TLV_TTL) &&
++	      POKE_UINT16(0) &&
++	      POKE_END_LLDP_TLV))
++		goto toobig;
++
++/* END */
++	if (!(
++	      POKE_START_LLDP_TLV(LLDP_TLV_END) &&
++	      POKE_END_LLDP_TLV))
++		goto toobig;
++
++	if (interfaces_send_helper(global, hardware,
++		(char *)packet, pos - packet) == -1) {
++		log_warn("lldp", "unable to send packet on real device for %s",
++		    hardware->h_ifname);
++		free(packet);
++		return ENETDOWN;
++	}
++
++	hardware->h_tx_cnt++;
++
++	/* We assume that LLDP frame is the reference */
++	if ((frame = (struct lldpd_frame*)malloc(
++			sizeof(int) + pos - packet)) != NULL) {
++		frame->size = pos - packet;
++		memcpy(&frame->frame, packet, frame->size);
++		if ((hardware->h_lport.p_lastframe == NULL) ||
++		    (hardware->h_lport.p_lastframe->size != frame->size) ||
++		    (memcmp(hardware->h_lport.p_lastframe->frame, frame->frame,
++			frame->size) != 0)) {
++			free(hardware->h_lport.p_lastframe);
++		hardware->h_lport.p_lastframe = frame;
++		hardware->h_lport.p_lastchange = time(NULL);
++		} else
++			free(frame);
++	}
++
++	free(packet);
++	return 0;
++
++toobig:
++	free(packet);
++	return E2BIG;
++}
++/* zhouke add end */
++
+ int
+ lldp_send(struct lldpd *global,
+ 	  struct lldpd_hardware *hardware)
+@@ -121,7 +233,8 @@
+ 	      POKE_UINT16(chassis->c_ttl) &&
+ 	      POKE_END_LLDP_TLV))
+ 		goto toobig;
+-
++/* zhouke add for support LLDP packet interaction */
++#if 0
+ 	/* System name */
+ 	if (!(
+ 	      POKE_START_LLDP_TLV(LLDP_TLV_SYSTEM_NAME) &&
+@@ -135,7 +248,8 @@
+ 	      POKE_BYTES(chassis->c_descr, strlen(chassis->c_descr)) &&
+ 	      POKE_END_LLDP_TLV))
+ 		goto toobig;
+-
++#endif
++/* zhouke add end */
+ 	/* System capabilities */
+ 	if (!(
+ 	      POKE_START_LLDP_TLV(LLDP_TLV_SYSTEM_CAP) &&
+@@ -143,7 +257,8 @@
+ 	      POKE_UINT16(chassis->c_cap_enabled) &&
+ 	      POKE_END_LLDP_TLV))
+ 		goto toobig;
+-
++/* zhouke add for support LLDP packet interaction */
++#if 0
+ 	/* Management addresses */
+ 	TAILQ_FOREACH(mgmt, &chassis->c_mgmt, m_entries) {
+ 		proto = lldpd_af_to_lldp_proto(mgmt->m_family);
+@@ -183,7 +298,8 @@
+ 	      POKE_BYTES(port->p_descr, strlen(port->p_descr)) &&
+ 	      POKE_END_LLDP_TLV))
+ 		goto toobig;
+-
++#endif
++/* zhouke add end */
+ #ifdef ENABLE_DOT1
+ 	/* Port VLAN ID */
+ 	if(port->p_pvid != 0) {
+@@ -234,6 +350,8 @@
+ #endif
+ 
+ #ifdef ENABLE_DOT3
++/* zhouke add for support LLDP packet interaction */
++#if 0
+ 	/* Aggregation status */
+ 	if (!(
+ 	      POKE_START_LLDP_TLV(LLDP_TLV_ORG) &&
+@@ -244,7 +362,8 @@
+ 	      POKE_UINT32(port->p_aggregid) &&
+ 	      POKE_END_LLDP_TLV))
+ 		goto toobig;
+-
++#endif
++/* zhouke add end */
+ 	/* MAC/PHY */
+ 	if (!(
+ 	      POKE_START_LLDP_TLV(LLDP_TLV_ORG) &&
+diff -urN a/src/daemon/lldpd.c b/src/daemon/lldpd.c
+--- a/src/daemon/lldpd.c	2016-04-20 07:12:44.299899000 +0800
++++ b/src/daemon/lldpd.c	2016-04-20 07:49:17.731805441 +0800
+@@ -882,6 +882,92 @@
+ 	free(buffer);
+ }
+ 
++/* zhouke add for support LLDP packet interaction */
++void
++lldpd_send_null(struct lldpd_hardware *hardware)
++{
++	struct lldpd *cfg = hardware->h_cfg;
++	struct lldpd_port *port;
++	int i, sent;
++
++	if (cfg->g_config.c_receiveonly || cfg->g_config.c_paused) return;
++	if ((hardware->h_flags & IFF_RUNNING) == 0)
++		return;
++
++	log_debug("send", "send PDU NULL packet on %s", hardware->h_ifname);
++	sent = 0;
++    
++	for (i=0; cfg->g_protocols[i].mode != 0; i++) {
++		if (!cfg->g_protocols[i].enabled)
++			continue;
++		/* We send only if we have at least one remote system
++		 * speaking this protocol or if the protocol is forced */
++		if (cfg->g_protocols[i].enabled > 1) {
++            if(memcmp(cfg->g_protocols[i].name,"LLDP",strlen("LLDP")) == 0)
++            {
++                lldp_send_null(cfg,hardware);
++            }
++            else
++            {
++			    cfg->g_protocols[i].send(cfg,
++			        hardware);
++            }
++			sent++;
++			continue;
++		}
++		TAILQ_FOREACH(port, &hardware->h_rports, p_entries) {
++			/* If this remote port is disabled, we don't
++			 * consider it */
++			if (port->p_hidden_out)
++				continue;
++			if (port->p_protocol ==
++			    cfg->g_protocols[i].mode) {
++				TRACE(LLDPD_FRAME_SEND(hardware->h_ifname,
++					cfg->g_protocols[i].name));
++				log_debug("send", "send PDU NULL packet on %s with protocol %s",
++				    hardware->h_ifname,
++				    cfg->g_protocols[i].name);
++                if(memcmp(cfg->g_protocols[i].name,"LLDP",strlen("LLDP")) == 0)
++                {
++                    lldp_send_null(cfg,hardware);
++                }
++                else
++                {
++    			    cfg->g_protocols[i].send(cfg,
++    			        hardware);
++                }
++				sent++;
++				break;
++			}
++		}
++	}
++
++	if (!sent) {
++		/* Nothing was sent for this port, let's speak the first
++		 * available protocol. */
++		for (i = 0; cfg->g_protocols[i].mode != 0; i++) {
++			if (!cfg->g_protocols[i].enabled) continue;
++			TRACE(LLDPD_FRAME_SEND(hardware->h_ifname,
++				cfg->g_protocols[i].name));
++			log_debug("send", "fallback NULL packet to protocol %s for %s",
++			    cfg->g_protocols[i].name, hardware->h_ifname);
++            if(memcmp(cfg->g_protocols[i].name,"LLDP",strlen("LLDP")) == 0)
++            {
++                lldp_send_null(cfg,hardware);
++            }
++            else
++            {
++			    cfg->g_protocols[i].send(cfg,
++			        hardware);
++            }
++			break;
++		}
++		if (cfg->g_protocols[i].mode == 0)
++			log_warnx("send", "no protocol enabled, dunno what to send NULL packet");
++	}
++}
++/* zhouke add end */
++
+ void
+ lldpd_send(struct lldpd_hardware *hardware)
+ {
+diff -urN a/src/daemon/lldpd.h b/src/daemon/lldpd.h
+--- a/src/daemon/lldpd.h	2016-04-20 07:12:44.303861000 +0800
++++ b/src/daemon/lldpd.h	2016-04-20 07:49:26.715776675 +0800
+@@ -62,8 +62,10 @@
+ 
+ #define SYSFS_CLASS_NET "/sys/class/net/"
+ #define SYSFS_CLASS_DMI "/sys/class/dmi/id/"
+-#define LLDPD_TX_INTERVAL	30
+-#define LLDPD_TX_HOLD          4
++/* zhouke add for support LLDP packet interaction */
++#define LLDPD_TX_INTERVAL	60      //30->60
++#define LLDPD_TX_HOLD          8    // 4->8
++/* zhouke add end */
+ #define LLDPD_TTL              LLDPD_TX_INTERVAL * LLDPD_TX_HOLD
+ #define LLDPD_TX_MSGDELAY	1
+ #define LLDPD_MAX_NEIGHBORS	4
+@@ -131,6 +133,7 @@
+ struct lldpd_mgmt *lldpd_alloc_mgmt(int family, void *addr, size_t addrsize, u_int32_t iface);
+ void	 lldpd_recv(struct lldpd *, struct lldpd_hardware *, int);
+ void	 lldpd_send(struct lldpd_hardware *);
++void     lldpd_send_null(struct lldpd_hardware *);     //zhouke add for support LLDP packet interaction
+ void	 lldpd_loop(struct lldpd *);
+ int	 lldpd_main(int, char **, char **);
+ void	 lldpd_update_localports(struct lldpd *);

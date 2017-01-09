@@ -1,0 +1,19 @@
+<div class="modal-header modal_type" ng-class="{'foldedlv1menupurple':skin.isPurple, 'foldedlv1menublue':skin.isBlue}">
+	<div class="modal-title">{{"Logout Prompt"|translate}}</div>
+</div>
+<div class="modal-body">
+	<div class="row">
+		<div class="col-md-offset-2 col-md-10">
+			<p ng-show="flag !=3" id="logout-5s" class="form-control-static">{{"SessionTimeOutTips_1"|translate}}</p>
+			<p ng-show="flag==3" id="logout-15s" class="form-control-static">{{"SessionTimeOutTips_2"|translate}}</p>
+			<p ng-show="flag==3" class="form-control-static">{{"SessionTimeOutTips_3"|translate}}</p>
+		</div>
+	</div>
+	<br/>
+	<div class="row" ng-if="flag==3">
+		<div class="col-md-offset-4 col-md-10">
+			<button class="btn btn-custommenu" ng-click="unlogout()">YES</button>
+			<button class="btn btn-custommenu" ng-click="logout()">NO</button>
+		</div>
+	</div>
+</div>

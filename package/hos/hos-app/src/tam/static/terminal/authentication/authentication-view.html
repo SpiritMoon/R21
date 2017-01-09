@@ -1,0 +1,49 @@
+<div class="panel"  ng-class="{'border_purple':skin.isPurple, 'border_blue':skin.isBlue}" ng-controller="TerminalAuthViewController">
+    <div tooltip="{{'authTip'|translate}}" hover mnuelevel="2" tooltip-enable="{{helpTip.isEabled}}" class="panel-heading delTBPadding second_level_header" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}" id="function22">
+			<div class="col-md-6 col-lg-7 col-sm-6 col-xs-5 setHeight">
+				<h3 class="panel-title" ng-click="openAuthenticationViewPageInit()">{{"Authentication"|translate}}</h3>
+			</div>
+			<div class="col-md-6 col-lg-5 col-sm-6 col-xs-7 setHeight">
+				<div style="float: right;">
+					<label style="font-size:12px;"><input type="radio" value="device" ng-model="Auth.type">{{"authDevice"|translate}}</input></label>
+					<label style="font-size:12px;"><input type="radio" value="os" ng-model="Auth.type">{{"authOS"|translate}}</input></label>
+			</div>
+	</div>
+	</div>
+	<div class="panel-body second_level_content">
+		<div style=" width: 200px; height:300px; margin-top: 2%; margin-left: auto; margin-right: auto">
+			<div ng-show="Auth.type == 'device'" align="center">
+                <p style="margin-top: 2%";><b style="font-size: medium">{{"Device type"|translate}}</b></p>
+                <nvd3-pie-chart
+                        data="deviceType"
+                        id="deviceType"
+                        width="200"
+                        height="200"
+                        x="xFunction()"
+                        y="yFunction()"
+                        tooltips="true"
+                        showLabels="true"
+                        showValues="true"
+                        noData='{{"No Data Available"|translate}}'>
+                    <svg style="height:200px;width:300px"></svg>
+                </nvd3-pie-chart>
+			</div>
+			<div ng-show="Auth.type == 'os'" align="center">
+                <p style="margin-top: 2%";><b style="font-size: medium">{{"Os type"|translate}}</b></p>
+                <nvd3-pie-chart
+                        data="osType"
+                        id="osType"
+                        width="200"
+                        height="200"
+                        x="xFunction()"
+                        y="yFunction()"
+                        tooltips="true"
+                        showLabels="true"
+                        showValues="true"
+                        noData='{{"No Data Available"|translate}}'>
+                    <svg style="height:200px;width:300px"></svg>
+                </nvd3-pie-chart>
+			</div>
+		</div>
+	</div>
+</div>

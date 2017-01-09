@@ -1,0 +1,121 @@
+<!DOCTYPE html >
+<html ng-app="login" ng-controller="loginCtrl">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf8"/>
+	<title>Login Page</title>
+	<!-- basic js-->
+	<script type="text/javascript" src="assets/js/login.basic.min.js"></script>
+	<link rel="stylesheet" href="assets/css/login.basic.min.css">
+	<!--moudle-->
+	<script type="text/javascript" src="assets/js/login.moudle.min.js"></script>
+	<link rel="stylesheet" href="assets/css/login.moudle.min.css">
+	
+	<!-- test use
+	<link href="login-css/login.css" type="text/css" rel="stylesheet"/>
+	-->
+	<!-- test use
+	<script type="application/javascript" src="login-js/login-config.js"></script>
+	<script type="application/javascript" src="login-js/login_controller.js"></script>
+	<script type="application/javascript" src="login-js/guide-welcome.js"></script>
+	<script type="application/javascript" src="login-js/guide-first-step.js"></script>
+	<script type="application/javascript" src="login-js/guide-second-step.js"></script>
+	<script type="application/javascript" src="login-js/guide-complete.js"></script>
+	<script type="application/javascript" src="login-js/guide-three-step.js"></script>
+	<script type="application/javascript" src="login-js/ntpTimeZone-constant.js"></script>
+	<script type="application/javascript" src="login-js/guide-https.js"></script>
+	-->
+
+</head>
+<body>
+<div class="custom-loadingmodal" ng-if="loading">
+	<img class="customloading" src="assets/images/loading.gif" alt=""/>
+</div>
+<div class="container" ng-keyup="myKeyup($event)">
+	<div class="row col-md-12">
+		<div class="language_CH_EN col-lg-offset-9">
+			<span ng-show="isEnglish" style="font-size: 20px;">
+				<a href="#" ng-click="setLang(0)">English</a>
+			</span>
+			<span ng-show="isChiness" style="font-size: 20px;">
+				<a href="#" ng-click="setLang(1)">中文</a>
+			</span>
+			<span ng-show="isDeutsch" style="font-size: 20px;">
+				<a href="#" ng-click="setLang(2)">Deutsch</a>
+			</span>
+			<span ng-show="isBoth" style="font-size: 20px;">
+				<a href="#" ng-click="setLang(3)">English</a> | <a href="#" ng-click="setLang(4)">中文</a> | <a href="#" ng-click="setLang(5)">Deutsch</a>
+			</span>
+		</div>
+	</div>
+	<div class="row">
+		<div class="col-md-5">
+			<div id="login_logo" style="margin-left: 60px;margin-top: 250px;" >
+				<img src="assets/images/login_logo.png">
+			</div>
+		</div>
+		<div class="col-md-6">
+			<div ng-if="currentProtocol=='https'">
+				<div  id = "logo_username_password" style="margin-top: 150px;width:520px;height:450px;background:url('assets/images/login_user.png') no-repeat;margin-left:auto;margin-right:auto;">
+					<div style="margin-left: 40px;width: 250px;" >
+						<br><br><br><br><br>
+						<div class="input-group">
+							<span class="input-group-addon">
+								<span class="glyphicon glyphicon-user" style="color: rgb(102, 151, 211);"></span>
+							</span>
+							<select style="width: 100%;line-height: 32px;" ng-model="selectedRole"  ng-options="obj.name for obj in rolesddd" class="form-control" >
+							</select>
+						</div>
+						<br>
+						<div class="input-group">
+							<span class="input-group-addon">
+								<span class="glyphicon glyphicon-lock" style="color: rgb(102, 151, 211);"></span>
+							</span>
+							<input  class="form-control" style="width: 100%;" type="password" class="form-control" ng-model="loginParam.password" placeholder={{"Password"|translate}} ng-trim="false"/>
+						</div>
+						<br>
+						<br>
+						<div>
+					<span style="float: right;">
+						<input type="submit" class="btn btn-info" ng-disabled="loginParam.button_clicked" value="{{'Login'|translate}}" ng-click="showUserGuide()"/>
+					</span>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div ng-if="currentProtocol=='http'">
+				<div   style="margin-top: 150px;width:520px;height:450px;background:url('assets/images/login_user.png') no-repeat;margin-left:auto;margin-right:auto;">
+					<div  style="margin-left: 40px;width: 250px;" >
+						<br><br><br><br><br>
+						<div class="input-group">
+							<span class="input-group-addon">
+								<span class="glyphicon glyphicon-user" style="color: rgb(102, 151, 211);"></span>
+							</span>
+							<select style="width: 100%;line-height: 32px;" ng-model="selectedRole"  ng-options="obj.name for obj in rolesddd" class="form-control" >
+							</select>
+						</div>
+						<br>
+						<div class="input-group">
+							<span class="input-group-addon">
+								<span class="glyphicon glyphicon-lock" style="color: rgb(102, 151, 211);"></span>
+							</span>
+							<input  class="form-control" style="width: 100%;" type="password" class="form-control" ng-model="loginParam.password" placeholder="password" ng-trim="false"/>
+						</div>
+						<br>
+						<br>
+						<div class="input-group">
+							<span style="float: left;">
+								<input type="submit" class="btn btn-info" ng-disabled="loginParam.button_clicked" value="{{'Login'|translate}}" ng-click="showUserGuide()"/>
+							</span>
+						</div>
+						<br>
+						<div class="input-group">
+							<a href="#" ng-click="goToHttpsGuide()">Login by https</a>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+</body>
+</html>

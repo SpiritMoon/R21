@@ -1,0 +1,28 @@
+#!/bin/sh /etc/rc.common
+
+START=98
+USE_PROCD=1
+
+start_service()
+{
+	while ! ifconfig br-wan|grep Mask > /dev/null;
+	do
+		sleep 1;
+	done
+
+	# br-wan:0's address is ifconfiged by cluster
+	local i=10
+	while [ $i -gt 1 ] && ! cluster_mgt -x show=self | grep -q RUN
+	do
+		let i=i-1
+		sleep 1;
+	done
+
+	procd_open_instance
+	procd_set_param command /etc/cert/cert_ipmonitor
+	procd_set_param respawn
+	procd_close_instance
+
+	# blocking is a must
+	/etc/cert/try_mkca.sh
+}

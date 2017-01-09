@@ -1,0 +1,28 @@
+diff -urN a/networking/udhcp/common.c b/networking/udhcp/common.c
+--- a/networking/udhcp/common.c	2016-07-14 15:34:49.543642634 +0800
++++ b/networking/udhcp/common.c	2016-07-14 15:36:31.776384909 +0800
+@@ -44,13 +44,14 @@
+ 	{ OPTION_STRING_HOST                      , 0x28 }, /* DHCP_NIS_DOMAIN    */
+ 	{ OPTION_IP | OPTION_LIST                 , 0x29 }, /* DHCP_NIS_SERVER    */
+ 	{ OPTION_IP | OPTION_LIST     | OPTION_REQ, 0x2a }, /* DHCP_NTP_SERVER    */
++	{ OPTION_STRING			      | OPTION_REQ, 0x2b }, /* DHCP_OPTION43      */		//zhouke add for Zero Touch Provisioning
+ 	{ OPTION_IP | OPTION_LIST                 , 0x2c }, /* DHCP_WINS_SERVER   */
+ 	{ OPTION_U32                              , 0x33 }, /* DHCP_LEASE_TIME    */
+ 	{ OPTION_IP                               , 0x36 }, /* DHCP_SERVER_ID     */
+ 	{ OPTION_STRING                           , 0x38 }, /* DHCP_ERR_MESSAGE   */
+ //TODO: must be combined with 'sname' and 'file' handling:
+-	{ OPTION_STRING_HOST                      , 0x42 }, /* DHCP_TFTP_SERVER_NAME */
+-	{ OPTION_STRING                           , 0x43 }, /* DHCP_BOOT_FILE     */
++	{ OPTION_STRING               | OPTION_REQ, 0x42 }, /* DHCP_TFTP_SERVER_NAME */		//zhouke add for Zero Touch Provisioning
++	{ OPTION_STRING               | OPTION_REQ, 0x43 }, /* DHCP_BOOT_FILE     */		//zhouke add for Zero Touch Provisioning
+ //TODO: not a string, but a set of LASCII strings:
+ //	{ OPTION_STRING                           , 0x4D }, /* DHCP_USER_CLASS    */
+ #if ENABLE_FEATURE_UDHCP_RFC3397
+@@ -111,6 +112,7 @@
+ 	"nisdomain" "\0"   /* DHCP_NIS_DOMAIN     */
+ 	"nissrv" "\0"      /* DHCP_NIS_SERVER     */
+ 	"ntpsrv" "\0"      /* DHCP_NTP_SERVER     */
++	"specific" "\0"    /* DHCP_OPTION43       */		//zhouke add for Zero Touch Provisioning
+ 	"wins" "\0"        /* DHCP_WINS_SERVER    */
+ 	"lease" "\0"       /* DHCP_LEASE_TIME     */
+ 	"serverid" "\0"    /* DHCP_SERVER_ID      */

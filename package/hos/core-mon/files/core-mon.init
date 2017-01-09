@@ -1,0 +1,14 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+USE_PROCD=1
+
+CORE_APP="/usr/sbin/core-mon"
+
+start_service()
+{
+	procd_open_instance
+	procd_set_param command "$CORE_APP"
+	procd_set_param respawn
+	procd_close_instance
+}

@@ -1,0 +1,87 @@
+#!/bin/sh
+[ -z "$1" ] && echo "Error: should be run by udhcpc" && exit 1
+
+# zhouke add for support Zero Touch Provisioning get option43 66 67 224
+#dhcp option 43 sub-option 241
+DHCP_VIRTUAL_CLUSTER_IP="/tmp/virtual_cluster_ip"
+#dhcp option 43 sub-option 242(VCI)
+DHCP_VENDOR_CLASS_ID="/tmp/ztp_server_indentifer"
+#dhcp option 66
+DHCP_TFTP_SERVER_NAME="/tmp/ztp_server_addr"
+#dhcp option 67
+DHCP_TFTP_BOOT_FILE_NAME="/tmp/ztp_instruction_name"
+#dhcp option 224
+DHCP_WMA_SERVER_NAME="/tmp/wma_server_name"
+
+save_dhcp_option_info() {
+	local file=$1
+	local value=$2
+	
+	if [ -f $file ]; then
+		rm -rf $file
+	fi
+	touch $file
+	echo $value > $file
+}
+
+set_classless_routes() {
+	local max=128
+	local type
+	while [ -n "$1" -a -n "$2" -a $max -gt 0 ]; do
+		[ ${1##*/} -eq 32 ] && type=host || type=net
+		echo "udhcpc: adding route for $type $1 via $2"
+		route add -$type "$1" gw "$2" dev "$interface"
+		max=$(($max-1))
+		shift 2
+	done
+}
+
+setup_interface() {
+	echo "udhcpc: ifconfig $interface $ip netmask ${subnet:-255.255.255.0} broadcast ${broadcast:-+}"
+	ifconfig $interface $ip netmask ${subnet:-255.255.255.0} broadcast ${broadcast:-+}
+
+	# zhouke add for support Zero Touch Provisioning get option43 66 67 224
+	[ -n "$specific" ] && save_dhcp_option_info $DHCP_VIRTUAL_CLUSTER_IP $specific
+	[ -n "$vendor" ] && save_dhcp_option_info $DHCP_VENDOR_CLASS_ID $vendor
+	[ -n "$tftp" ] && save_dhcp_option_info $DHCP_TFTP_SERVER_NAME $tftp
+	[ -n "$bootfile" ] && save_dhcp_option_info $DHCP_TFTP_BOOT_FILE_NAME $bootfile
+	[ -n "$wmasrv" ] && save_dhcp_option_info $DHCP_WMA_SERVER_NAME $wmasrv
+
+	[ -n "$router" ] && [ "$router" != "0.0.0.0" ] && [ "$router" != "255.255.255.255" ] && {
+		echo "udhcpc: setting default routers: $router"
+
+		local valid_gw=""
+		for i in $router ; do
+			route add default gw $i dev $interface
+			valid_gw="${valid_gw:+$valid_gw|}$i"
+		done
+		
+		eval $(route -n | awk '
+			/^0.0.0.0\W{9}('$valid_gw')\W/ {next}
+			/^0.0.0.0/ {print "route del -net "$1" gw "$2";"}
+		')
+	}
+
+	# CIDR STATIC ROUTES (rfc3442)
+	[ -n "$staticroutes" ] && set_classless_routes $staticroutes
+	[ -n "$msstaticroutes" ] && set_classless_routes $msstaticroutes
+}
+
+
+applied=
+case "$1" in
+	deconfig)
+		ifconfig "$interface" 0.0.0.0
+	;;
+	renew)
+		setup_interface update
+	;;
+	bound)
+		setup_interface ifup
+	;;
+esac
+
+# user rules
+[ -f /etc/udhcpc.user ] && . /etc/udhcpc.user
+
+exit 0

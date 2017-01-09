@@ -1,0 +1,46 @@
+diff -urN a/log.h b/log.h
+--- a/log.h	2016-08-21 16:50:54.759722521 +0800
++++ b/log.h	2016-08-21 16:51:54.156178224 +0800
+@@ -19,18 +19,24 @@
+ 
+ #define DEBUG(level, fmt, ...) do { \
+ 	if (debug >= level) { \
+-		syslog(0, fmt, ## __VA_ARGS__); \
++        openlog("procd",0,LOG_DAEMON);  \
++		syslog(LOG_DEBUG, fmt, ## __VA_ARGS__); \
+ 		fprintf(stderr, "procd: %s(%d): " fmt, __func__, __LINE__, ## __VA_ARGS__); \
++		closelog(); \
+ 	} } while (0)
+ 
+ #define LOG(fmt, ...) do { \
+-		syslog(0, fmt, ## __VA_ARGS__); \
++        openlog("procd",0,LOG_DAEMON);  \
++		syslog(LOG_NOTICE, fmt, ## __VA_ARGS__); \
+ 		fprintf(stderr, "procd: "fmt, ## __VA_ARGS__); \
++		closelog(); \
+ 	} while (0)
+ 
+ #define ERROR(fmt, ...) do { \
+-		syslog(0, fmt, ## __VA_ARGS__); \
++        openlog("procd",0,LOG_DAEMON);  \
++		syslog(LOG_NOTICE, fmt, ## __VA_ARGS__); \
+ 		fprintf(stderr, "procd: "fmt, ## __VA_ARGS__); \
++		closelog(); \
+ 	} while (0)
+ 
+ extern unsigned int debug;
+diff -urN a/rcS.c b/rcS.c
+--- a/rcS.c	2016-08-21 16:50:54.763674269 +0800
++++ b/rcS.c	2016-08-21 16:51:59.715649401 +0800
+@@ -54,7 +54,10 @@
+ 			break;
+ 		*newline = 0;
+ 		len = newline + 1 - str;
+-		syslog(0, "%s", str);
++		//syslog(0, "%s", str);
++        openlog("procd",0,LOG_DAEMON);
++		syslog(LOG_NOTICE, "%s", str);
++		closelog();
+ 		ustream_consume(s, len);
+ 	} while (1);
+ }

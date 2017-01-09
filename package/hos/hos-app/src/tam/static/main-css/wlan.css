@@ -1,0 +1,187 @@
+.wlan_brother{
+    height:150px; width:100%;
+    margin-top: 0px;
+}
+.wlan_brother table {
+    width:100%;
+}
+.wlan_brother table thead{
+    background-color: #e3e0e0;
+}
+
+.wlan_line{
+    width:1px; display:inline; float:left;
+}
+.wlan_line div{
+    background-color:#5f4285; height:120px; margin-top:15px;
+}
+
+.message_wlan_detail li{
+    height: 20px;
+}
+
+/*modal body height*/
+.wlan_modal_height{
+    height: 400px;
+}
+/*span distance*/
+.li_span{
+    margin-left: 70px;
+}
+
+/*modal table style*/
+.table input[type="text"]{
+    width: 250px;
+}
+
+.table_border{
+    border: 0px;
+}
+
+/*wlan panel height*/
+.wlan_panel_height{
+    height:220px;
+}
+
+/*下拉菜单*/
+.dropdown-submenu {
+    position: relative;
+}
+.dropdown-submenu > .dropdown-menu {
+    top: 0;
+    left: 100%;
+    margin-top: -6px;
+    margin-left: -1px;
+    -webkit-border-radius: 0 6px 6px 6px;
+    -moz-border-radius: 0 6px 6px;
+    border-radius: 0 6px 6px 6px;
+}
+.dropdown-submenu:hover > .dropdown-menu {
+    display: block;
+}
+.dropdown-submenu > a:after {
+    display: block;
+    content: " ";
+    float: right;
+    width: 0;
+    height: 0;
+    border-color: transparent;
+    border-style: solid;
+    border-width: 5px 0 5px 5px;
+    border-left-color: #ccc;
+    margin-top: 5px;
+    margin-right: -10px;
+}
+.dropdown-submenu:hover > a:after {
+    border-left-color: #fff;
+}
+.dropdown-submenu.pull-left {
+    float: none;
+}
+.dropdown-submenu.pull-left > .dropdown-menu {
+    left: -100%;
+    margin-left: 10px;
+    -webkit-border-radius: 6px 0 6px 6px;
+    -moz-border-radius: 6px 0 6px 6px;
+    border-radius: 6px 0 6px 6px;
+}
+
+/*结束*/
+.layout_center{
+     margin: 0 auto;
+ }
+
+.table-condensed input[type="text"]{
+    height: 30px;
+    width: 280px;
+}
+
+.dropdown button{
+    width: 280px;
+}
+#slider_table tr td input[type="text"]{
+    width:350px;
+}
+#wlan_info_edit {
+    height: 450px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+#wlan_info_edit  input[type="text"]{
+    width: 130px;
+}
+#wlan_info_edit select{
+    width: 130px;
+}
+#wlan_info_add {
+    height: 500px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+#wlan_info_add input[type="text"]{
+    width: 130px;
+}
+#wlan_info_add select{
+    width: 130px;
+}
+
+#create_wlan {
+    border: 0px;
+}
+.wlan_info {
+    height: 350px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+#security_type_1 select {
+    width: 140px;
+}
+#slider_table table tr div span{
+    width: 100px;
+}
+.create_wlan_detail {
+    width: 100%;
+    height: 450px;
+    overflow-x: hidden;
+    overflow-y: auto;
+}
+.create_wlan_detail select{
+    width: 140px;
+}
+
+#create_form div select {
+    width: 220px;
+}
+
+#security_type select{
+    width:140px;
+}
+
+.form_div_css{
+    height: 25px;
+}
+.security_css{
+    width: 130px;
+}
+
+#wmm_edit input[type="text"]{
+    width:100px;
+}
+#myTab li{
+    width:200px;
+}
+#wlanpanel{
+    margin-bottom:15px;
+}
+#wlanpanel div table{
+    width:100%;
+}
+#wlanpanel > div.panel-body{
+    padding:0px;
+    padding-bottom:10px;
+}
+
+#wlan_list tbody tr td:hover{
+    cursor:pointer;
+}

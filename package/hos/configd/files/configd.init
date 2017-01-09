@@ -1,0 +1,15 @@
+#!/bin/sh /etc/rc.common
+
+# make sure boot before cluster
+START=60
+USE_PROCD=1
+
+CONFIGD_APP="/sbin/configd"
+
+start_service()
+{
+	procd_open_instance
+	procd_set_param command "$CONFIGD_APP"
+	procd_set_param respawn
+	procd_close_instance
+}

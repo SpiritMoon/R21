@@ -1,0 +1,11 @@
+--- a/cli.c
++++ b/cli.c
+@@ -965,7 +965,7 @@ static int __edit_wlan(char **argv)
+ 			count_e++;
+ 		i++;
+ 	}
+-	if ((count_p != 1) || (count_e != 1)) {
++	if ((count_p < 1) || (count_e != 1)) {
+ 		uci_usage();
+ 		return 0;
+ 	}

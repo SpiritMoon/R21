@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<div class="modal-header modal_type" ng-class="{'foldedlv1menupurple':skin.isPurple, 'foldedlv1menublue':skin.isBlue}">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">&times;</button>
+    <div class="modal-title"><span style="float: left">{{"ClientsInfo"|translate}}</span>
+        <div style="width: 20%;margin-left: 50%;float: left" class="input-group input-group-sm" >
+            <input type="text" id="Input" ng-change="searchClient()"  ng-model="search.target" tooltip='{{"clientSearch"|translate}}' tooltip-trigger="mouseenter" tooltip-placement="top" class=" form-control"><!--ng-show="searchVisible"-->
+            <!--<span class="glyphicon glyphicon-search search_img" ng-click="showSearch()"></span>-->
+            <span class="input-group-addon" ><span class="glyphicon glyphicon-search" ></span></span>
+        </div>
+    </div>
+</div>
+<div class="modal-body">
+    <div class="row">
+        <div class="col-md-8">
+            <div name="dvThead" class="row">
+                <div class="col-md-12">
+                    <table  class="table table-hover  table-striped table-condensed tableLayoutFixed" style="margin-bottom: 0px;">
+                        <thead ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}">
+                        <tr>
+                            <td style="width:15%" ng-click="col='Name';desc=!desc" >{{"ClientName"|translate}}</td>
+                            <td style="width:20%" ng-click="col='IP';desc=!desc" >{{"IP"|translate}}</td>
+                            <td style="width:20%" ng-click="col='MAC';desc=!desc" >{{"MAC"|translate}}</td>
+                            <td style="width:10%" ng-click="col='WLAN';desc=!desc" >{{"WLAN"|translate}}</td>
+                            <td style="width:20%" ng-click="col='APInfo';desc=!desc" >{{"Access Point"|translate}}</td>
+                            <td style="width:12%"></td>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+            </div>
+            <div name="dvTbody" class="row">
+                <div class="col-md-12">
+                    <div class="detailBorder detailBgColor" id="clientLists">
+                        <table id="tbTbody" class="table table-condensed tableLayoutFixed" data-toggle="table">
+                        <tbody>
+                        <tr ng-repeat="selectClient in clientDetailGroupList | orderBy:col:desc" high-light>
+                            <td style="width:15%" ng-click="getCurrentClientDetail(selectClient)">
+                                <div class="self_adaptation_td" ng-bind="selectClient.Name" title="{{selectClient.Name}}"></div>
+                            </td>
+                            <td style="width:20%"  ng-click="getCurrentClientDetail(selectClient)">
+                                <div  ng-bind="selectClient.IP" title="{{selectClient.IP}}"></div>
+                            </td>
+                            <td style="width:20%"  ng-click="getCurrentClientDetail(selectClient)">
+                                <div  ng-bind="selectClient.UserMAC" title="{{selectClient.UserMAC}}"></div>
+                            </td>
+                            <td style="width:10%" ng-click="getCurrentClientDetail(selectClient)">
+                                <div class="self_adaptation_td" ng-bind="selectClient.WLAN" title="{{selectClient.WLAN}}"></div>
+                            </td>
+                            <td style="width:20%" ng-click="getCurrentClientDetail(selectClient)">
+                                <div class="self_adaptation_td" ng-bind="selectClient.APInfo" title="{{selectClient.AP}}"></div>
+                            </td>
+                            <td style="width:12%">
+                                <span display-permission='Permission_Admin' class="glyphicon glyphicon-remove del_color" ng-click="kickoffuser(selectClient)"></span>
+                                &nbsp;&nbsp;
+                                <span display-permission='Permission_Admin' class="glyphicon glyphicon-trash" ng-click="kickuser(selectClient)"></span>
+                            </td>
+
+                        </tr>
+                        </tbody>
+                    </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 paddingL0">
+            <div class="detailBorder detailBgColor">
+                <div class="row">
+                    <div class="col-sm-12">
+                        <div id="clientDetailHead" class="text-center font16" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}" >
+                          <span>{{"Client Detail"|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 clientDetailBody" >
+                        <table class="table-condensed" id="clientDetails">
+                            <tbody>
+                            <tr>
+                                <td style="width:35%;">{{"ClientName"|translate}}:</td>
+                                <td style="width:65%;" ng-bind="currentDetailTemp.Name"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"IP"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.IP"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"MAC"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.UserMAC"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"WLAN"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.WLAN"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"Access Point"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.AP"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"AP Name"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.APName"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"Auth"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.Auth"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"Attached Band"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.FREQ"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"Online Time"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.OnlineTime"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"Session Time"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.SessionTime"></td>
+                            </tr>
+
+                            <tr>
+                                <td>{{"RSSI"|translate}}:</td>
+                        		<td ng-bind="currentDetailTemp.RSSI"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"Working Mode"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.MODE"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"PHY Rx rate"|translate}}:</td>
+                                <td ><span class="marginR10" ng-bind="currentDetailTemp.RXRATE"></span>Mbps</td>
+                            </tr>
+                            <tr>
+                                <td>{{"PHY Tx rate"|translate}}:</td>
+                                <td ><span class="marginR10" ng-bind="currentDetailTemp.TXRATE"></span>Mbps</td>
+                            </tr>
+                            <tr>
+                                <td>{{"Rx rate"|translate}}:</td>
+                                <td ><span class="marginR10" ng-bind="currentDetailTemp.UPRATE"></span>Mbps</td>
+                            </tr>
+                            <tr>
+                                <td>{{"Tx rate"|translate}}:</td>
+                                <td ><span class="marginR10" ng-bind="currentDetailTemp.DOWNRATE"></span>Mbps</td>
+                            </tr>
+                            <tr>
+                                <td>{{"Input Flow"|translate}}:</td>
+                                <td><span ng-bind="currentDetailTemp.InputFlow"></span></td>
+                            </tr>
+                            <tr>
+                                <td>{{"Output Flow"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.OutputFlow"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"Device type"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.TerminalType"></td>
+                            </tr>
+                            <tr>
+                                <td>{{"OS Type"|translate}}:</td>
+                                <td ng-bind="currentDetailTemp.FingerPrint"></td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,12 @@
+diff -urN a/lib/url.c b/lib/url.c
+--- a/lib/url.c	2016-09-18 16:01:19.970787680 +0800
++++ b/lib/url.c	2016-09-18 21:14:49.956495602 +0800
+@@ -525,7 +525,7 @@
+    * switched off unless wanted.
+    */
+   set->ssl.verifypeer = TRUE;
+-  set->ssl.verifyhost = TRUE;
++  set->ssl.verifyhost = FALSE;  /* zhouke disable verify host name */
+ #ifdef USE_TLS_SRP
+   set->ssl.authtype = CURL_TLSAUTH_NONE;
+ #endif

@@ -1,0 +1,24 @@
+--- a/init/halt.c
++++ b/init/halt.c
+@@ -68,6 +68,7 @@
+ 
+ #include "libbb.h"
+ #include "reboot.h"
++#include <syslog.h>
+ 
+ #if ENABLE_FEATURE_WTMP
+ #include <sys/utsname.h>
+@@ -148,7 +149,12 @@ int halt_main(int argc UNUSED_PARAM, cha
+ 			/* talk to init */
+ 			if (!ENABLE_FEATURE_CALL_TELINIT) {
+ 				/* bbox init assumed */
+-				rc = kill(1, signals[which]);
++                if (signals[which] == SIGTERM) {
++                    openlog("[busybox]", 0, LOG_DAEMON);
++                    syslog(LOG_CRIT, "=reboot= send TERM to procd");
++                    closelog();
++                }
++                rc = kill(1, signals[which]);
+ 			} else {
+ 				/* SysV style init assumed */
+ 				/* runlevels:

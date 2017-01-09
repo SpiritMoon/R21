@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html ng-app="main" >
+
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf8" />
+	<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no">
+	<title>Web Management</title>
+
+	<!-- basic js-->
+	<script type="text/javascript" src="assets/js/main.basic.min.js"></script>
+	<link rel="stylesheet" href="assets/css/main.basic.min.css">
+
+	<!--moudle-->
+	<script type="text/javascript" src="assets/js/main.moudle.min.js"></script>
+	<link rel="stylesheet" href="assets/css/main.moudle.min.css">
+
+	<!-- test use css
+	<link type="text/css" href="main-css/main.css" rel="stylesheet"/>
+	<link type="text/css" href="main-css/wlan.css" rel="stylesheet"/>
+	<link type="text/css" href="main-css/ap.css"  rel="stylesheet"/>
+	<link type="text/css" href="main-css/system.css" rel="stylesheet"/>
+	<link type="text/css" href="main-css/wireless.css" rel="stylesheet" />
+	<link type="text/css" href="main-css/terminal.css"  rel="stylesheet"/>
+	<link type="text/css" href="main-css/clients.css" rel="stylesheet"/>
+	<link type="text/css" href="main-css/monitor.css"  rel="stylesheet"/>
+	-->
+	<!-- test use main js
+	<script type="text/javascript" src="main-js/main.js"></script>
+	<script type="text/javascript" src="main-js/main-controller.js"></script>
+	<script type="text/javascript" src="main-js/wlan/wlan-view.js"></script>
+	<script type="text/javascript" src="main-js/wlan/wlan-conf.js"></script>
+	<script type="text/javascript" src="main-js/wlan/wlan-list.js"></script>
+	<script type="text/javascript" src="main-js/ap/ap.js"></script>
+	<script type="text/javascript" src="main-js/ap/aplist.js"></script>
+	<script type="text/javascript" src="main-js/client/client.controller.js"></script>
+	<script type="text/javascript" src="main-js/client/client-detail.controller.js"></script>
+	<script type="text/javascript" src="main-js/monitor/monitor.js"></script>
+	<script type="text/javascript" src="main-js/system/cluster/cluster.js"></script>
+	<script type="text/javascript" src="main-js/system/cluster/cluster-config.js"></script>
+	<script type="text/javascript" src="main-js/system/syslog/syslog.js"></script>
+	<script type="text/javascript" src="main-js/terminal/acl/acl-view.controller.js"></script>
+	<script type="text/javascript" src="main-js/terminal/acl/acl-conf.controller.js"></script>
+	<script type="text/javascript" src="main-js/terminal/authentication/authentication-view.controller.js"></script>
+	<script type="text/javascript" src="main-js/terminal/authentication/authentication-conf.controller.js"></script>
+	<script type="text/javascript" src="main-js/terminal/access/access-limit.controller.js"></script>
+	<script type="text/javascript" src="main-js/wireless/rf-management/rf-management-view.controller.js"></script>
+	<script type="text/javascript" src="main-js/wireless/rf-management/rf-management-conf.controller.js"></script>
+	<script type="text/javascript" src="main-js/wireless/rogue-ap/rogue-ap-view.controller.js"></script>
+	<script type="text/javascript" src="main-js/wireless/rogue-ap/rogue-ap-conf.controller.js"></script>
+	<script type="text/javascript" src="main-js/wireless/others/others-view.controller.js"></script>
+	<script type="text/javascript" src="main-js/common/about/about.js"></script>
+	<script type="text/javascript" src="main-js/common/help/help.js"></script>
+	<script type="text/javascript" src="main-js/common/tools/tools.js"></script>
+	<script type="text/javascript" src="main-js/directives/permission-directive.js"></script>
+	<script type="text/javascript" src="main-js/directives/highlight-directive.js"></script>
+	<script type="text/javascript" src="main-js/directives/disableSpaces-directive.js"></script>
+	<script type="text/javascript" src="main-js/main-filter.js"></script>
+	<script type="text/javascript" src="main-js/system/ntp/ntp-controller.js"></script>
+	<script type="text/javascript" src="main-js/constants/ntpTimeZone-constant.js"></script>
+	<script type="text/javascript" src="main-js/loading.js"></script>
+    -->
+
+
+</head>
+<body>
+<div id="loading" class="custom-loadingmodal">
+	<img class="customloading" src="assets/images/loading.gif" alt=""/>
+</div>
+<div id="loaded" style="display:none" class="container col-md-12" ng-controller="mainController">
+	<div  class="container col-md-12">
+		<!--logo layout-->
+		<div class="row col-md-12">
+			<div class="logo "  >
+				<div class="img">
+					<img src="assets/images/login_logo.png"/>
+				</div>
+				<div class="hap_cluster col-md-4" monitor-high-light="cluster" ng-click="showMonitorData(clusterInfo.cluster_name)" >
+					<span class="cluster_logo ssidbreak" style="color:#5f4193;">
+						{{"AP Group"|translate}} :
+						<span class="hap_span">{{clusterInfo.cluster_name}} - {{clusterInfo.cluster_vip}}</span>
+					</span>
+					<br>
+					<span class="cluster_location ssidbreak" style="color:#5f4193;">{{clusterInfo.cluster_location}}</span>
+				</div>
+
+				<div class="admin_user col-md-4">
+					<div style="float: right;">
+						{{userName}}&nbsp;
+						<a href="#" ng-click="f_logout()">{{"Logout" | translate}}</a>
+						&nbsp;|&nbsp;
+						<a href="#" ng-click="showAbout()">{{"About"|translate}}</a>
+						&nbsp;
+						<span id="helplink" ng-class="{true: 'help_enabled', false: 'help_disabled'}[helpTip.isEabled]" tooltip="{{helpButtonTip.title}}" tooltip-placement="bottom" tooltip-enable="true" ng-click="showHelp()">{{"Help"|translate}}</span>
+						&nbsp;|
+						<span ng-show="isEnglish" >
+							<a href="#" ng-click="setLang(0)">English</a>
+						</span>
+						<span ng-show="isChiness">
+							<a href="#" ng-click="setLang(1)">中文</a>
+						</span>
+						<span ng-show="isDeutsch">
+							<a href="#" ng-click="setLang(2)">Deutsch</a>
+						</span>
+						<span ng-show="isBoth">
+							<a href="#" ng-click="setLang(3)">English</a> | <a href="#" ng-click="setLang(4)">中文</a> | <a href="#" ng-click="setLang(5)">Deutsch</a>
+						</span>
+						<img ng-click="logClick()" src="assets/images/log.png"></div>
+					<div style="clear:both;"></div>
+					<div style="float: right;">
+						<a href="#" ng-click="showTools()">{{"Tools"|translate}}</a>&nbsp;&nbsp;
+						<!--<a href="#" ng-click="showPMD()">{{"PMD"|translate}}</a>-->
+						| &nbsp;{{"Polling Cycle"|translate}}:&nbsp;
+						<select ng-model="pollingCycleSelected" ng-options="pollingCycle.name for pollingCycle in pollingCycles" ng-change="pollingChange()"></select>
+						<a href="#"  ng-hide="skin.isSelectSkin" >
+							<img ng-src="{{skin.imageUrl}}" ng-click="showSkinOption();"></a>
+						<a href="#" ng-show="skin.isSelectSkin">
+							<img src="assets/images/blue.png" ng-click="setSkin('blue');">
+							<img src="assets/images/purple.png" ng-click="setSkin('purple');"></a>
+					</div>
+				</div>
+			</div>
+		</div>
+		<!--dashbord layout-->
+		<div class="row top_distance col-md-12">
+
+			<div class="col-md-6">
+				<div class="row">
+					<div class="col-md-6 paddingR5">
+						<div ng-include="'wlan/wlan-view.html'"></div>
+					</div>
+					<div class="col-md-6 paddingL5">
+						<div ng-include="'ap/ap.html'"></div>
+					</div>
+				</div>
+				<div class="row ">
+					<div class="col-md-12">
+						<div ng-include="'client/client.html'"></div>
+					</div>
+				</div>
+			</div>
+			<!--monitor layout-->
+			<div class="col-md-6">
+				<div class="row">
+					<div ng-include="'monitor/monitor.html'"></div>
+
+				</div>
+			</div>
+		</div>
+		<!--menu-->
+		<div class="panel-group top_distance col-md-12" id="accordion">
+			<div class="panel">
+				<div tooltip="{{'systemTip'|translate}}" hover mnuelevel="0" tooltip-enable="{{helpTip.isEabled}}" id="system_title_bg" data-toggle="collapse" data-parent="#accordion" data-target="#collapseOne" class="panel-heading first_menu"  style="padding:0px;"  ng-class="{'foldedlv1menupurple': skin.isPurple, 'foldedlv1menublue': skin.isBlue}">
+					<div id="system_menu" class="panel-title col-md-12" style="padding:0px">
+						<div class="col-xs-1" style="padding-left:0px;">
+							<div id="sys_left_iconbg" class="menu_icon_area" ng-class="{'icon_purple':skin.isPurple, 'icon_blue':skin.isBlue}">
+								<img  class="menu_icon_size" src="assets/images/111.png"/>
+							</div>
+						</div>
+						<div class="col-xs-10">
+							<div class="menuname">
+								<span id="collapsesystem" class="first_level_title blackmenu">{{"System"|translate}}</span>
+							</div>
+						</div>
+						<div class="col-xs-1" style="padding-right:0px;">
+							<div id="sys_right_iconbg" class="menu_icon_area" style="float:right;" ng-class="{'icon_purple':skin.isPurple, 'icon_blue':skin.isBlue}">
+								<img id="system_icon" class="menu_icon_size" src="assets/images/down.png"/>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="collapseOne" class="panel-collapse collapse">
+					<div>
+						<div class="row">
+							<div class="col-md-4 paddingR5">
+								<div ng-include="'system/cluster/cluster.html'"></div>
+							</div>
+							<div class="col-md-4 paddingL5 paddingR5">
+								<div ng-include="'system/ntp/ntp.html'"></div>
+							</div>
+							<div class="col-md-4 paddingL5">
+								<div ng-include="'system/syslog/syslog.html'"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="panel">
+				<div tooltip="{{'wirelessTip'|translate}}" hover mnuelevel="0" tooltip-enable="{{helpTip.isEabled}}" id="wireless_title_bg" data-toggle="collapse" data-parent="#accordion" data-target="#collapseTwo" class="panel-heading first_menu" style="padding:0px;" ng-class="{'foldedlv1menupurple': skin.isPurple, 'foldedlv1menublue': skin.isBlue}">
+					<div id="wireless_menu" class="panel-title col-md-12" style="padding:0px">
+						<div class="col-xs-1" style="padding-left:0px;">
+							<div id="wire_left_iconbg" class="menu_icon_area" ng-class="{'icon_purple':skin.isPurple, 'icon_blue':skin.isBlue}">
+								<img class="menu_icon_size" src="assets/images/333.png"/>
+							</div>
+						</div>
+						<div class="col-xs-10">
+							<div class="menuname">
+								<span  id="collapsewireless" class="first_level_title blackmenu">{{"Wireless"|translate}}</span>
+							</div>
+						</div>
+						<div class="col-xs-1" style="padding-right:0px;">
+							<div id="wire_right_iconbg" class="menu_icon_area" style="float:right;" ng-class="{'icon_purple':skin.isPurple, 'icon_blue':skin.isBlue}">
+								<img  id="wireless_icon" class="menu_icon_size" src="assets/images/down.png"/>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="collapseTwo" class="panel-collapse collapse">
+					<div >
+						<div class="row">
+							<div class="col-md-4 paddingR5">
+								<div ng-include="'wireless/rf-management/rf-management-view.html'"></div>
+							</div>
+							<div class="col-md-4 paddingL5 paddingR5">
+								<div ng-include="'wireless/rogue-ap/rogue-ap-view.html'"></div>
+							</div>
+							<div class="col-md-4 paddingL5">
+								<div ng-include="'wireless/others/others-view.html'"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+			<div class="panel">
+				<div tooltip="{{'accessTip'|translate}}" hover mnuelevel="0"  tooltip-enable="{{helpTip.isEabled}}" id="access_title_bg" data-toggle="collapse" data-parent="#accordion" data-target="#collapseFour" class="panel-heading first_menu" style="padding:0px;" ng-class="{'foldedlv1menupurple': skin.isPurple, 'foldedlv1menublue': skin.isBlue}">
+					<div id="access_menu" class="panel-title col-md-12" style="padding:0px">
+						<div class="col-md-1 col-xs-1" style="padding-left:0px;">
+							<div id="acc_left_iconbg" class="menu_icon_area" ng-class="{'icon_purple':skin.isPurple, 'icon_blue':skin.isBlue}">
+								<img class="menu_icon_size" src="assets/images/444.png"/>
+							</div>
+						</div>
+						<div class=" col-md-10 col-xs-10">
+							<div class="menuname">
+								<span  id="collapseaccess" class="first_level_title blackmenu">{{"Access"|translate}}</span>
+							</div>
+						</div>
+						<div class="col-md-1 col-xs-1" style="padding-right:0px;">
+							<div id="acc_right_iconbg" class="menu_icon_area" style="float:right;" ng-class="{'icon_purple':skin.isPurple, 'icon_blue':skin.isBlue}">
+								<img id="access_icon" class="menu_icon_size" src="assets/images/down.png"/>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div id="collapseFour" class="panel-collapse collapse">
+					<div >
+						<div class="row">
+							<div class="col-md-3 panel_cluster_height paddingR5">
+								<div ng-include="'terminal/authentication/authentication-view.html'"></div>
+							</div>
+							<div class="col-md-4 panel_cluster_height paddingR5 paddingL5">
+								<div ng-include="'terminal/access/access-limit.html'"></div>
+							</div>
+							<div class="col-md-5 panel_cluster_height paddingL5">
+								<div ng-include="'terminal/acl/acl-view.html'"></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+	<div class="pos-rts"  ng-mouseover="cancelInterval()"  ng-mouseleave="logLeave()" ng-class="{'border_purple': skin.isPurple, 'border_blue': skin.isBlue}">
+		<div class="panel-heading dashboard_header" ng-class="{'unfoldedlv1menupurple':skin.isPurple, 'unfoldedlv1menublue':skin.isBlue}">
+			<div class="modal-title">{{"Operation Log"|translate}}</div>
+		</div>
+		<div class="modal-body">
+			<div  style="height:600px;overflow: auto;width: 100%">
+				<table  class="table table-striped">
+					<tbody >
+						<tr ng-repeat="log in logs">
+							<td style="width: 100%">
+								<p style="font-size: 14px;font-weight:bold">{{log.logname|translate}}:{{log.logtemp}}</p>
+								<p style="font-size: 14px;font-weight:bold">{{log.datetime|date:'yyyy-MM-dd HH:mm:ss'}}</p>
+								<p style="font-size: 12px;" ng-repeat="item in log.loginfo">
+									<span>{{item.ip}}:</span>
+									<span>{{item.success|translate}}</span>
+									<span>{{item.msg|translate}}</span>
+								</p>
+							</td>
+						</tr>
+					</tbody>
+				</table>
+			</div>
+		</div>
+	</div>
+	<div class="custom-loadingmodal" ng-if="loading">
+		<img class="customloading" src="assets/images/loading.gif" alt=""/>
+	</div>
+</div>
+</body>
+</html>

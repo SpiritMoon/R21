@@ -1,0 +1,192 @@
+    <div class="modal-header modal_type">
+        <h3 class="modal-title">{{"User Guide"|translate}}</h3>
+    </div>
+    <div class="modal-body" oncut="return false;" oncopy="return false;" onpaste="return false;">
+        <div class="div_title">
+            Step {{three}}&nbsp;&nbsp;&nbsp;&nbsp;{{"Create WlanInfo"|translate}}
+        </div>
+        <form role="form" name="addWlanForm" novalidate>
+            <div class="form-group" ng-class="{'has-error':wlanInfoForm.wlanID.$dirty && wlanInfoForm.wlanID.$invalid}">
+                <div class="col-md-4">{{"WlAN Name"|translate}}:</div>
+                <div class="col-md-8">
+                    <input style="width: 300px;"  type="text" name="wlanName" class="form-control" ng-change="changeDetailSSID(wizardInfo.ssid)" ng-model="wizardInfo.ssid" required ng-pattern="{{regularExpression.pattern.exceptBlank1To32}}" tooltip={{'enter1-32Chars'|translate}} tooltip-trigger="mouseenter" tooltip-placement="bottom" required onkeypress="javascript:if(event.keyCode==32)event.returnValue=false;">
+                </div>
+            </div>
+            <div class="form-group" ng-show="addWlanForm.wlanName.$dirty && addWlanForm.wlanName.$invalid">
+                <div class="col-md-4"></div>
+                <div class="col-md-8">
+                    <small class="text-danger" ng-show="addWlanForm.wlanName.$error.required" ng-bind="regularExpression.valueNotNull('WLAN name');"></small>
+                    <small class="text-danger" ng-show="addWlanForm.wlanName.$error.pattern" ng-bind="regularExpression.wlanNameTip();"></small>
+                </div>
+            </div>
+            <div class="form-group" ng-show="isDetailFormat">
+                <div class="col-md-4"></div>
+                <div class="col-md-8">
+                    <small class="text-danger" ng-show="isDetailFormat" ng-bind="codeDetailEnd"></small>
+                </div>
+            </div>
+            <div class="form-group">
+                <div class="col-md-4">{{"Band"|translate}}:</div>
+                <div class="col-md-8">
+                    <span ng-show="isTwoG">
+                        <input  type="checkbox" name="favoriteColors" ng-model="band.TwoG"
+                                > 2.4GHz
+                    </span>
+                    <span>
+                        <input type="checkbox" name="favoriteColors" ng-model="band.FiveG"
+                                > 5GHz
+                    </span>
+
+                </div>
+            </div>
+
+            <div class="form-group">
+                <div class="col-md-4">{{"Security Type"|translate}}:</div>
+                <div class="col-md-8">
+                    <select style="width: 300px;" ng-disabled="disabledSecurity" ng-model="selectedSecurity" ng-change="changeSecurityType()" ng-options="obj.name for obj in securityTypeArray" >
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" ng-show="isPersonal||isEnterprise">
+                <div class="col-md-4">{{"Key Management"|translate}}:</div>
+                <div class="col-md-8">
+                    <select style="width: 300px;" ng-disabled="disabledEncryption" ng-model="selectedEncryption" ng-change="selectedPosition=''" ng-options="unit.name for unit in selectedSecurity.units">
+                    </select>
+                </div>
+            </div>
+
+            
+            <div class="form-group" ng-if="isPersonal">
+                <div class="col-md-4">{{"Passphrase Format"|translate}}:</div>
+                <div class="col-md-8">
+                    <select style="width: 145px;"
+                            ng-model="formatSelected" ng-change="selecFormat();"
+                            ng-options="obj.name for obj in passphraseFormatArray">
+                    </select>
+                </div>
+            </div>
+            <div class="form-group" ng-if="isPersonal">
+                <div class="col-md-4">{{"Passphrase"|translate}}:</div>
+                <div class="col-md-8">
+                    <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                    <input ng-if="formatSelected.id=='1'" style="width: 300px;" type="password" name="wlanpass" class="form-control" ng-model="wizardInfo.key" ng-pattern="{{regularExpression.pattern.ldu8to63}}" required onkeypress="javascript:if(event.keyCode==32)event.returnValue=false;" tooltip={{"wlan_password_tip"|translate}} tooltip-trigger="mouseenter" tooltip-placement="bottom">
+                    <input ng-if="formatSelected.id=='2'" style="width: 300px;" type="password" name="wlanpass" class="form-control" ng-model="wizardInfo.key"  ng-pattern="{{regularExpression.pattern.Hex64char}}" placeholder="" required onkeypress="javascript:if(event.keyCode==32)event.returnValue=false;">
+                </div>
+            </div>
+            <div class="form-group" ng-if="isPersonal && addWlanForm.wlanpass.$dirty && addWlanForm.wlanpass.$invalid">
+                <div class="col-md-4"></div>
+                <div class="col-md-8">
+                    <small  ng-if="formatSelected.id=='1'" class="text-danger" ng-show="addWlanForm.wlanpass.$error.required" ng-bind="regularExpression.valueNotNull('passphrase');"></small>
+                    <small  ng-if="formatSelected.id=='2'" class="text-danger" ng-show="addWlanForm.wlanpass.$error.required" ng-bind="regularExpression.valueNotNull('passphrase');"></small>
+                    <small  ng-if="formatSelected.id=='1'" class="text-danger" ng-show="addWlanForm.wlanpass.$error.pattern" ng-bind="regularExpression.lduLengthRangeTip(8,63);"></small>
+                    <small  ng-if="formatSelected.id=='2'" class="text-danger" ng-show="addWlanForm.wlanpass.$error.pattern" ng-bind="regularExpression.Hexchar64()"></small>
+                </div>
+            </div>
+            <div class="form-group" ng-if="isPersonal">
+                <div class="col-md-4">{{"Confirm"|translate}}:</div>
+                <div class="col-md-8">
+                    <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                    <input ng-if="formatSelected.id=='1'" style="width: 300px;" type="password" name="wlanpassConfirm" class="form-control" ng-model="wizardInfo.keyConfirm" repeat="wlanpass" onkeypress="javascript:if(event.keyCode==32)event.returnValue=false;">
+                    <input ng-if="formatSelected.id=='2'" style="width: 300px;" type="password" name="wlanpassConfirm" class="form-control" ng-model="wizardInfo.keyConfirm" repeat="wlanpass" onkeypress="javascript:if(event.keyCode==32)event.returnValue=false;">
+                </div>
+            </div>
+            <div class="form-group" ng-if="isPersonal && addWlanForm.wlanpassConfirm.$dirty && addWlanForm.wlanpassConfirm.$invalid">
+                <div class="col-md-4"></div>
+                <div class="col-md-8">
+                    <small class="text-danger" ng-show="addWlanForm.wlanpassConfirm.$error.repeat" ng-bind="regularExpression.passNotSame()"></small>
+                </div>
+            </div>
+            <div class="form-group" ng-if="isEnterprise">
+                <div class="col-md-4">{{"AuthServer"|translate}}:</div>
+                <div class="col-md-8">
+                    <input style="width: 300px;" type="text" name="authserver" class="form-control"  ng-model="wizardInfo.authServer" placeholder="x.x.x.x" ng-pattern="{{regularExpression.pattern.IP}}" required>
+                </div>
+            </div>
+            <div class="form-group" ng-if="isEnterprise && addWlanForm.authserver.$dirty && addWlanForm.authserver.$invalid">
+                <div class="col-md-4"></div>
+                <div class="col-md-8">
+                    <small class="text-danger" ng-show="addWlanForm.authserver.$error.required" ng-bind="regularExpression.valueNotNull('AuthServer');"></small>
+                    <small class="text-danger" ng-show="addWlanForm.authserver.$error.pattern" ng-bind="regularExpression.validIP()"></small>
+                </div>
+            </div>
+            <div class="form-group" ng-if="isEnterprise">
+                <div class="col-md-4">{{"AuthPort"|translate}}:</div>
+                <div class="col-md-8">
+                    <input style="width: 300px;" type="number"  integerport name="authport" class="form-control" ng-model="wizardInfo.authPort" placeholder="1-65535" ng-pattern="{{regularExpression.pattern.AuthPort}}" required>
+                </div>
+            </div>
+            <div class="form-group" ng-if="isEnterprise && addWlanForm.authport.$dirty && addWlanForm.authport.$invalid">
+                <div class="col-md-4"></div>
+                <div class="col-md-8">
+                    <small class="text-danger" ng-show="addWlanForm.authport.$error.required" ng-bind="regularExpression.valueNotNull('AuthPort')"></small>
+                    <!--<small class="text-danger" ng-show="addWlanForm.authport.$error.min || addWlanForm.authport.$error.max" ng-bind="regularExpression.numRange('AuthPort', 1, 65535)"></small>-->
+                    <small class="text-danger" ng-show="addWlanForm.authport.$error.pattern" ng-bind="regularExpression.numRange('AuthPort', 1, 65535)"></small>
+                </div>
+            </div>
+            <div class="form-group" ng-if="isEnterprise">
+                <div class="col-md-4">{{"AuthSecret"|translate}}:</div>
+                <div class="col-md-8">
+                    <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                    <input style="width: 300px;" type="password" name="authsecret" class="form-control" ng-model="wizardInfo.authSecret" ng-pattern="{{regularExpression.pattern.ldu1To32}}" required onkeypress="javascript:if(event.keyCode==32)event.returnValue=false;" tooltip={{"auth_acct_secret_tip"|translate}} tooltip-trigger="mouseenter" tooltip-placement="bottom">
+                </div>
+            </div>
+            <div class="form-group" ng-if="isEnterprise && addWlanForm.authsecret.$dirty && addWlanForm.authsecret.$invalid">
+                <div class="col-md-4"></div>
+                <div class="col-md-8">
+                    <small class="text-danger" ng-show="addWlanForm.authsecret.$error.required" ng-bind="regularExpression.valueNotNull('AuthSecret')"></small>
+                    <small class="text-danger" ng-show="addWlanForm.authsecret.$error.pattern" ng-bind="regularExpression.lduLengthRangeTip(1,32)"></small>
+                </div>
+            </div>
+            <div class="form-group" ng-if="isEnterprise">
+                <div class="col-md-4">{{"Need Account"|translate}}:</div>
+                <div class="col-md-8">
+                    <input type="checkbox" ng-model="redisSwitch.isSwitch" value ="redisSwitch.isSwitch"  ng-change="redisChange(redisSwitch.isSwitch)"/>
+                </div>
+
+            </div>
+            <div class="form-group" ng-if="isEnterprise && isRedisShow">
+                <div class="col-md-4">{{"AcctServer"|translate}}:</div>
+                <div class="col-md-8">
+                    <input style="width: 300px;" type="text" name="acctserver" class="form-control" ng-model="wizardInfo.acctServer" placeholder="x.x.x.x" ng-pattern="{{regularExpression.pattern.IP}}" required>
+                </div>
+            </div>
+            <div class="form-group" ng-if="isEnterprise && isRedisShow && addWlanForm.acctserver.$dirty && addWlanForm.acctserver.$invalid">
+                <div class="col-md-4"></div>
+                <div class="col-md-8">
+                    <small class="text-danger" ng-show="addWlanForm.acctserver.$error.required" ng-bind="regularExpression.valueNotNull('AcctServer');"></small>
+                    <small class="text-danger" ng-show="addWlanForm.acctserver.$error.pattern" ng-bind="regularExpression.validIP()"></small>
+                </div>
+            </div>
+            <div class="form-group" ng-if="isEnterprise && isRedisShow">
+                <div class="col-md-4">{{"AcctPort"|translate}}:</div>
+                <div class="col-md-8">
+                    <input style="width: 300px;" type="number" integerport name="acctport" class="form-control" ng-model="wizardInfo.acctPort" ng-pattern="{{regularExpression.pattern.AuthPort}}" placeholder="1-65535" required>
+                </div>
+            </div>
+            <div class="form-group" ng-if="isEnterprise && isRedisShow && addWlanForm.acctport.$dirty && addWlanForm.acctport.$invalid">
+                <div class="col-md-4"></div>
+                <div class="col-md-8">
+                    <small class="text-danger" ng-show="addWlanForm.acctport.$error.required" ng-bind="regularExpression.valueNotNull('AcctPort');"></small>
+                    <small class="text-danger" ng-show="addWlanForm.acctport.$error.pattern" ng-bind="regularExpression.numRange('AcctPort', 1, 65535);"></small>
+                </div>
+            </div>
+            <div class="form-group" ng-if="isEnterprise && isRedisShow">
+                <div class="col-md-4">{{"AcctSecret"|translate}}:</div>
+                <div class="col-md-8">
+                    <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                    <input style="width: 300px;" type="password" name="acctsecret" class="form-control" ng-model="wizardInfo.acctSecret" ng-pattern="{{regularExpression.pattern.ldu1To32}}" required onkeypress="javascript:if(event.keyCode==32)event.returnValue=false;" tooltip={{"auth_acct_secret_tip"|translate}} tooltip-trigger="mouseenter" tooltip-placement="bottom">
+                </div>
+            </div>
+            <div class="form-group" ng-if="isEnterprise && isRedisShow && addWlanForm.acctsecret.$dirty && addWlanForm.acctsecret.$invalid">
+                <div class="col-md-4"></div>
+                <div class="col-md-8">
+                    <small class="text-danger" ng-show="addWlanForm.acctsecret.$error.required" ng-bind="regularExpression.valueNotNull('AcctSecret')"></small>
+                    <small class="text-danger" ng-show="addWlanForm.acctsecret.$error.pattern" ng-bind="regularExpression.lduLengthRangeTip(1,32)"></small>
+                </div>
+            </div>
+        </form>
+
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="save()" ng-disabled="addWlanForm.$invalid || isDetailTrue">{{"Save"|translate}}</button>
+    </div>

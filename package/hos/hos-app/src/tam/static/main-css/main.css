@@ -1,0 +1,480 @@
+﻿/*this file define main layout css  and common css*/
+/*main css*/
+
+body{
+  font-family: 'Tahoma';
+  font-size:14px;
+}
+ /*头部总体布局*/
+.logo{
+  display:inline;width:100%;margin: auto;
+}
+/*logo图片布局*/
+.img{
+  display:inline; float:left;
+}
+.img img {
+  width:300px;
+  height: 90px;
+}
+/*cluster部分布局*/
+.hap_cluster{
+  display:inline; float:left;  margin-left:0px;
+  margin-top:20px;
+  cursor: pointer;
+}
+.hap_span{
+  font-size: 14px;
+  word-break:break-word;
+}
+/*cluster AP group字体设置*/
+.cluster_logo{
+  font-size: 18px;
+  font-family: 'Verdana';
+}
+/*cluster location地理位置字体设置*/
+.cluster_location{
+  font-size: 12px;
+}
+/*admin 帮助部分样式设置*/
+.admin_user{
+  display:inline; float:right; margin-top:10px;
+  font-size: 16px;
+  font-family: 'Verdana';
+ /* width:45%;*/
+}
+.statistic_style{
+  font-size:14px;
+  display:inline;
+  float:right;
+  color:#fff;
+}
+
+/*dashboard header样式字体设置*/
+.dashboard_header{
+  height: 40px;
+  font-size: 18px;
+}
+
+/*dashboard title字体样式设置*/
+.dashboard_title{
+  height: 35px;
+  font-size: 16px;
+}
+
+/*dashboard content字体样式设置*/
+.dashboard_content{
+  font-size: 14px;
+}
+
+@media screen and(max-width: 767px){
+  .paddingR5{padding-right: 15px;}
+  .paddingL5{padding-left: 15px;}
+}
+
+@media(min-width: 992px){
+  .paddingR5{padding-right: 5px;}
+  .paddingL5{padding-left: 5px;}
+}
+/*.paddingR5{*/
+  /*padding-right:5px;*/
+/*}*/
+/*.paddingL5{*/
+  /*padding-left:5px;*/
+/*}*/
+/*一级菜单字体样式设置*/
+.first_menu{
+  height: 40px;
+}
+.menuname{
+  text-align:center;
+  line-height:40px;
+}
+.menu_icon_area{
+  width:35px;
+  height:40px;
+  padding: 7px 5px;
+}
+.menu_icon_size{
+  width:25px;
+  height:25px;
+}
+
+.panel-heading a {
+  text-align: center;
+}
+
+/*一级菜单border设置*/
+.first_level_border{
+  border:solid 1px #cfc2dc;
+}
+/*一级菜单字体标题*/
+.first_level_title{
+  margin-top:0px;
+  margin-bottom:0px;
+  font-size:18px;
+  color:#fff;
+  font-family: "Verdana";
+}
+/*一级菜单标题颜色*/
+.blackmenu{
+  color:#000;
+}
+
+/*二级菜单header样式字体设置*/
+.second_level_header{
+  height: 40px;
+  font-size: 16px;
+}
+
+/*二级菜单内容字体样式设置*/
+/*.second_level_content{*/
+  /*background-color: #fff;*/
+  /*font-size: 14px;*/
+  /*height: 360px;*/
+/*}*/
+@media screen and (max-width: 991px){
+  .second_level_content{
+    background-color: #fff;
+    font-size: 14px;
+    height: auto;
+  }
+}
+
+@media screen and (min-width: 992px){
+  .second_level_content{
+    background-color: #fff;
+    font-size: 14px;
+    height: 400px;
+  }
+}
+/*.弹出框样式设置*/
+/*modal*/
+.modal_type{
+  height: 50px;
+  font-size:18px;
+}
+.top_distance{
+  margin-top: 5px;
+}
+.top_distance_other{
+  margin-top: 5px;
+}
+/*div element border color*/
+.border_style{
+  border:solid 1px #7b5ca2;
+}
+
+/*menu div body height*/
+/*.panel_cluster_height{*/
+  /*height: 350px;*/
+/*}*/
+
+/*the table in div center*/
+.layout_center{
+  margin: 0 auto;
+}
+
+/*fieldset*/
+fieldset{border:1px solid silver;font-size: 12px;}
+
+legend{padding:.5em;border:0;width:auto ;font-size: 12px;
+  }
+legend table tr {
+  height: 20px;
+}
+legend table {
+  margin-top: 0px;
+}
+
+thead {
+  font-size: 16px;
+}
+
+a{
+  cursor: pointer;
+}
+.font16{
+  font-size:16px;
+}
+
+/*skin color */
+/*border边框设置*/
+.border_purple{
+  border:solid 1px #f2edf3;
+}
+.border_blue{
+  border: solid 1px #d5ecfa;
+}
+/*blueheader*/
+/*未选中一级菜单背景色*/
+.foldedlv1menupurple{
+  background-color: #d1c4de;
+}
+.foldedlv1menublue{
+  background-color: #96c4e6;
+}
+/*选中的一级菜单背景色*/
+.unfoldedlv1menupurple{
+  background-color: #af97c6;
+}
+.unfoldedlv1menublue{
+  background-color: #6ca7e2;
+}
+/*一级菜单表格标题栏背景色*/
+.lv1tblheaderpurple{
+  background-color: #f0e5f3;
+}
+.lv1tblheaderblue{
+  background-color: #d5ecfa;
+}
+.icon_purple{
+  background-color:#b2a6be;
+}
+.selected_icon_purple{
+  background-color:#79688c;
+}
+.icon_blue{
+  background-color:#83aad3;
+}
+.selected_icon_blue{
+  background-color:#5d83b1;
+}
+/*二级菜单头背景色*/
+.lv2menuheaderpurple{
+  background-color: #f0e5f3;
+}
+.lv2menuheaderblue{
+  background-color: #d5ecfa;
+}
+/*二级菜单下表格标题栏背景色*/
+.lv2tblpurple{
+  background-color:#f2edf3;
+}
+.lv2tblblue{
+  background-color:#e5eff5;
+}
+.pencil_color{
+  /*color:#44dd40;*/
+ /* color: #31ce2d;*/
+  color: #60c057;
+}
+.del_color{
+ /* color:#fd4957*/
+  color: #ee4e68;
+}
+.add_color{
+  color: #acc877;
+}
+.menu_color{
+  color: #71c9b7;
+}
+.sort_color{
+  color: #898989;
+}
+/**
+*遮罩div样式
+**/
+.custom-loadingmodal{
+  position: fixed; 
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  background-color: #EEEEEE;
+  z-index: 9998;
+  opacity: .70;
+} 
+/**
+*遮罩图片样式
+**/
+.customloading{
+  z-index:9999; 
+  position:absolute; 
+  top:50%; 
+  left:50%; 
+  margin:-200px 0 0 -250px;
+} 
+
+/*change div color*/
+#function1 :hover{
+  cursor: pointer;
+}
+#function2 :hover{
+  cursor: pointer;
+}
+#function3 :hover{
+  cursor: pointer;
+}
+#function4 :hover{
+  cursor: pointer;
+
+}
+#function5 :hover{
+  cursor: pointer;
+}
+#function6 :hover{
+  cursor: pointer;
+}
+#function7 :hover{
+  cursor: pointer;
+}
+#function8 :hover{
+  cursor: pointer;
+}
+#function9 :hover{
+  cursor: pointer;
+}
+#function10 :hover{
+  cursor: pointer;
+}
+#function11 :hover{
+  cursor: pointer;
+}
+#function12 :hover{
+  cursor: pointer;
+}
+#function13 :hover{
+  cursor: pointer;
+}
+#function14 :hover{
+  cursor: pointer;
+}
+#function15 :hover{
+  cursor: pointer;
+}
+#function16 :hover{
+  cursor: pointer;
+}
+#function17 :hover{
+  cursor: pointer;
+}
+#function18 :hover{
+  cursor: pointer;
+}
+#function19 :hover{
+  cursor: pointer;
+}
+#function20 :hover{
+  cursor: pointer;
+}
+#function21 :hover{
+  cursor: pointer;
+}
+#function22 :hover{
+  cursor: pointer;
+}
+#helplink{
+  cursor: pointer;
+}
+
+.marginT10{
+  margin-top:10px;
+}
+.marginT20{
+  margin-top:20px;
+}
+.marginT35{
+  margin-top:35px;
+}
+.marginB0{
+  margin-bottom:0px;
+}
+.marginB10{
+  margin-bottom:10px;
+}
+.marginB20{
+  margin-bottom:20px;
+}
+.marginL10{
+  margin-left:10px;
+}
+.marginL15{
+  margin-left:15px;
+}
+.marginR30{
+  margin-right:30px;
+}
+.marginR40{
+  margin-right:40px;
+}
+.marginR50{
+  margin-right:50px;
+}
+.paddingT10{
+  padding-top:10px;
+}
+.paddingL20{
+  padding-left:20px;
+}
+.margin_NegL15{
+    margin-left:-15px;
+}
+
+.help_enabled{
+  color: #14CA82;
+}
+.help_disabled{
+  color: #428bca;
+}
+
+.self_adaptation_td{
+  width: 100%;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+  overflow:hidden;
+}
+.overflowAuto{
+  overflow:auto;
+}
+.tableLayoutFixed{
+  table-layout: fixed;
+}
+
+.detailBorder{
+  border: 1px solid #f5f5f5;
+}
+.detailBgColor{
+ background-color: #fbfbfb;
+}
+/*log*/
+.pos-rts{
+  position:fixed;right:2%;top:70px;width:200px;z-index:999;height:auto;
+  background-color: #ffffff;
+  display: none;
+  }
+
+.highLight{
+  background-color:#c7cbd6;
+}
+/*menuBtn*/
+.btn-custommenu {
+  color: #fff;
+  background-color: #71C9B7;
+  border-color: #64BDAA
+}
+
+.btn-custommenu:hover, .btn-custommenu:focus, .btn-custommenu:active, .btn-custommenu.active, .open > .dropdown-toggle.btn-custommenu {
+  color: #fff;
+  background-color: #43B19B;
+  border-color: #5FB2B3
+}
+
+.btn-custommenu:active, .btn-custommenu.active, .open > .dropdown-toggle.btn-custommenu {
+  background-image: none
+}
+/*add  or create Btn*/
+.btn-addbtn {
+  color: #fff;
+  background-color: #acc877;
+  border-color: #9FBB6A
+}
+
+.btn-addbtn:hover, .btn-addbtn:focus, .btn-addbtn:active, .btn-addbtn.active, .open > .dropdown-toggle.btn-addbtn {
+  color: #fff;
+  background-color: #8BAD48;
+  border-color: #839A2D
+}
+
+.btn-addbtn:active, .btn-addbtn.active, .open > .dropdown-toggle.btn-addbtn {
+  background-image: none
+}

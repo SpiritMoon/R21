@@ -1,0 +1,288 @@
+diff -urN a/src/client/display.c b/src/client/display.c
+--- a/src/client/display.c	2016-09-01 06:57:15.553030517 +0800
++++ b/src/client/display.c	2016-09-01 06:58:43.723865364 +0800
+@@ -502,6 +502,22 @@
+ 		return sage;
+ }
+ 
++/* zhouke add for hos system info */
++static void
++display_hos(struct writer *w, lldpctl_atom_t *neighbor)
++{
++
++    tag_start(w, "hos", "HOS");
++
++	tag_datatag(w, "virtual-ip", "VirtualIP",
++	    lldpctl_atom_get_str(neighbor, lldpctl_k_hos_virtual_ip));
++    
++	tag_end(w);
++
++}
++/* zhouke add end */
++
++
+ void
+ display_interface(lldpctl_conn_t *conn, struct writer *w, int hidden,
+     lldpctl_atom_t *iface, lldpctl_atom_t *neighbor, int details)
+@@ -531,6 +547,10 @@
+ 		display_med(w, neighbor);
+ 	}
+ 
++/* zhouke add for hos system info */
++    display_hos(w,neighbor);
++/* zhouke add end */
++
+ 	tag_end(w);
+ }
+ 
+diff -urN a/src/daemon/dmi-linux.c b/src/daemon/dmi-linux.c
+--- a/src/daemon/dmi-linux.c	2016-09-01 06:57:15.548022877 +0800
++++ b/src/daemon/dmi-linux.c	2016-09-01 06:58:56.579765290 +0800
+@@ -149,4 +149,13 @@
+ #endif
+ /* zhouke add end */
+ }
++
++/* zhouke add for hos system info */
++char*
++hos_cluster_vip()
++{
++    return dmi_get_cmd(HOS_UCI_GET HOS_CLUSTER_VIP);
++}
++/* zhouke add end */
++
+ #endif
+diff -urN a/src/daemon/lldp.c b/src/daemon/lldp.c
+--- a/src/daemon/lldp.c	2016-09-01 06:57:15.548022877 +0800
++++ b/src/daemon/lldp.c	2016-09-01 06:59:27.844008258 +0800
+@@ -186,6 +186,11 @@
+ #ifdef ENABLE_DOT3
+ 	const u_int8_t dot3[] = LLDP_TLV_ORG_DOT3;
+ #endif
++
++/* zhouke add for hos system info */
++    const u_int8_t hos[] = LLDP_TLV_ORG_HOS;
++/* zhouke add end */
++
+ #ifdef ENABLE_LLDPMED
+ 	int i;
+ 	const u_int8_t med[] = LLDP_TLV_ORG_MED;
+@@ -537,6 +542,18 @@
+ 	}
+ #endif
+ 
++/* zhouke add for hos system info */
++	if (!(
++	      POKE_START_LLDP_TLV(LLDP_TLV_ORG) &&
++	      POKE_BYTES(hos, sizeof(hos)) &&
++	      POKE_UINT8(LLDP_TLV_HOS_VIRTUAL_IP) &&
++		  POKE_BYTES(chassis->c_hos_virtual_ip,	    \
++			strlen(chassis->c_hos_virtual_ip)) &&	\
++		  POKE_END_LLDP_TLV))	
++    
++		goto toobig;
++/* zhouke add end */
++
+ 	/* END */
+ 	if (!(
+ 	      POKE_START_LLDP_TLV(LLDP_TLV_END) &&
+@@ -595,6 +612,9 @@
+ 	const char dot1[] = LLDP_TLV_ORG_DOT1;
+ 	const char dot3[] = LLDP_TLV_ORG_DOT3;
+ 	const char med[] = LLDP_TLV_ORG_MED;
++/* zhouke add for hos system info */
++    const char hos[] = LLDP_TLV_ORG_HOS;
++/* zhouke add end */
+ 	char orgid[3];
+ 	int length, gotend = 0;
+ 	int tlv_size, tlv_type, tlv_subtype;
+@@ -1105,7 +1125,35 @@
+ 					hardware->h_rx_unrecognized_cnt++;
+ 				}
+ #endif /* ENABLE_LLDPMED */
+-			} else {
++			} 
++/* zhouke add for hos system info */
++            else if (memcmp(hos, orgid, sizeof(orgid)) == 0) {
++                switch (tlv_subtype) {
++                case LLDP_TLV_HOS_VIRTUAL_IP:
++					if (tlv_size <= 4)
++						b = NULL;
++					else {
++						if ((b = (char*)malloc(tlv_size - 3)) ==
++						    NULL) {
++							log_warn("lldp", "unable to allocate "
++							    "memory for LLDP-MED "
++							    "inventory for frame "
++							    "received on %s",
++							    hardware->h_ifname);
++							goto malformed;
++						}
++						PEEK_BYTES(b, tlv_size - 4);
++						b[tlv_size - 4] = '\0';
++					}
++                    chassis->c_hos_virtual_ip = b;
++					break;
++			    default:
++				    /* Unknown HOS TLV, ignore it */
++				    hardware->h_rx_unrecognized_cnt++;
++                }
++            }
++/* zhouke add end */
++            else {
+ 				log_info("lldp", "unknown org tlv received on %s",
+ 				    hardware->h_ifname);
+ 				hardware->h_rx_unrecognized_cnt++;
+@@ -1154,6 +1202,17 @@
+ 		}
+ 		memcpy(port->p_descr, NOTRECEIVED, strlen(NOTRECEIVED));
+ 	}
++
++/* zhouke add for hos system info */
++	if (chassis->c_hos_virtual_ip == NULL) {
++		if ((chassis->c_hos_virtual_ip = (char *)calloc(1, strlen(NOTRECEIVED) + 1)) == NULL) {
++			log_warnx("lldp", "unable to allocate null chassis description");
++			goto malformed;
++		}
++		memcpy(chassis->c_hos_virtual_ip, NOTRECEIVED, strlen(NOTRECEIVED));
++	}
++/* zhouke add end */
++
+ 	*newchassis = chassis;
+ 	*newport = port;
+ 	return 1;
+diff -urN a/src/daemon/lldpd.c b/src/daemon/lldpd.c
+--- a/src/daemon/lldpd.c	2016-09-01 06:57:15.548022877 +0800
++++ b/src/daemon/lldpd.c	2016-09-01 06:59:38.027792270 +0800
+@@ -1120,6 +1120,11 @@
+ 		LOCAL_CHASSIS(cfg)->c_med_sw = strdup("Unknown");
+ #endif
+ 
++/* zhouke add for hos system info */
++    LOCAL_CHASSIS(cfg)->c_hos_virtual_ip = hos_cluster_vip();
++/* zhouke add end */
++
++
+ 	/* Set chassis ID if needed. This is only done if chassis ID
+ 	   has not been set previously (with the MAC address of an
+ 	   interface for example)
+diff -urN a/src/daemon/lldpd.h b/src/daemon/lldpd.h
+--- a/src/daemon/lldpd.h	2016-09-01 06:57:15.548022877 +0800
++++ b/src/daemon/lldpd.h	2016-09-01 06:59:49.256150761 +0800
+@@ -73,6 +73,11 @@
+ #define HOS_FIRMWARE_REV    " /usr/sbin/showver"
+ /* zhouke add end */
+ 
++/* zhouke add for hos classis information */
++#define HOS_UCI_GET         "/sbin/uci get "
++#define HOS_CLUSTER_VIP     "cluster.cluster.cluster_vip"
++/* zhouke add end */
++
+ /* zhouke add for support LLDP packet interaction */
+ #define LLDPD_TX_INTERVAL	60      //30->60
+ #define LLDPD_TX_HOLD          8    // 4->8
+@@ -210,6 +215,10 @@
+ char	*dmi_asset(void);
+ #endif
+ 
++/* zhouke add for hos system info */
++char	*hos_cluster_vip(void);
++/* zhouke add end */
++
+ #ifdef USE_SNMP
+ /* agent.c */
+ void		 agent_shutdown(void);
+diff -urN a/src/daemon/lldp-tlv.h b/src/daemon/lldp-tlv.h
+--- a/src/daemon/lldp-tlv.h	2016-09-01 06:57:15.548022877 +0800
++++ b/src/daemon/lldp-tlv.h	2016-09-01 07:00:01.007974733 +0800
+@@ -59,4 +59,11 @@
+ #define LLDP_TLV_MED_IV_MODEL	10
+ #define	LLDP_TLV_MED_IV_ASSET	11
+ 
++/* zhouke add for hos system info */
++#define LLDP_TLV_ORG_HOS	{0x34, 0xe7, 0x0b}
++
++#define LLDP_TLV_HOS_VIRTUAL_IP	1
++
++/* zhouke add end */
++
+ #endif
+diff -urN a/src/daemon/priv-linux.c b/src/daemon/priv-linux.c
+--- a/src/daemon/priv-linux.c	2016-09-01 06:57:15.548022877 +0800
++++ b/src/daemon/priv-linux.c	2016-09-01 07:00:14.331953965 +0800
+@@ -159,6 +159,7 @@
+         SYS_SHOWSYSINFO HOS_MODEL_NAME,
+         SYS_SHOWSYSINFO HOS_SOFTWARE_REV,
+         HOS_FIRMWARE_REV,
++        HOS_UCI_GET HOS_CLUSTER_VIP,
+         NULL
+ 	};
+ 	const char **f;
+diff -urN a/src/lib/atom-private.c b/src/lib/atom-private.c
+--- a/src/lib/atom-private.c	2016-09-01 06:57:15.560606509 +0800
++++ b/src/lib/atom-private.c	2016-09-01 07:00:24.495896275 +0800
+@@ -954,6 +954,11 @@
+ 		return chassis->c_med_asset;
+ #endif
+ 
++/* zhouke add for hos system info */
++	case lldpctl_k_hos_virtual_ip:
++		return chassis->c_hos_virtual_ip;
++/* zhouke add end */
++
+ 	default:
+ 		SET_ERROR(atom->conn, LLDPCTL_ERR_NOT_EXIST);
+ 		return NULL;
+diff -urN a/src/lib/lldpctl.h b/src/lib/lldpctl.h
+--- a/src/lib/lldpctl.h	2016-09-01 06:57:15.558064789 +0800
++++ b/src/lib/lldpctl.h	2016-09-01 07:00:31.503760595 +0800
+@@ -709,6 +709,11 @@
+ 	lldpctl_k_delete_cnt,	/**< `(I)` delete cnt. Only works for a local port. */
+ 	lldpctl_k_config_tx_hold, /**< `(I,WO)` Transmit hold interval. */
+ 	lldpctl_k_config_bond_slave_src_mac_type, /**< `(I,WO)` bond slave src mac type. */
++
++/* zhouke add for hos system info */
++    lldpctl_k_hos_virtual_ip = 5000,
++/* zhouke add end */
++
+ } lldpctl_key_t;
+ 
+ /**
+diff -urN a/src/lldpd-structs.c b/src/lldpd-structs.c
+--- a/src/lldpd-structs.c	2016-09-01 06:57:15.558064789 +0800
++++ b/src/lldpd-structs.c	2016-09-01 07:00:39.020372924 +0800
+@@ -56,6 +56,10 @@
+ 	free(chassis->c_id);
+ 	free(chassis->c_name);
+ 	free(chassis->c_descr);
++
++/* zhouke add for hos system info */
++    free(chassis->c_hos_virtual_ip);
++/* zhouke add end */
+ 	if (all)
+ 		free(chassis);
+ }
+diff -urN a/src/lldpd-structs.h b/src/lldpd-structs.h
+--- a/src/lldpd-structs.h	2016-09-01 06:57:15.553030517 +0800
++++ b/src/lldpd-structs.h	2016-09-01 07:00:48.975769711 +0800
+@@ -193,6 +193,10 @@
+ 	char			*c_med_asset;
+ #endif
+ 
++/* zhouke add for hos system info */
++    char			*c_hos_virtual_ip;
++/* zhouke add end */
++
+ };
+ /* WARNING: any change to this structure should also be reflected into
+    `lldpd_copy_chassis()` which is not using marshaling. */
+@@ -211,6 +215,9 @@
+ MARSHAL_STR(lldpd_chassis, c_med_manuf)
+ MARSHAL_STR(lldpd_chassis, c_med_model)
+ MARSHAL_STR(lldpd_chassis, c_med_asset)
++/* zhouke add for hos system info */
++MARSHAL_STR(lldpd_chassis, c_hos_virtual_ip)
++/* zhouke add end */
+ #endif
+ MARSHAL_END(lldpd_chassis);
+ 

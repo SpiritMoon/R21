@@ -1,0 +1,27 @@
+<div class="panel" ng-class="{'border_purple': skin.isPurple, 'border_blue':skin.isBlue}" ng-controller="monitorController">
+	<div tooltip="{{'monitorTip'|translate}}" tooltip-enable="{{helpTip.isEabled}}" tooltip-placement="bottom" class="panel-heading dashboard_header" ng-class="{'unfoldedlv1menupurple':skin.isPurple, 'unfoldedlv1menublue':skin.isBlue}">
+		<div class="col-xs-2" style="float: left;"> <h3 id="monitor_title" class="first_level_title">{{"Monitoring"|translate}}&nbsp;&nbsp;&nbsp;</h3></div>
+		<div class="col-xs-10" style="float: right;"><span class="statistic_style" id="viewer_title"></span></div>
+	</div>
+	<div class="panel-body ">
+		<div>
+			<div class="row">
+				<div class="col-md-6" id="cluster_chart5" style="height:200px;">
+					<svg></svg>
+				</div>
+				<div class="col-md-6" id="cluster_chart6" style="height:200px;">
+					<svg></svg>
+				</div>
+			</div>
+			<div class="row">
+				<div class="col-md-6" id="cluster_chart7" style="height:200px;">
+					<svg></svg>
+				</div>
+				<div class="col-md-6" id="cluster_chart8" style="height:200px;">
+					<svg></svg>
+				</div>
+			</div>
+		</div>
+
+	</div>
+</div>

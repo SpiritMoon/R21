@@ -1,0 +1,242 @@
+<div class="modal-header modal_type" ng-class="{'foldedlv1menupurple':skin.isPurple, 'foldedlv1menublue':skin.isBlue}">
+	<button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">&times;</button>
+	<div class="modal-title">{{"GeneralConf"|translate}}</div>
+</div>
+<div class="modal-body">
+	<div class="panel_body_height" id = "cluser_info" ng-init="isIdActive = true">
+		<div class="row">
+			<ul class="nav nav-tabs nav-justified font16">
+				<li ng-class="{true: 'active', false: 'inactive'}[isIdActive]"><a href="#" ng-click="isIdActive = true">{{"Group Info Management"|translate}}</a></li>
+				<li ng-class="{true: 'inactive', false: 'active'}[isIdActive]"><a href="#" ng-click="isIdActive = false">{{"Account Management"|translate}}</a></li>
+			</ul>
+		</div>
+
+		<div class="row marginT20 detailBorder detailBgColor generalbgborder">
+			<form role="form" class="form-horizontal" name="clustercfg" ng-show="isIdActive" novalidate>
+				<div class="form-group" ng-class="{'has-error': clustercfg.group_name.$dirty && clustercfg.group_name.$invalid}">
+					<label  class="col-md-2  col-md-offset-2 control-label paddingL0 paddingR0">{{"Group Name"|translate}}:</label>
+					<div class="col-md-5" >
+						<input type="text"  ng-model="cluster_conf.cluster_name" class="form-control" placeholder="0-9a-zA-Z_-" name="group_name" ng-pattern="{{InterService.pattern.GroupName}}" required>
+					</div>
+					<div class="col-md-2">
+						<label class="control-label">({{"1-25chars"|translate}})</label>
+					</div>
+				</div>
+				<div class="form-group" ng-show="clustercfg.group_name.$dirty && clustercfg.group_name.$invalid">
+					<div class="col-md-5 col-md-offset-4" >
+						<small class="text-danger" ng-show="clustercfg.group_name.$error.required" ng-bind="InterService.valueNotNull('group name')"></small>
+						<!--<small class="text-danger" ng-show="clustercfg.group_name.$error.pattern" ng-bind="InterService.lduLengthRangeTip(1,25)"></small>-->
+						<small class="text-danger" ng-show="clustercfg.group_name.$error.pattern">{{"AP_GroupName_Invalid"|translate}}</small>
+					</div>
+				</div>
+				<div class="form-group" ng-class="{'has-error': clustercfg.group_location.$dirty && clustercfg.group_location.$invalid}">
+					<label  class="col-md-2 col-md-offset-2 control-label paddingL0 paddingR0">{{"Location"|translate}}:</label>
+					<div class="col-md-5">
+						<input type="text"  ng-model="cluster_conf.cluster_location" class="form-control" placeholder="0-9a-zA-Z_" name="group_location" ng-minlength="1" ng-maxlength="32" ng-pattern="{{InterService.pattern.ldu1to32}}" required>
+					</div>
+					<div class="col-md-2">
+						<label class="control-label">({{"1-32chars"|translate}})</label>
+					</div>
+				</div>
+				<div class="form-group" ng-show="clustercfg.group_location.$dirty && clustercfg.group_location.$invalid">
+					<div class="col-md-5 col-md-offset-4">
+						<small class="text-danger" ng-show="clustercfg.group_location.$error.required" ng-bind="InterService.valueNotNull('group location')"></small>
+						<small class="text-danger" ng-show="clustercfg.group_location.$error.pattern" ng-bind="InterService.lduLengthRangeTip(1,32)"></small>
+					</div>
+				</div>
+				<div class="form-group" ng-class="{'has-error': clustercfg.group_IP.$dirty && clustercfg.group_IP.$invalid}">
+					<label  class="col-md-2 col-md-offset-2 control-label paddingL0 paddingR0">{{"Group Manage IP"|translate}}:</label>
+					<div class="col-md-5">
+						<input type="text"  ng-model="cluster_conf.cluster_vip" class="form-control" placeholder="x.x.x.x" name="group_IP" ng-pattern="{{InterService.pattern.IP}}" required>
+					</div>
+				</div>
+				<div class="form-group" ng-show="clustercfg.group_IP.$dirty && clustercfg.group_IP.$invalid">
+					<div class="col-md-5 col-md-offset-4" >
+						<small class="text-danger" ng-show="clustercfg.group_IP.$error.required" ng-bind="InterService.valueNotNull('IP')"></small>
+						<small class="text-danger" ng-show="clustercfg.group_IP.$error.pattern" ng-bind="InterService.validIP()"></small>
+					</div>
+				</div>
+				<div class="form-group" ng-class="{'has-error': clustercfg.group_netmask.$dirty && clustercfg.group_netmask.$invalid}">
+					<label  class="col-md-2 col-md-offset-2 control-label paddingL0 paddingR0">{{"Group Manage Netmask"|translate}}:</label>
+					<div class="col-md-5">
+						<input type="text"  ng-model="cluster_conf.cluster_netmask" class="form-control" placeholder="x.x.x.x" name="group_netmask" ng-pattern="{{InterService.pattern.IP}}" required>
+					</div>
+				</div>
+				<div class="form-group" ng-show="clustercfg.group_netmask.$dirty && clustercfg.group_netmask.$invalid">
+					<div class="col-md-5 col-md-offset-4" >
+						<small class="text-danger" ng-show="clustercfg.group_netmask.$error.required" ng-bind="InterService.valueNotNull('netmask')"></small>
+						<small class="text-danger" ng-show="clustercfg.group_netmask.$error.pattern" ng-bind="InterService.validIP()"></small>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-md-5 col-md-offset-4">
+						<p class="form-control-static text-danger">{{"GroupIPTip"|translate}}</p>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-md-offset-4 col-md-5 pull-right">
+						<button class="btn btn-warning" ng-click="cancel()">{{"Cancel"|translate}}</button>
+						<button class="btn btn-primary" ng-click="Clusterinfo()" ng-show="isIdActive" ng-disabled="clustercfg.$invalid">{{"Save"|translate}}</button>
+					</div>
+				</div>
+			</form>
+			<form role="form" class="form-horizontal" name="GroupIDForm" ng-show="isIdActive" novalidate>
+				<div class="form-group" ng-class="{'has-error': GroupIDForm.groupID.$dirty && GroupIDForm.groupID.$invalid}">
+					<label  class="col-md-2  col-md-offset-2 control-label paddingL0 paddingR0">{{"Group ID"|translate}}:</label>
+					<div class="col-md-5" >
+						<input type="number" id="groupID" name="groupID" integerport ng-model="cluster_conf.cluster_id" class="form-control" min="1" max="9999" ng-pattern="{{InterService.pattern.GroupID}}" required>
+					</div>
+					<div class="col-md-2">
+						<label class="control-label">(1-9999)</label>
+					</div>
+				</div>
+				<div class="form-group" ng-show="GroupIDForm.groupID.$dirty && GroupIDForm.groupID.$invalid">
+					<div class="col-md-5 col-md-offset-4" >
+						<small class="text-danger" ng-show="GroupIDForm.groupID.$error.required" ng-bind="InterService.valueNotNull('group ID')"></small>
+						<small class="text-danger" ng-show="GroupIDForm.groupID.$error.pattern" ng-bind="InterService.numRange('group ID', 1, 9999)"></small>
+					</div>
+				</div>
+				<div class="form-group ">
+					<div class="col-md-offset-4 col-md-5 pull-right">
+						<button class="btn btn-warning" ng-click="cancel()">{{"Cancel"|translate}}</button>
+						<button class="btn btn-primary" ng-click="saveGroupID()" ng-show="isIdActive" ng-disabled="GroupIDForm.$invalid">{{"Save"|translate}}</button>
+					</div>
+				</div>
+			</form>
+			<form role="form" class="form-horizontal" name="accountcfg" ng-show="!isIdActive" novalidate>
+				<div class="form-group">
+					<label id="admin" class="col-md-offset-2 col-md-2 font16">{{"Administrator"|translate}}</label>
+					<div class="col-md-4 paddingL0">
+						<div class="dashed_line"></div>
+					</div>
+				</div>
+				<div class="form-group" ng-class="{'has-error': accountcfg.adminpass.$dirty && accountcfg.adminpass.$invalid}">
+					<label  class="col-md-2 col-md-offset-2 control-label">{{"Passphrase"|translate}}:</label>
+					<div class="col-md-4">
+						<input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+						<input type="password" class="form-control" name="adminpass" ng-model="accountInfo.admin" placeholder="0-9a-zA-Z_"
+							   ng-minlength=4 ng-maxlength=16 ng-pattern="{{InterService.pattern.ldu4To16}}" disable-space>
+					</div>
+					<div class="col-md-2">
+						<label class="control-label">(4-16 {{"chars"|translate}})</label>
+					</div>
+				</div>
+				<div class="form-group" ng-show="accountcfg.adminpass.$dirty && accountcfg.adminpass.$invalid">
+					<div class="col-md-5 col-md-offset-4" >
+						<small class="text-danger" ng-show="accountcfg.adminpass.$error.required" ng-bind="InterService.valueNotNull('password');"></small>
+						<small class="text-danger" ng-show="accountcfg.adminpass.$error.pattern" ng-bind="InterService.lduLengthRangeTip(4,16)"></small>
+					</div>
+				</div>
+				<div class="form-group">
+					<label  class="col-md-2 col-md-offset-2 control-label">{{"Confirm"|translate}}:</label>
+					<div class="col-md-4">
+						<input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+						<input type="password" class="form-control" name="adminpassconfirm" ng-model="accountconfirm.adminconfirm"  repeat="adminpass" disable-space>
+					</div>
+				</div>
+				<div class="form-group" ng-show="accountcfg.adminpassconfirm.$dirty && accountcfg.adminpassconfirm.$invalid">
+					<div class="col-md-5 col-md-offset-4" >
+						<small class="text-danger" ng-show="accountcfg.adminpassconfirm.$error.repeat" ng-bind="InterService.passNotSame()"></small>
+					</div>
+				</div>
+				<div class="form-group">
+					<label id="viewer" class="col-md-offset-2 col-md-2 font16">{{"Viewer"|translate}}</label>
+					<div class="col-md-2 paddingL0">
+						<div class="dashed_line"></div>
+					</div>
+					<div class="col-md-2">
+						<input type="radio" name="viewRadio" value="1"  ng-model="accountInfo.viewerstatus" disable-space>{{"Enable"|translate}}
+						<input type="radio" name="viewRadio" value="0" ng-model="accountInfo.viewerstatus" ng-click="exchange(100)" disable-space>{{"Disable"|translate}}
+					</div>
+				</div>
+				<div class="form-group">
+					<label  class="col-md-2 col-md-offset-2 control-label">{{"Passphrase"|translate}}:</label>
+					<div class="col-md-4">
+						<input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+						<input ng-if="accountInfo.viewerstatus==1" type="password" class="form-control" name="viewpass" id="viewpass" ng-model="accountInfo.view" ng-disabled="!(accountInfo.viewerstatus==1)" placeholder="0-9a-zA-Z_"
+						ng-minlength="4" ng-maxlength="16" ng-pattern="{{InterService.pattern.ldu4To16}}" disable-space>
+						<input ng-if="accountInfo.viewerstatus==0" type="password" class="form-control" name="viewpass" ng-model="accountInfo.view" ng-disabled="!(accountInfo.viewerstatus==1)" placeholder="0-9a-zA-Z_" disable-space>
+
+					</div>
+					<div class="col-md-2">
+						<label class="control-label">(4-16 {{"chars"|translate}})</label>
+					</div>
+				</div>
+				<div class="form-group" ng-show="accountcfg.viewpass.$dirty && accountcfg.viewpass.$invalid && ((accountInfo.viewerstatus==1))">
+					<div class="col-md-5 col-md-offset-4" >
+						<small class="text-danger" ng-show="accountcfg.viewpass.$error.required" ng-bind="InterService.valueNotNull('password');"></small>
+						<small class="text-danger" ng-show="accountcfg.viewpass.$error.minlength || accountcfg.viewpass.$error.maxlength" ng-bind="InterService.valueLengthRange(4, 16);"></small>
+						<small class="text-danger" ng-show="accountcfg.viewpass.$error.pattern" ng-bind="InterService.lduLengthRangeTip(4,16)"></small>
+					</div>
+				</div>
+				<div class="form-group">
+					<label  class="col-md-2 col-md-offset-2 control-label">{{"Confirm"|translate}}:</label>
+					<div class="col-md-4">
+						<input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+						<input ng-if="accountInfo.viewerstatus==1" type="password" class="form-control" name="viewpassconfirm" ng-model="accountconfirm.viewconfirm" ng-disabled="!(accountInfo.viewerstatus==1)" ng-minlength="4" ng-maxlength="16" ng-pattern="{{InterService.pattern.ldu4To16}}" repeat="viewpass" disable-space>
+						<input ng-if="accountInfo.viewerstatus==0" type="password" class="form-control" name="viewpassconfirm" ng-model="accountconfirm.viewconfirm"  ng-disabled="!(accountInfo.viewerstatus==1)"  ng-minlength="4" ng-maxlength="16" ng-pattern="{{InterService.pattern.ldu4To16}}" disable-space>
+					</div>
+				</div>
+				<div class="form-group" ng-show="accountcfg.viewpassconfirm.$dirty && accountcfg.viewpassconfirm.$invalid">
+					<div class="col-md-5 col-md-offset-4" >
+						<small class="text-danger" ng-show="accountcfg.viewpassconfirm.$error.repeat" ng-bind="InterService.passNotSame()"></small>
+					</div>
+				</div>
+				<div class="form-group">
+					<label id="guest" class="col-md-offset-2 col-md-2 font16">{{"GuestOperator"|translate}}</label>
+					<div class="col-md-2 paddingL0">
+						<div class="dashed_line"></div>
+					</div>
+					<div class="col-md-2">
+						<input type="radio" name="guestRadio" value="1" ng-model="accountInfo.gueststatus">{{"Enable"|translate}}
+						<input type="radio" name="guestRadio" value="0" ng-model="accountInfo.gueststatus" ng-click="exchange(200)">{{"Disable"|translate}}
+					</div>
+				</div>
+				<div class="form-group">
+					<label  class="col-md-2 col-md-offset-2 control-label">{{"Passphrase"|translate}}:</label>
+					<div class="col-md-4">
+						<input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+						<input ng-if="accountInfo.gueststatus==1" type="password" class="form-control" name="guestpass" id="guestpass" ng-model="accountInfo.guest" ng-disabled="!(accountInfo.gueststatus==1)" placeholder="0-9a-zA-Z_"
+						ng-minlength="4" ng-maxlength="16" ng-pattern="{{InterService.pattern.ldu4To16}}" disable-space>
+						<input ng-if="accountInfo.gueststatus==0" type="password" class="form-control" name="guestpass"   ng-disabled="!(accountInfo.gueststatus==1)"
+						placeholder="0-9a-zA-Z_" ng-minlength="4" ng-maxlength="16" ng-pattern="{{InterService.pattern.ldu4To16}}" disable-space>
+					</div>
+					<div class="col-md-2">
+						<label class="control-label">(4-16 {{"chars"|translate}})</label>
+					</div>
+				</div>
+				<div class="form-group" ng-show="accountcfg.guestpass.$dirty && accountcfg.guestpass.$invalid && (accountInfo.gueststatus==1)">
+					<div class="col-md-5 col-md-offset-4" >
+						<small class="text-danger" ng-show="accountcfg.guestpass.$error.required" ng-bind="InterService.valueNotNull('password');"></small>
+						<small class="text-danger" ng-show="accountcfg.guestpass.$error.pattern" ng-bind="InterService.lduLengthRangeTip(4,16)"></small>
+					</div>
+				</div>
+				<div class="form-group">
+					<label  class="col-md-2 col-md-offset-2 control-label">{{"Confirm"|translate}}:</label>
+					<div class="col-md-4">
+						<input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+						<input ng-if="accountInfo.gueststatus==1" type="password" class="form-control" name="guest_pass_confirm"  ng-model="accountconfirm.guestconfirm" ng-disabled="!(accountInfo.gueststatus==1)" ng-minlength="4" ng-maxlength="16" ng-pattern="{{InterService.pattern.ldu4To16}}" repeat="guestpass" disable-space>
+						<input ng-if="accountInfo.gueststatus==0" type="password" class="form-control" name="guest_pass_confirm" ng-model="accountconfirm.guestconfirm" ng-disabled="!(accountInfo.gueststatus==1)" ng-minlength="4" ng-maxlength="16" ng-pattern="{{InterService.pattern.ldu4To16}}" disable-space>
+					</div>
+				</div>
+				<div class="form-group" ng-show="accountcfg.guest_pass_confirm.$dirty && accountcfg.guest_pass_confirm.$invalid">
+					<div class="col-md-5 col-md-offset-4" >
+						<small class="text-danger" ng-show="accountcfg.guest_pass_confirm.$error.repeat" ng-bind="InterService.passNotSame()"></small>
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-md-9 col-md-offset-2 " >
+						<label  class="text-danger control-label font16">{{"passwdTips"|translate}}</label>
+
+					</div>
+				</div>
+				<div class="form-group">
+					<div class="col-md-offset-4 col-md-6 pull-right">
+						<button class="btn btn-warning" ng-click="cancel()">{{"Cancel"|translate}}</button>
+						<button class="btn btn-primary" ng-click="Accountinfo()" ng-show="!isIdActive" ng-disabled="accountcfg.$invalid">{{"Save"|translate}}</button>
+					</div>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>

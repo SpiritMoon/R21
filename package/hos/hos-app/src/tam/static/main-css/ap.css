@@ -1,0 +1,137 @@
+.ap_line{
+    width:1px; display:inline; float:left;
+}
+.ap_line div{
+    background-color:#5f4285; height:120px; margin-top:15px;
+}
+.ap_table_second{
+    width:60%; display:inline; float:left; margin-left:20px
+}
+.ap_table_second div{
+    margin-top:5px;
+}
+.access_point{
+    background-color:#d1c4de; height:30px;
+    line-height: 30px;
+    width: 100%;
+}
+.access_point span{
+    font-size:20px; margin-left:10px;
+
+}
+.access_point_brother{
+    height:150px; width:100%
+}
+.ap_table_first{
+    width:30%; display:inline;float:left; margin-left:10px;
+}
+.ap_table_first table{
+    width: 90%;
+}
+.ap_table_first table tr{
+    height: 30px;
+}
+
+.ap_panel_height{
+    height:220px;
+}
+
+.wlan_brother{
+    height: 150px;
+}
+
+#myTabContentip tr{
+    height: 25px;
+}
+#apDetailInfo,#cfgFirmware,#restoreFirmware,#updateFirmware{
+    height: 30px;
+    text-align: center;
+    padding:3px;
+}
+.Joining{
+    color:#FC534B;
+}
+.Losted{
+    color:#979696;
+}
+.Initializing{
+    color:#FF9558;
+}
+#appanel{
+    margin-bottom:15px;
+}
+#appanel div table{
+    width:100%;
+}
+#appanel > div.panel-body{
+    padding:0px;
+    padding-bottom:10px;
+}
+#ap_list tr td:hover{
+    cursor:pointer;
+}
+.btn.btn-link-red.glyphicon, .btn.btn-link-green.glyphicon{
+    padding: 0;
+}
+.btn-link-red, .btn-link-red:active, .btn-link-red:focus, .btn-link-red:hover ,
+.btn-link-green, .btn-link-green:active, .btn-link-green:focus, .btn-link-green:hover
+{
+    border-color: transparent;
+}
+.btn-link-green, .btn-link-green:active, .btn-link-green[disabled], fieldset[disabled] .btn-link-green,
+.btn-link-red, .btn-link-red:active, .btn-link-red[disabled], fieldset[disabled] .btn-link-red {
+    background-color: transparent;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+.btn-link-red {
+    font-weight: 400;
+    color: #FF0000;
+    cursor: pointer;
+    border-radius: 0;
+}
+.btn-link-green {
+    font-weight: 400;
+    color: #22B14C;
+    cursor: pointer;
+    border-radius: 0;
+}
+.aplistTable td {
+    padding-top: 10px;
+}
+@media screen and (min-width: 1025px){
+    .largef{width:6%;}
+    .large{width:30%;}
+    .large-one{width:20%; padding-left: 0px;}
+
+    /*.large-two{width: 46%; text-align: center; padding-left: 4%;}*/
+    .large-two{width: 30%; text-align: left;}
+    /*.large-three{width: 30%; text-align: right; padding-right: 10%;}*/
+    .large-three{width: 20%; text-align: right; padding-right: 6%;}
+
+
+}
+
+
+@media (min-width:768px)  and (max-width:1024px){
+
+    .largef{width:6%;}
+    .large{width:30%; padding-left: 12%;}
+    .large-one{width:20%; padding-left: 0px;}
+
+    /*.large-two{width: 4%; text-align: left; padding-left: 4%;}*/
+    .large-two{width: 30%; text-align: left;}
+
+    .large-three{width: 20%; text-align: right; padding-right: 4%;}
+
+}
+
+
+
+@media (max-width: 768px){
+    .largef{width: 6%;}
+    /*.large-two{width: 4%; text-align: left; padding-right: 8%;}*/
+    .large-two{width: 30%; text-align: left;}
+
+    .large-three{width: 20%; text-align: right; padding-right: 15%;}
+}

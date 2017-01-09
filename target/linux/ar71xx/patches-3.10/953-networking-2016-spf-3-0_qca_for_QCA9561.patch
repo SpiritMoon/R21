@@ -1,0 +1,31 @@
+diff -urN a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h b/arch/mips/include/asm/mach-ath79/ar71xx_regs.h
+--- a/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2016-07-19 06:01:58.765942524 +0800
++++ b/arch/mips/include/asm/mach-ath79/ar71xx_regs.h	2016-07-19 05:55:46.623899806 +0800
+@@ -399,7 +399,13 @@
+ #define QCA956X_PLL_CPU_CONFIG1_NFRAC_L_SHIFT	0
+ #define QCA956X_PLL_CPU_CONFIG1_NFRAC_L_MASK	0x1f
+ #define QCA956X_PLL_CPU_CONFIG1_NFRAC_H_SHIFT	5
++/* zhouke modify networking-2016-spf-3-0_qca for QCA9561 patch */
++#if 0
+ #define QCA956X_PLL_CPU_CONFIG1_NFRAC_H_MASK	0x3fff
++#else
++#define QCA956X_PLL_CPU_CONFIG1_NFRAC_H_MASK    0x1fff
++#endif
++/* zhouke modify end */
+ #define QCA956X_PLL_CPU_CONFIG1_NINT_SHIFT	18
+ #define QCA956X_PLL_CPU_CONFIG1_NINT_MASK	0x1ff
+ 
+@@ -411,7 +417,13 @@
+ #define QCA956X_PLL_DDR_CONFIG1_NFRAC_L_SHIFT	0
+ #define QCA956X_PLL_DDR_CONFIG1_NFRAC_L_MASK	0x1f
+ #define QCA956X_PLL_DDR_CONFIG1_NFRAC_H_SHIFT	5
++/* zhouke modify networking-2016-spf-3-0_qca for QCA9561 patch */
++#if 0
+ #define QCA956X_PLL_DDR_CONFIG1_NFRAC_H_MASK	0x3fff
++#else
++#define QCA956X_PLL_DDR_CONFIG1_NFRAC_H_MASK    0x1fff
++#endif
++/* zhouke modify end */
+ #define QCA956X_PLL_DDR_CONFIG1_NINT_SHIFT	18
+ #define QCA956X_PLL_DDR_CONFIG1_NINT_MASK	0x1ff
+ 

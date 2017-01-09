@@ -1,0 +1,47 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006-2011 OpenWrt.org
+
+SERVICE_USE_PID=1
+
+START=99
+
+LOCKFILE=/tmp/lighttpd_lock
+
+start() {
+	lock $LOCKFILE
+	sleep 5
+
+	local LOGIN="/www/static/assets/images/login_logo.png"
+	local ABOUT="/www/static/assets/images/about_logo.png"
+
+	productinfo get imginfo  logo_icon.png   /tmp/logo_ >/dev/null 2>&1
+	productinfo get imginfo logo_img.png   /tmp/logo_ >/dev/null 2>&1
+
+	if [ -f /tmp/logo_/logo_icon.png -a -f /tmp/logo_/logo_img.png ]; then
+		ori=$(/usr/bin/md5sum /tmp/logo_/logo_icon.png | awk '{print $1}')
+		dst=$(/usr/bin/md5sum $LOGIN 2>/dev/null |awk '{print $1}')
+		test "pre"$ori = "pre"$dst || mv /tmp/logo_/logo_icon.png $LOGIN
+
+		ori=$(/usr/bin/md5sum /tmp/logo_/logo_img.png | awk '{print $1}')
+		dst=$(/usr/bin/md5sum $ABOUT 2>/dev/null | awk '{print $1}')
+		test "pre"$ori = "pre"$dst || mv /tmp/logo_/logo_img.png $ABOUT
+
+		rm -rf /tmp/logo_
+	fi
+
+	[ -d /var/log/lighttpd ] || mkdir -p /var/log/lighttpd
+	chmod 0777 /var/log/lighttpd
+	service_start /usr/sbin/lighttpd -f /etc/lighttpd/lighttpd.conf
+	ret_status=$?
+	lock -u $LOCKFILE
+	return $ret_status
+}
+
+stop() {
+	lock $LOCKFILE
+	service_stop /usr/sbin/lighttpd
+	ret_status=$?
+	lock -u $LOCKFILE
+	return $ret_status
+}
+

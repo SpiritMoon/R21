@@ -1,0 +1,36 @@
+#!/bin/sh /etc/rc.common
+
+START=70
+USE_PROCD=1
+
+CLUSTER_MGT="/sbin/cluster_mgt"
+CLUSTER_COR="/sbin/cluster_cor"
+CLSTER_CONF_FILE="/etc/config/cluster"
+
+start_service()
+{
+	config_load 'cluster'
+	local cluster_id cluster_pro cluster_vip
+	cluster_id=`uci get cluster.cluster.cluster_id`
+	cluster_pro=`uci get cluster.cluster.cluster_priority`
+	cluster_vip=`uci get cluster.cluster.cluster_vip`
+
+	procd_open_instance
+	procd_set_param command "$CLUSTER_MGT" -I $cluster_id  -p $cluster_pro
+	procd_set_param respawn
+	procd_close_instance
+	echo cluster_mgt start ..
+
+	procd_open_instance
+	procd_set_param command "$CLUSTER_COR" -I $cluster_id -p $cluster_pro -V $cluster_vip
+	procd_set_param respawn
+	procd_close_instance
+	echo cluster_cor start ..
+}
+
+restart_service()
+{
+	stop_service
+	sleep 2
+	start_service
+}

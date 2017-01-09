@@ -1,0 +1,521 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.7	//
+ACS	libhccp.h	/^    ACS = 6,$/;"	e	enum:__anon5
+ACSType	libhccp.h	/^}ACSType;$/;"	t	typeref:enum:__anon6
+ACS_format	libhccp.h	/^}ACS_format;$/;"	t	typeref:struct:__anon7
+ALMOST_NOW	timerlib.c	42;"	d	file:
+AP_STAT	cluster_mgt.h	/^}AP_STAT,*P_AP_STAT;	 $/;"	t	typeref:struct:ap_state
+Assemble_ACS_SequenceRequest	libhccp.c	/^HANBool Assemble_ACS_SequenceRequest(char *buf, ACS_format *acs_packet) $/;"	f	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_SequenceRequest	libhccp.h	/^HANBool Assemble_ACS_SequenceRequest(char *buf, ACS_format *acs_packet) ;$/;"	p	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_SequenceResponse	libhccp.c	/^HANBool Assemble_ACS_SequenceResponse(char *buf, ACS_format *acs_packet) $/;"	f	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_SequenceResponse	libhccp.h	/^HANBool Assemble_ACS_SequenceResponse(char *buf, ACS_format *acs_packet) ;$/;"	p	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_TokenRequest	libhccp.c	/^HANBool Assemble_ACS_TokenRequest(char *buf, ACS_format *acs_packet) $/;"	f	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_TokenRequest	libhccp.h	/^HANBool Assemble_ACS_TokenRequest(char *buf, ACS_format *acs_packet) ;$/;"	p	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_TokenResponse	libhccp.c	/^HANBool Assemble_ACS_TokenResponse(char *buf, ACS_format *acs_packet) $/;"	f	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_TokenResponse	libhccp.h	/^HANBool Assemble_ACS_TokenResponse(char *buf, ACS_format *acs_packet) ;$/;"	p	signature:(char *buf, ACS_format *acs_packet)
+Assemble_DBCP	libhccp.c	/^HANBool Assemble_DBCP(char *buf, DBCP_format *dbcp) $/;"	f	signature:(char *buf, DBCP_format *dbcp)
+Assemble_DBCP	libhccp.h	/^HANBool Assemble_DBCP(char *buf, DBCP_format *dbcp) ;$/;"	p	signature:(char *buf, DBCP_format *dbcp)
+Assemble_HCCPHeader	libhccp.c	/^HANBool Assemble_HCCPHeader(char *buf, HCCPHeaderValues *protocolVal)$/;"	f	signature:(char *buf, HCCPHeaderValues *protocolVal)
+Assemble_RIRP	libhccp.c	/^HANBool Assemble_RIRP(char *buf, RIRP_format *rirp) $/;"	f	signature:(char *buf, RIRP_format *rirp)
+Assemble_RIRP	libhccp.h	/^HANBool Assemble_RIRP(char *buf, RIRP_format *rirp) ;$/;"	p	signature:(char *buf, RIRP_format *rirp)
+Assemble_RSCP	libhccp.c	/^HANBool Assemble_RSCP(char *buf, RSCP_format *rscp) $/;"	f	signature:(char *buf, RSCP_format *rscp)
+Assemble_RSCP	libhccp.h	/^HANBool Assemble_RSCP(char *buf, RSCP_format *rscp) ;$/;"	p	signature:(char *buf, RSCP_format *rscp)
+Assemble_RSRP	libhccp.c	/^HANBool Assemble_RSRP(char *buf, RSRP_format *rsrp) $/;"	f	signature:(char *buf, RSRP_format *rsrp)
+Assemble_RSRP	libhccp.h	/^HANBool Assemble_RSRP(char *buf, RSRP_format *rsrp) ;$/;"	p	signature:(char *buf, RSRP_format *rsrp)
+BKSCAN_PATH	cluster_mgt.h	55;"	d
+BUF_MAX_LEN	parse_message.h	6;"	d
+BUF_SIZE	cluster_mgt.h	49;"	d
+Bool	parse_message.h	/^}Bool;$/;"	t	typeref:enum:__anon16
+CHECK	cluster_mgt.h	/^	CHECK,$/;"	e	enum:cluster_state
+CLIENT_PORT	acs.c	20;"	d	file:
+CLUSTER_FIFO	cluster_mgt.h	53;"	d
+CLUSTER_HAP_MAC	parse_message.h	/^	CLUSTER_HAP_MAC 					= 4,$/;"	e	enum:__anon17
+CLUSTER_HAP_ROL	parse_message.h	/^	CLUSTER_HAP_ROL						= 10,$/;"	e	enum:__anon17
+CLUSTER_HAP_STATE	parse_message.h	/^	CLUSTER_HAP_STATE					= 6,$/;"	e	enum:__anon17
+CLUSTER_MB	cluster_mgt.h	/^}CLUSTER_MB,*P_CLUSTER_MB;$/;"	t	typeref:struct:cluster_member
+CLUSTER_MB_LIST	cluster_mgt.h	/^}CLUSTER_MB_LIST,*P_CLUSTER_MB_LIST;$/;"	t	typeref:struct:cluster_member_list
+CLUSTER_MEMBER_LIST	cluster_mgt.h	/^}CLUSTER_MEMBER_LIST;$/;"	t	typeref:struct:__anon18
+CLUSTER_MEMBER_MAX	cluster_mgt.h	47;"	d
+CLUSTER_MGT_APP	Makefile	/^CLUSTER_MGT_APP = cluster_mgt$/;"	m
+CLUSTER_MGT_DEPS	Makefile	/^CLUSTER_MGT_DEPS := $(CLUSTER_MGT_OBJS:.o=.d)$/;"	m
+CLUSTER_MGT_H	cluster_mgt.h	2;"	d
+CLUSTER_MGT_OBJS	Makefile	/^CLUSTER_MGT_OBJS = cluster_mgt.o libhccp.o timerlib.o sock_domain.o parse_message.o$/;"	m
+CLUSTER_MGT_SRCS	Makefile	/^CLUSTER_MGT_SRCS = $(CLUSTER_MGT_OBJS:.o=.c)$/;"	m
+CLUSTER_MSG_ELEMENT_TYPE_CHANNEL	parse_message.h	/^	CLUSTER_MSG_ELEMENT_TYPE_CHANNEL	= 64,$/;"	e	enum:__anon17
+CLUSTER_MSG_ELEMENT_TYPE_RSSI	parse_message.h	/^	CLUSTER_MSG_ELEMENT_TYPE_RSSI		= 65,$/;"	e	enum:__anon17
+CLUSTER_MSG_ELEMENT_TYPE_VAP_MAC	parse_message.h	/^	CLUSTER_MSG_ELEMENT_TYPE_VAP_MAC	= 63,$/;"	e	enum:__anon17
+CLUSTER_MSG_ENV_INFO	parse_message.h	44;"	d
+CLUSTER_MSG_MEMBER_INFO	parse_message.h	43;"	d
+CLUSTER_MSG_PVC_INFO	parse_message.h	41;"	d
+CLUSTER_MSG_SCANNING_AP_INFO	parse_message.h	40;"	d
+CLUSTER_PRI	cluster_mgt.h	/^}CLUSTER_PRI;$/;"	t	typeref:union:cluster_priority
+CLUSTER_PRI_MAX	cluster_mgt.h	45;"	d
+CLUSTER_PRI_MIN	cluster_mgt.h	46;"	d
+CLUSTER_STATE	cluster_mgt.h	/^}CLUSTER_STATE;$/;"	t	typeref:enum:cluster_state
+DBCP	libhccp.h	/^    DBCP = 1,$/;"	e	enum:__anon5
+DBCP_format	libhccp.h	/^}DBCP_format;$/;"	t	typeref:struct:__anon8
+DEBUG_SWITCH	acs.c	21;"	d	file:
+DISCOVERY	cluster_mgt.h	/^	DISCOVERY,$/;"	e	enum:cluster_state
+DOMAIN_NAME	cluster_mgt.h	54;"	d
+Delete_list	cluster_mgt.c	/^void Delete_list(CLUSTER_MB *del)$/;"	f	signature:(CLUSTER_MB *del)
+ELECT_MB	cluster_mgt.h	/^}ELECT_MB,*P_ELECT_MB;$/;"	t	typeref:struct:elect_member
+ELECT_MB_LIST	cluster_mgt.h	/^}ELECT_MB_LIST, *P_ELECT_MB_LIST;$/;"	t	typeref:struct:elect_member_list
+ElementType	parse_message.h	/^}ElementType;$/;"	t	typeref:enum:__anon17
+Enter_Discovery	cluster_mgt.c	/^CLUSTER_STATE Enter_Discovery()$/;"	f
+Enter_Join	cluster_mgt.c	/^CLUSTER_STATE Enter_Join()$/;"	f
+Enter_check	cluster_mgt.c	/^CLUSTER_STATE Enter_check()$/;"	f
+Enter_run	cluster_mgt.c	/^CLUSTER_STATE Enter_run()$/;"	f
+FALSE	parse_message.h	/^	FALSE = 0,$/;"	e	enum:__anon16
+HANBool	libhccp.h	/^} HANBool;$/;"	t	typeref:enum:__anon3
+HAN_FALSE	libhccp.h	/^	HAN_FALSE = 0,$/;"	e	enum:__anon3
+HAN_TRUE	libhccp.h	/^	HAN_TRUE = 1$/;"	e	enum:__anon3
+HCCPHeaderValues	libhccp.h	/^}HCCPHeaderValues;$/;"	t	typeref:struct:__anon4
+HCCPType	libhccp.h	/^}HCCPType;$/;"	t	typeref:enum:__anon5
+HCCP_HEADER_LEN	libhccp.c	7;"	d	file:
+Hccp_Protocol_Struct	libhccp.h	/^}Hccp_Protocol_Struct;$/;"	t	typeref:struct:__anon14
+Hccp_Protocol_Union	libhccp.h	/^}Hccp_Protocol_Union;$/;"	t	typeref:union:data
+INIT_WAIT_TIME	timerlib.c	32;"	d	file:
+InitSocket	sock_domain.c	/^int InitSocket( char *path_name ){$/;"	f	signature:( char *path_name )
+InitSocket	sock_domain.h	/^int InitSocket( char *path_name );$/;"	p	signature:( char *path_name )
+Insert_list_from_head	cluster_mgt.c	/^void Insert_list_from_head(CLUSTER_MB *new)$/;"	f	signature:(CLUSTER_MB *new)
+JOIN	cluster_mgt.h	/^	JOIN,$/;"	e	enum:cluster_state
+LIBHCCP_H	libhccp.h	3;"	d
+LOST	cluster_mgt.h	/^	LOST$/;"	e	enum:cluster_state
+MAC_LEN	cluster_mgt.h	50;"	d
+MAC_LEN	libhccp.h	11;"	d
+MAX_AP_NUM	cluster_mgt.h	146;"	d
+MAX_CLUSTER_AP	libhccp.h	10;"	d
+MAX_USEC	timerlib.c	39;"	d	file:
+MESSAGE_PROCOTOL_RESERVED	parse_message.h	8;"	d
+MESSAGE_PROCOTOL_VERSION	parse_message.h	7;"	d
+MICRO_PER_SEC	timerlib.c	36;"	d	file:
+MSG_LEN	parse_message.h	64;"	d
+MSG_SUB_LEN	parse_message.h	66;"	d
+MSG_SUB_TYPE	parse_message.h	65;"	d
+MSG_TYPE	parse_message.h	63;"	d
+NANO_PER_MICRO	timerlib.c	35;"	d	file:
+OP_REQUEST	parse_message.h	/^	OP_REQUEST = 1,$/;"	e	enum:__anon15
+OP_RESPONSE	parse_message.h	/^	OP_RESPONSE = 2,$/;"	e	enum:__anon15
+OP_TYPE	parse_message.h	61;"	d
+Operate	parse_message.h	/^}Operate;$/;"	t	typeref:enum:__anon15
+PATH_LEN	cluster_mgt.c	1314;"	d	file:
+PIPE_NAME	cluster_mgt.h	52;"	d
+PRI	cluster_mgt.h	/^}PRI;$/;"	t	typeref:struct:priority
+PVC	cluster_mgt.h	/^	PVC=1,$/;"	e	enum:cluster_role
+PVC_STAT	cluster_mgt.h	/^}PVC_STAT,*P_PVC_STAT;$/;"	t	typeref:struct:pvc_state
+P_AP_STAT	cluster_mgt.h	/^}AP_STAT,*P_AP_STAT;	 $/;"	t	typeref:struct:ap_state
+P_CLUSTER_MB	cluster_mgt.h	/^}CLUSTER_MB,*P_CLUSTER_MB;$/;"	t	typeref:struct:cluster_member
+P_CLUSTER_MB_LIST	cluster_mgt.h	/^}CLUSTER_MB_LIST,*P_CLUSTER_MB_LIST;$/;"	t	typeref:struct:cluster_member_list
+P_ELECT_MB	cluster_mgt.h	/^}ELECT_MB,*P_ELECT_MB;$/;"	t	typeref:struct:elect_member
+P_ELECT_MB_LIST	cluster_mgt.h	/^}ELECT_MB_LIST, *P_ELECT_MB_LIST;$/;"	t	typeref:struct:elect_member_list
+P_PVC_STAT	cluster_mgt.h	/^}PVC_STAT,*P_PVC_STAT;$/;"	t	typeref:struct:pvc_state
+Parse_ACS	libhccp.c	/^HANBool Parse_ACS(char *buf, Hccp_Protocol_Struct *parse_packet)$/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_DBCP	libhccp.c	/^HANBool Parse_DBCP(char *buf, Hccp_Protocol_Struct *parse_packet)$/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_HCCPHeader	libhccp.c	/^HANBool Parse_HCCPHeader(char *buf,  Hccp_Protocol_Struct *parse_packet) $/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_HCCPProtocol	libhccp.c	/^HANBool Parse_HCCPProtocol(char *buf,  Hccp_Protocol_Struct *parse_packet) $/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_HCCPProtocol	libhccp.h	/^HANBool Parse_HCCPProtocol(char *buf,  Hccp_Protocol_Struct *parse_packet) ;$/;"	p	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_RIRP	libhccp.c	/^HANBool Parse_RIRP(char *buf, Hccp_Protocol_Struct *parse_packet)$/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_RSCP	libhccp.c	/^HANBool Parse_RSCP(char *buf, Hccp_Protocol_Struct *parse_packet)$/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_RSRP	libhccp.c	/^HANBool Parse_RSRP(char *buf, Hccp_Protocol_Struct *parse_packet)$/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+ProtocolRetrieve16	parse_message.c	/^u_int16_t ProtocolRetrieve16( elementmsg *msgPtr) $/;"	f	signature:( elementmsg *msgPtr)
+ProtocolRetrieve16	parse_message.h	/^u_int16_t ProtocolRetrieve16(elementmsg *msgPtr);$/;"	p	signature:(elementmsg *msgPtr)
+ProtocolRetrieve32	parse_message.c	/^u_int32_t ProtocolRetrieve32(elementmsg *msgPtr) $/;"	f	signature:(elementmsg *msgPtr)
+ProtocolRetrieve32	parse_message.h	/^u_int32_t ProtocolRetrieve32(elementmsg *msgPtr);$/;"	p	signature:(elementmsg *msgPtr)
+ProtocolRetrieve8	parse_message.c	/^unsigned char ProtocolRetrieve8(elementmsg *msgPtr)$/;"	f	signature:(elementmsg *msgPtr)
+ProtocolRetrieve8	parse_message.h	/^unsigned char ProtocolRetrieve8(elementmsg *msgPtr);$/;"	p	signature:(elementmsg *msgPtr)
+ProtocolRetrieveRawBytes	parse_message.c	/^char *ProtocolRetrieveRawBytes(elementmsg *msgPtr, int len) {$/;"	f	signature:(elementmsg *msgPtr, int len)
+ProtocolRetrieveStr	parse_message.c	/^char *ProtocolRetrieveStr(elementmsg *msgPtr, int len) {$/;"	f	signature:(elementmsg *msgPtr, int len)
+ProtocolRetrieveStr	parse_message.h	/^char *ProtocolRetrieveStr(elementmsg *msgPtr, int len);$/;"	p	signature:(elementmsg *msgPtr, int len)
+ProtocolStore16	parse_message.c	/^void ProtocolStore16(elementmsg *msgPtr, unsigned short val) {$/;"	f	signature:(elementmsg *msgPtr, unsigned short val)
+ProtocolStore16	parse_message.h	/^void ProtocolStore16(elementmsg *msgPtr, unsigned short val);$/;"	p	signature:(elementmsg *msgPtr, unsigned short val)
+ProtocolStore32	parse_message.c	/^void ProtocolStore32(elementmsg *msgPtr, unsigned int val) {$/;"	f	signature:(elementmsg *msgPtr, unsigned int val)
+ProtocolStore32	parse_message.h	/^void ProtocolStore32(elementmsg *msgPtr, unsigned int val);$/;"	p	signature:(elementmsg *msgPtr, unsigned int val)
+ProtocolStore8	parse_message.c	/^void ProtocolStore8(elementmsg *msgPtr, unsigned char val) {$/;"	f	signature:(elementmsg *msgPtr, unsigned char val)
+ProtocolStore8	parse_message.h	/^void ProtocolStore8(elementmsg *msgPtr, unsigned char val);$/;"	p	signature:(elementmsg *msgPtr, unsigned char val)
+ProtocolStoreRawBytes	parse_message.c	/^void ProtocolStoreRawBytes(elementmsg *msgPtr, char *bytes, int len) {$/;"	f	signature:(elementmsg *msgPtr, char *bytes, int len)
+ProtocolStoreRawBytes	parse_message.h	/^void ProtocolStoreRawBytes(elementmsg *msgPtr, char *bytes, int len);$/;"	p	signature:(elementmsg *msgPtr, char *bytes, int len)
+ProtocolStoreStr	parse_message.c	/^void ProtocolStoreStr(elementmsg *msgPtr, char *str) {$/;"	f	signature:(elementmsg *msgPtr, char *str)
+ProtocolStoreStr	parse_message.h	/^void ProtocolStoreStr(elementmsg *msgPtr, char *str);$/;"	p	signature:(elementmsg *msgPtr, char *str)
+RECV_SCAN_INTERVAL_TIMER	cluster_mgt.c	1313;"	d	file:
+RESERVED	parse_message.h	62;"	d
+RG_COPY_MEMORY	parse_message.h	69;"	d
+RG_CREATE_OBJECT_SIZE	parse_message.c	7;"	d	file:
+RIRP	libhccp.h	/^    RIRP = 4,$/;"	e	enum:__anon5
+RIRP_cluster_neighbor	libhccp.h	/^}RIRP_cluster_neighbor;$/;"	t	typeref:struct:__anon12
+RIRP_format	libhccp.h	/^}RIRP_format;$/;"	t	typeref:struct:__anon13
+RISP	libhccp.h	/^    RISP = 5,$/;"	e	enum:__anon5
+RM	Makefile	/^RM = \/bin\/rm -f$/;"	m
+ROLE	cluster_mgt.h	/^}ROLE;$/;"	t	typeref:enum:cluster_role
+RSCP	libhccp.h	/^    RSCP = 2,$/;"	e	enum:__anon5
+RSCP_cluster_member	libhccp.h	/^}RSCP_cluster_member;$/;"	t	typeref:struct:__anon10
+RSCP_format	libhccp.h	/^}RSCP_format;$/;"	t	typeref:struct:__anon11
+RSRP	libhccp.h	/^    RSRP = 3,$/;"	e	enum:__anon5
+RSRP_format	libhccp.h	/^}RSRP_format;$/;"	t	typeref:struct:__anon9
+RUN	cluster_mgt.h	/^	RUN,$/;"	e	enum:cluster_state
+RecvMsg	sock_domain.c	/^int RecvMsg(int socket, unsigned char *recvbuf,int *buflen, struct sockaddr_un *desaddr){$/;"	f	signature:(int socket, unsigned char *recvbuf,int *buflen, struct sockaddr_un *desaddr)
+RecvMsg	sock_domain.h	/^int RecvMsg(int socket, unsigned char *recvbuf,int *buflen, struct sockaddr_un *desaddr);$/;"	p	signature:(int socket, unsigned char *recvbuf,int *buflen, struct sockaddr_un *desaddr)
+SCAN_AP	cluster_mgt.h	/^scan_info SCAN_AP[MAX_AP_NUM];$/;"	v
+SIG_TO_WAIT	timerlib.c	45;"	d	file:
+SVC	cluster_mgt.h	/^	SVC,$/;"	e	enum:cluster_role
+Search_list_by_mac	cluster_mgt.c	/^CLUSTER_MB *Search_list_by_mac(unsigned char *mac)$/;"	f	signature:(unsigned char *mac)
+SendMsg	sock_domain.c	/^int SendMsg(int socket, unsigned char *sendbuf,int buflen,struct sockaddr_un desaddr){$/;"	f	signature:(int socket, unsigned char *sendbuf,int buflen,struct sockaddr_un desaddr)
+SendMsg	sock_domain.h	/^int SendMsg(int socket, unsigned char *sendbuf,int buflen,struct sockaddr_un desaddr);$/;"	p	signature:(int socket, unsigned char *sendbuf,int buflen,struct sockaddr_un desaddr)
+Sequence_req	libhccp.h	/^    Sequence_req = 1,$/;"	e	enum:__anon6
+Sequence_resp	libhccp.h	/^    Sequence_resp = 2,$/;"	e	enum:__anon6
+TIMERLIB_H	timerlib.h	26;"	d
+TIMER_KIND	timerlib.c	44;"	d	file:
+TRUE	parse_message.h	/^	TRUE = 1$/;"	e	enum:__anon16
+TV_LESS_THAN	timerlib.c	51;"	d	file:
+TV_MINUS	timerlib.c	60;"	d	file:
+Token_req	libhccp.h	/^    Token_req = 3,$/;"	e	enum:__anon6
+Token_resp	libhccp.h	/^    Token_resp = 4,$/;"	e	enum:__anon6
+VC	cluster_mgt.h	/^	VC$/;"	e	enum:cluster_role
+VERSION	parse_message.h	60;"	d
+_2g_channel	libhccp.h	/^	unsigned char _2g_channel;$/;"	m	struct:__anon12	access:public
+_2g_rssi	libhccp.h	/^	unsigned char _2g_rssi;$/;"	m	struct:__anon12	access:public
+_5g_channel	libhccp.h	/^	unsigned char _5g_channel;	$/;"	m	struct:__anon12	access:public
+_5g_rssi	libhccp.h	/^	unsigned char _5g_rssi;$/;"	m	struct:__anon12	access:public
+_ROGUEAP_MESSAGE_H_	parse_message.h	2;"	d
+__anon10::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon10	access:public
+__anon10::role	libhccp.h	/^	unsigned char role;$/;"	m	struct:__anon10	access:public
+__anon10::state	libhccp.h	/^	unsigned char state;$/;"	m	struct:__anon10	access:public
+__anon11::cluster_member	libhccp.h	/^	RSCP_cluster_member cluster_member[MAX_CLUSTER_AP];$/;"	m	struct:__anon11	access:public
+__anon11::config_sequence	libhccp.h	/^	unsigned char config_sequence;$/;"	m	struct:__anon11	access:public
+__anon11::count	libhccp.h	/^	unsigned char count;$/;"	m	struct:__anon11	access:public
+__anon11::head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon11	access:public
+__anon11::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon11	access:public
+__anon11::priority	libhccp.h	/^	unsigned char priority;$/;"	m	struct:__anon11	access:public
+__anon11::product_type	libhccp.h	/^	unsigned char product_type;$/;"	m	struct:__anon11	access:public
+__anon12::_2g_channel	libhccp.h	/^	unsigned char _2g_channel;$/;"	m	struct:__anon12	access:public
+__anon12::_2g_rssi	libhccp.h	/^	unsigned char _2g_rssi;$/;"	m	struct:__anon12	access:public
+__anon12::_5g_channel	libhccp.h	/^	unsigned char _5g_channel;	$/;"	m	struct:__anon12	access:public
+__anon12::_5g_rssi	libhccp.h	/^	unsigned char _5g_rssi;$/;"	m	struct:__anon12	access:public
+__anon12::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon12	access:public
+__anon13::cluster_neighbor	libhccp.h	/^	RIRP_cluster_neighbor cluster_neighbor[MAX_CLUSTER_AP];$/;"	m	struct:__anon13	access:public
+__anon13::head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon13	access:public
+__anon13::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon13	access:public
+__anon13::neighbor_count	libhccp.h	/^	unsigned char neighbor_count;$/;"	m	struct:__anon13	access:public
+__anon14::type	libhccp.h	/^	unsigned char type;$/;"	m	struct:__anon14	access:public
+__anon14::u	libhccp.h	/^	Hccp_Protocol_Union u;$/;"	m	struct:__anon14	access:public
+__anon18::cluster_member_list_head	cluster_mgt.h	/^	CLUSTER_MB *cluster_member_list_head;$/;"	m	struct:__anon18	access:public
+__anon18::member_count	cluster_mgt.h	/^	int member_count;$/;"	m	struct:__anon18	access:public
+__anon1::cond	timerlib.c	/^	pthread_cond_t	cond;$/;"	m	struct:__anon1	file:	access:public
+__anon1::cur_id	timerlib.c	/^	int		cur_id;$/;"	m	struct:__anon1	file:	access:public
+__anon1::first	timerlib.c	/^	tl_timer_t 	*first;$/;"	m	struct:__anon1	file:	access:public
+__anon1::last	timerlib.c	/^	tl_timer_t 	*last;$/;"	m	struct:__anon1	file:	access:public
+__anon1::mutex	timerlib.c	/^	pthread_mutex_t mutex;$/;"	m	struct:__anon1	file:	access:public
+__anon1::ticker	timerlib.c	/^	pthread_t	ticker;$/;"	m	struct:__anon1	file:	access:public
+__anon2::a	timerlib.c	/^	unsigned int *a;$/;"	m	struct:__anon2	file:	access:public
+__anon2::b	timerlib.c	/^	int b;$/;"	m	struct:__anon2	file:	access:public
+__anon2::c	timerlib.c	/^	int c;$/;"	m	struct:__anon2	file:	access:public
+__anon4::clusterID	libhccp.h	/^	unsigned int clusterID;$/;"	m	struct:__anon4	access:public
+__anon4::protocolLen	libhccp.h	/^	unsigned short protocolLen;$/;"	m	struct:__anon4	access:public
+__anon4::protocolType	libhccp.h	/^	unsigned char protocolType;$/;"	m	struct:__anon4	access:public
+__anon4::protocolver	libhccp.h	/^	unsigned char protocolver;$/;"	m	struct:__anon4	access:public
+__anon4::seqnum	libhccp.h	/^	unsigned short seqnum;$/;"	m	struct:__anon4	access:public
+__anon7::head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon7	access:public
+__anon7::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon7	access:public
+__anon7::msgtype	libhccp.h	/^	unsigned short msgtype;$/;"	m	struct:__anon7	access:public
+__anon7::seq_num	libhccp.h	/^	unsigned int seq_num;$/;"	m	struct:__anon7	access:public
+__anon8::config_sequence	libhccp.h	/^	unsigned char config_sequence;$/;"	m	struct:__anon8	access:public
+__anon8::head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon8	access:public
+__anon8::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon8	access:public
+__anon8::priority	libhccp.h	/^	unsigned char priority;$/;"	m	struct:__anon8	access:public
+__anon8::product_type	libhccp.h	/^	unsigned char product_type;$/;"	m	struct:__anon8	access:public
+__anon9::config_sequence	libhccp.h	/^	unsigned char config_sequence;$/;"	m	struct:__anon9	access:public
+__anon9::head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon9	access:public
+__anon9::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon9	access:public
+__anon9::priority	libhccp.h	/^	unsigned char priority;$/;"	m	struct:__anon9	access:public
+__anon9::product_type	libhccp.h	/^	unsigned char product_type;$/;"	m	struct:__anon9	access:public
+__anon9::state	libhccp.h	/^	unsigned char state;$/;"	m	struct:__anon9	access:public
+_scan_info	cluster_mgt.h	/^typedef struct _scan_info{$/;"	s
+_scan_info::channel	cluster_mgt.h	/^	unsigned char	channel;$/;"	m	struct:_scan_info	access:public
+_scan_info::macaddr	cluster_mgt.h	/^	u_int8_t 		macaddr[6];$/;"	m	struct:_scan_info	access:public
+_scan_info::rssi	cluster_mgt.h	/^	unsigned char 	rssi;$/;"	m	struct:_scan_info	access:public
+a	timerlib.c	/^	unsigned int *a;$/;"	m	struct:__anon2	file:	access:public
+acs	libhccp.h	/^	ACS_format  acs;$/;"	m	union:data	access:public
+ap_mac	cluster_mgt.h	/^	u_int8_t ap_mac[6];$/;"	m	struct:ap_state	access:public
+ap_priority	cluster_mgt.h	/^	CLUSTER_PRI ap_priority;$/;"	m	struct:ap_state	access:public
+ap_role	cluster_mgt.h	/^	ROLE ap_role;$/;"	m	struct:ap_state	access:public
+ap_state	cluster_mgt.h	/^	u_int8_t ap_state;$/;"	m	struct:ap_state	access:public
+ap_state	cluster_mgt.h	/^typedef struct ap_state$/;"	s
+ap_state::ap_mac	cluster_mgt.h	/^	u_int8_t ap_mac[6];$/;"	m	struct:ap_state	access:public
+ap_state::ap_priority	cluster_mgt.h	/^	CLUSTER_PRI ap_priority;$/;"	m	struct:ap_state	access:public
+ap_state::ap_role	cluster_mgt.h	/^	ROLE ap_role;$/;"	m	struct:ap_state	access:public
+ap_state::ap_state	cluster_mgt.h	/^	u_int8_t ap_state;$/;"	m	struct:ap_state	access:public
+ap_state::cluster_id	cluster_mgt.h	/^	u_int32_t cluster_id;$/;"	m	struct:ap_state	access:public
+b	timerlib.c	/^	int b;$/;"	m	struct:__anon2	file:	access:public
+being_pvc	cluster_mgt.c	/^void being_pvc()$/;"	f
+bigest_priority	cluster_mgt.c	/^int bigest_priority( void )$/;"	f	signature:( void )
+c	timerlib.c	/^	int c;$/;"	m	struct:__anon2	file:	access:public
+cancelled	timerlib.c	/^	int 		cancelled;$/;"	m	struct:timer	file:	access:public
+channel	cluster_mgt.h	/^	unsigned char	channel;$/;"	m	struct:_scan_info	access:public
+cleanup_member_list	cluster_mgt.c	/^void cleanup_member_list(void)$/;"	f	signature:(void)
+clusterID	libhccp.h	/^	unsigned int clusterID;$/;"	m	struct:__anon4	access:public
+cluster_dbcp_interval	cluster_mgt.h	36;"	d
+cluster_discovry_limit	cluster_mgt.h	37;"	d
+cluster_id	cluster_mgt.h	/^	u_int32_t cluster_id;$/;"	m	struct:ap_state	access:public
+cluster_init	cluster_mgt.c	/^void cluster_init()$/;"	f
+cluster_mem_list	cluster_mgt.c	/^P_CLUSTER_MB_LIST cluster_mem_list = NULL;$/;"	v
+cluster_member	cluster_mgt.h	/^	CLUSTER_MB cluster_member[CLUSTER_MEMBER_MAX];$/;"	m	struct:cluster_member_list	access:public
+cluster_member	cluster_mgt.h	/^typedef struct cluster_member$/;"	s
+cluster_member	libhccp.h	/^	RSCP_cluster_member cluster_member[MAX_CLUSTER_AP];$/;"	m	struct:__anon11	access:public
+cluster_member::cluster_role	cluster_mgt.h	/^	u_int8_t cluster_role;$/;"	m	struct:cluster_member	access:public
+cluster_member::cluster_state	cluster_mgt.h	/^	u_int8_t cluster_state;$/;"	m	struct:cluster_member	access:public
+cluster_member::mac_addr	cluster_mgt.h	/^	u_int8_t mac_addr[6];$/;"	m	struct:cluster_member	access:public
+cluster_member::next	cluster_mgt.h	/^	struct cluster_member *next;$/;"	m	struct:cluster_member	typeref:struct:cluster_member::cluster_member	access:public
+cluster_member_list	cluster_mgt.c	/^CLUSTER_MEMBER_LIST cluster_member_list;$/;"	v
+cluster_member_list	cluster_mgt.h	/^typedef struct cluster_member_list$/;"	s
+cluster_member_list::cluster_member	cluster_mgt.h	/^	CLUSTER_MB cluster_member[CLUSTER_MEMBER_MAX];$/;"	m	struct:cluster_member_list	access:public
+cluster_member_list::member_count	cluster_mgt.h	/^	int member_count;$/;"	m	struct:cluster_member_list	access:public
+cluster_member_list_head	cluster_mgt.h	/^	CLUSTER_MB *cluster_member_list_head;$/;"	m	struct:__anon18	access:public
+cluster_neighbor	libhccp.h	/^	RIRP_cluster_neighbor cluster_neighbor[MAX_CLUSTER_AP];$/;"	m	struct:__anon13	access:public
+cluster_pri	cluster_mgt.h	/^	CLUSTER_PRI cluster_pri;$/;"	m	struct:elect_member	access:public
+cluster_priority	cluster_mgt.h	/^typedef union cluster_priority$/;"	u
+cluster_priority::hap_priority	cluster_mgt.h	/^	u_int64_t hap_priority;$/;"	m	union:cluster_priority	access:public
+cluster_priority::priority	cluster_mgt.h	/^	PRI priority;$/;"	m	union:cluster_priority	access:public
+cluster_pvc_aging	cluster_mgt.c	/^void cluster_pvc_aging(void)$/;"	f	signature:(void)
+cluster_pvc_aging_interval	cluster_mgt.h	41;"	d
+cluster_recv_port	cluster_mgt.h	34;"	d
+cluster_recv_scan	cluster_mgt.c	/^int cluster_recv_scan()$/;"	f
+cluster_rirp_interval	cluster_mgt.h	39;"	d
+cluster_role	cluster_mgt.h	/^	u_int8_t cluster_role;$/;"	m	struct:cluster_member	access:public
+cluster_role	cluster_mgt.h	/^typedef enum cluster_role$/;"	g
+cluster_rscp_interval	cluster_mgt.h	40;"	d
+cluster_rsrp_interval	cluster_mgt.h	38;"	d
+cluster_send_acs_port	cluster_mgt.h	33;"	d
+cluster_send_pvc_port	cluster_mgt.h	32;"	d
+cluster_send_vc_port	cluster_mgt.h	31;"	d
+cluster_socket_recv	cluster_mgt.c	/^int cluster_socket_recv = 0;$/;"	v
+cluster_socket_send	cluster_mgt.c	/^int cluster_socket_send = 0;$/;"	v
+cluster_state	cluster_mgt.h	/^	u_int8_t cluster_state;$/;"	m	struct:cluster_member	access:public
+cluster_state	cluster_mgt.h	/^typedef enum cluster_state$/;"	g
+cmp_prio_pvc	cluster_mgt.c	/^int  cmp_prio_pvc(RSCP_format *rscp)$/;"	f	signature:(RSCP_format *rscp)
+common	timerlib.c	/^}common;$/;"	t	typeref:struct:__anon2	file:
+cond	timerlib.c	/^	pthread_cond_t	cond;$/;"	m	struct:__anon1	file:	access:public
+config_seq	cluster_mgt.h	/^	u_int8_t config_seq;$/;"	m	struct:priority	access:public
+config_sequence	libhccp.h	/^	unsigned char config_sequence;$/;"	m	struct:__anon11	access:public
+config_sequence	libhccp.h	/^	unsigned char config_sequence;$/;"	m	struct:__anon8	access:public
+config_sequence	libhccp.h	/^	unsigned char config_sequence;$/;"	m	struct:__anon9	access:public
+control_init_pipe	cluster_mgt.c	/^int control_init_pipe( void )$/;"	f	signature:( void )
+count	libhccp.h	/^	unsigned char count;$/;"	m	struct:__anon11	access:public
+cronometer	timerlib.c	/^static void *cronometer(void * \/*arg*\/);$/;"	p	file:	signature:(void * )
+cronometer	timerlib.c	/^static void *cronometer(void *arg) {$/;"	f	file:	signature:(void *arg)
+cur_id	timerlib.c	/^	int		cur_id;$/;"	m	struct:__anon1	file:	access:public
+data	libhccp.h	/^typedef union data$/;"	u
+data::acs	libhccp.h	/^	ACS_format  acs;$/;"	m	union:data	access:public
+data::dbcp	libhccp.h	/^	DBCP_format dbcp;$/;"	m	union:data	access:public
+data::rirp	libhccp.h	/^	RIRP_format rirp;$/;"	m	union:data	access:public
+data::rscp	libhccp.h	/^	RSCP_format rscp;$/;"	m	union:data	access:public
+data::rsrp	libhccp.h	/^	RSRP_format rsrp;$/;"	m	union:data	access:public
+dbcp	libhccp.h	/^	DBCP_format dbcp;$/;"	m	union:data	access:public
+dbcp_timer_id	cluster_mgt.c	/^int dbcp_timer_id = -1;$/;"	v
+discovery_send	cluster_mgt.c	/^void discovery_send(void)$/;"	f	signature:(void)
+discovery_time_up	cluster_mgt.c	/^void discovery_time_up(void)$/;"	f	signature:(void)
+dump_mac	cluster_mgt.c	/^char *dump_mac(char *str, u_int8_t *mac)$/;"	f	signature:(char *str, u_int8_t *mac)
+dump_role	cluster_mgt.c	/^char *dump_role(char *str, int role)$/;"	f	signature:(char *str, int role)
+dump_state	cluster_mgt.c	/^char *dump_state(char *str, int state)$/;"	f	signature:(char *str, int state)
+elect_mb_add	cluster_mgt.h	/^int elect_mb_add( P_ELECT_MB_LIST ptr_mb_list, u_int8_t *mac_addr, CLUSTER_PRI pri)$/;"	f	signature:( P_ELECT_MB_LIST ptr_mb_list, u_int8_t *mac_addr, CLUSTER_PRI pri)
+elect_mb_aging	cluster_mgt.h	/^int elect_mb_aging( P_ELECT_MB_LIST ptr_mb_list )$/;"	f	signature:( P_ELECT_MB_LIST ptr_mb_list )
+elect_mb_clean	cluster_mgt.h	/^int elect_mb_clean(P_ELECT_MB_LIST ptr_mb_list)$/;"	f	signature:(P_ELECT_MB_LIST ptr_mb_list)
+elect_mb_count	cluster_mgt.h	/^	int elect_mb_count;$/;"	m	struct:elect_member_list	access:public
+elect_mb_rm	cluster_mgt.h	/^int elect_mb_rm( P_ELECT_MB_LIST ptr_mb_list, u_int8_t *mac_addr )$/;"	f	signature:( P_ELECT_MB_LIST ptr_mb_list, u_int8_t *mac_addr )
+elect_member	cluster_mgt.h	/^typedef struct elect_member$/;"	s
+elect_member::cluster_pri	cluster_mgt.h	/^	CLUSTER_PRI cluster_pri;$/;"	m	struct:elect_member	access:public
+elect_member::mac_addr	cluster_mgt.h	/^	u_int8_t mac_addr[6];$/;"	m	struct:elect_member	access:public
+elect_member::next	cluster_mgt.h	/^	struct elect_member *next;$/;"	m	struct:elect_member	typeref:struct:elect_member::elect_member	access:public
+elect_member::timeout_flag	cluster_mgt.h	/^	u_int8_t timeout_flag;$/;"	m	struct:elect_member	access:public
+elect_member_list	cluster_mgt.c	/^P_ELECT_MB_LIST elect_member_list = NULL;$/;"	v
+elect_member_list	cluster_mgt.h	/^typedef struct elect_member_list$/;"	s
+elect_member_list::elect_mb_count	cluster_mgt.h	/^	int elect_mb_count;$/;"	m	struct:elect_member_list	access:public
+elect_member_list::ptr_elect_mb	cluster_mgt.h	/^	P_ELECT_MB ptr_elect_mb;$/;"	m	struct:elect_member_list	access:public
+elementmsg	parse_message.h	/^} elementmsg;$/;"	t	typeref:struct:protocolMsg
+error_log	cluster_mgt.c	/^void error_log(char *str_log)$/;"	f	signature:(char *str_log)
+excpt_fds	cluster_mgt.c	/^static fd_set excpt_fds;$/;"	v	file:
+fill_msg_head	cluster_mgt.c	/^int fill_msg_head( unsigned char * buffer, int msg_type,  int op_type )$/;"	f	signature:( unsigned char * buffer, int msg_type, int op_type )
+first	timerlib.c	/^	tl_timer_t 	*first;$/;"	m	struct:__anon1	file:	access:public
+gSeqnum	acs.c	/^int gSeqnum = 1;$/;"	v
+get_cluster_id	cluster_mgt.c	/^void get_cluster_id()$/;"	f
+get_mac	cluster_mgt.c	/^void get_mac()$/;"	f
+get_priority	cluster_mgt.c	/^void get_priority()$/;"	f
+get_state	cluster_mgt.c	/^void get_state()$/;"	f
+handle_recvcmd	cluster_mgt.c	/^int handle_recvcmd(unsigned char *buf, unsigned int buflen, struct sockaddr* model_addr)$/;"	f	signature:(unsigned char *buf, unsigned int buflen, struct sockaddr* model_addr)
+handler	timerlib.c	/^	void(*handler)(void *);$/;"	m	struct:timer	file:	access:public
+handler_arg	timerlib.c	/^	void 		*handler_arg;$/;"	m	struct:timer	file:	access:public
+hap_priority	cluster_mgt.h	/^	u_int64_t hap_priority;$/;"	m	union:cluster_priority	access:public
+has_self_mac	cluster_mgt.c	/^int has_self_mac(RSCP_format *rscp)$/;"	f	signature:(RSCP_format *rscp)
+head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon11	access:public
+head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon13	access:public
+head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon7	access:public
+head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon8	access:public
+head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon9	access:public
+id	timerlib.c	/^	int 		id;$/;"	m	struct:timer	file:	access:public
+if_local_socket	cluster_mgt.c	/^int if_local_socket = -1;$/;"	v
+if_pipe	cluster_mgt.c	/^int if_pipe = -1;$/;"	v
+in_use	timerlib.c	/^	int 		in_use;$/;"	m	struct:timer	file:	access:public
+interface_init	cluster_mgt.c	/^int interface_init(void)$/;"	f	signature:(void)
+last	timerlib.c	/^	tl_timer_t 	*last;$/;"	m	struct:__anon1	file:	access:public
+load_config	cluster_mgt.c	/^void load_config()$/;"	f
+local_receive	cluster_mgt.c	/^void local_receive(void)$/;"	f	signature:(void)
+local_sock	cluster_mgt.c	/^int local_sock = -1;$/;"	v
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon10	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon11	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon12	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon13	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon7	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon8	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon9	access:public
+mac_addr	cluster_mgt.h	/^	u_int8_t mac_addr[6];$/;"	m	struct:cluster_member	access:public
+mac_addr	cluster_mgt.h	/^	u_int8_t mac_addr[6];$/;"	m	struct:elect_member	access:public
+mac_is_equal	cluster_mgt.h	/^inline int mac_is_equal( u_int8_t *mac_l, u_int8_t *mac_r)$/;"	f	signature:( u_int8_t *mac_l, u_int8_t *mac_r)
+mac_tail	cluster_mgt.h	/^	u_int8_t mac_tail[3];$/;"	m	struct:priority	access:public
+macaddr	cluster_mgt.h	/^	u_int8_t 		macaddr[6];$/;"	m	struct:_scan_info	access:public
+main	acs.c	/^int main(int argc, char *argv[])$/;"	f	signature:(int argc, char *argv[])
+main	cluster_mgt.c	/^int main (int argc, char * argv[])$/;"	f	signature:(int argc, char * argv[])
+max	cluster_mgt.h	/^inline int max( int a, int b)$/;"	f	signature:( int a, int b)
+member_count	cluster_mgt.h	/^	int member_count;$/;"	m	struct:__anon18	access:public
+member_count	cluster_mgt.h	/^	int member_count;$/;"	m	struct:cluster_member_list	access:public
+msg	parse_message.h	/^	unsigned char *msg;$/;"	m	struct:protocolMsg	access:public
+msgLen	parse_message.h	/^	u_int8_t	msgLen;$/;"	m	struct:protocolMsg	access:public
+msg_len	parse_message.h	/^	u_int16_t	msg_len;$/;"	m	struct:protocolHeader	access:public
+msg_type	parse_message.h	/^	u_int16_t	msg_type;$/;"	m	struct:protocolHeader	access:public
+msgtype	libhccp.h	/^	unsigned short msgtype;$/;"	m	struct:__anon7	access:public
+mutex	timerlib.c	/^	pthread_mutex_t mutex;$/;"	m	struct:__anon1	file:	access:public
+neighbor_count	libhccp.h	/^	unsigned char neighbor_count;$/;"	m	struct:__anon13	access:public
+next	cluster_mgt.h	/^	struct cluster_member *next;$/;"	m	struct:cluster_member	typeref:struct:cluster_member::cluster_member	access:public
+next	cluster_mgt.h	/^	struct elect_member *next;$/;"	m	struct:elect_member	typeref:struct:elect_member::elect_member	access:public
+next	timerlib.c	/^	tl_timer_t 	*next;$/;"	m	struct:timer	file:	access:public
+offset	parse_message.h	/^	u_int32_t 	offset;$/;"	m	struct:protocolMsg	access:public
+op	parse_message.h	/^	u_int8_t	op;$/;"	m	struct:protocolHeader	access:public
+parse_command	cluster_mgt.c	/^void parse_command(char* in)$/;"	f	signature:(char* in)
+parse_format_element	parse_message.c	/^Bool parse_format_element(elementmsg *msgPtr,u_int8_t *type, u_int8_t *len)$/;"	f	signature:(elementmsg *msgPtr,u_int8_t *type, u_int8_t *len)
+parse_format_element	parse_message.h	/^Bool parse_format_element(elementmsg *msgPtr,u_int8_t *type, u_int8_t *len);$/;"	p	signature:(elementmsg *msgPtr,u_int8_t *type, u_int8_t *len)
+parse_msg_header	parse_message.c	/^Bool parse_msg_header(elementmsg *msgPtr, struct protocolHeader *msgheader)$/;"	f	signature:(elementmsg *msgPtr, struct protocolHeader *msgheader)
+parse_msg_header	parse_message.h	/^Bool parse_msg_header(elementmsg *msgPtr, struct protocolHeader *msgheader);$/;"	p	signature:(elementmsg *msgPtr, struct protocolHeader *msgheader)
+pipe_receive_command	cluster_mgt.c	/^void pipe_receive_command(void)$/;"	f	signature:(void)
+prev	timerlib.c	/^	tl_timer_t 	*prev;$/;"	m	struct:timer	file:	access:public
+priority	cluster_mgt.h	/^	PRI priority;$/;"	m	union:cluster_priority	access:public
+priority	cluster_mgt.h	/^	u_int8_t priority;$/;"	m	struct:priority	access:public
+priority	cluster_mgt.h	/^typedef struct priority{$/;"	s
+priority	libhccp.h	/^	unsigned char priority;$/;"	m	struct:__anon11	access:public
+priority	libhccp.h	/^	unsigned char priority;$/;"	m	struct:__anon8	access:public
+priority	libhccp.h	/^	unsigned char priority;$/;"	m	struct:__anon9	access:public
+priority::config_seq	cluster_mgt.h	/^	u_int8_t config_seq;$/;"	m	struct:priority	access:public
+priority::mac_tail	cluster_mgt.h	/^	u_int8_t mac_tail[3];$/;"	m	struct:priority	access:public
+priority::priority	cluster_mgt.h	/^	u_int8_t priority;$/;"	m	struct:priority	access:public
+priority::product_type	cluster_mgt.h	/^	u_int8_t product_type;$/;"	m	struct:priority	access:public
+product_type	cluster_mgt.h	/^	u_int8_t product_type;$/;"	m	struct:priority	access:public
+product_type	libhccp.h	/^	unsigned char product_type;$/;"	m	struct:__anon11	access:public
+product_type	libhccp.h	/^	unsigned char product_type;$/;"	m	struct:__anon8	access:public
+product_type	libhccp.h	/^	unsigned char product_type;$/;"	m	struct:__anon9	access:public
+protocolHeader	parse_message.h	/^struct protocolHeader{$/;"	s
+protocolHeader::msg_len	parse_message.h	/^	u_int16_t	msg_len;$/;"	m	struct:protocolHeader	access:public
+protocolHeader::msg_type	parse_message.h	/^	u_int16_t	msg_type;$/;"	m	struct:protocolHeader	access:public
+protocolHeader::op	parse_message.h	/^	u_int8_t	op;$/;"	m	struct:protocolHeader	access:public
+protocolHeader::reserved	parse_message.h	/^	u_int16_t	reserved;$/;"	m	struct:protocolHeader	access:public
+protocolHeader::version	parse_message.h	/^	u_int8_t	version;$/;"	m	struct:protocolHeader	access:public
+protocolLen	libhccp.h	/^	unsigned short protocolLen;$/;"	m	struct:__anon4	access:public
+protocolMsg	parse_message.h	/^typedef struct protocolMsg{$/;"	s
+protocolMsg::msg	parse_message.h	/^	unsigned char *msg;$/;"	m	struct:protocolMsg	access:public
+protocolMsg::msgLen	parse_message.h	/^	u_int8_t	msgLen;$/;"	m	struct:protocolMsg	access:public
+protocolMsg::offset	parse_message.h	/^	u_int32_t 	offset;$/;"	m	struct:protocolMsg	access:public
+protocolType	libhccp.h	/^	unsigned char protocolType;$/;"	m	struct:__anon4	access:public
+protocolver	libhccp.h	/^	unsigned char protocolver;$/;"	m	struct:__anon4	access:public
+ptr_elect_mb	cluster_mgt.h	/^	P_ELECT_MB ptr_elect_mb;$/;"	m	struct:elect_member_list	access:public
+pvc_aging_id	cluster_mgt.c	/^int pvc_aging_id = -1;$/;"	v
+pvc_ipaddr	cluster_mgt.h	/^	u_int32_t pvc_ipaddr;$/;"	m	struct:pvc_state	access:public
+pvc_mac	cluster_mgt.h	/^	u_int8_t pvc_mac[6];$/;"	m	struct:pvc_state	access:public
+pvc_priority	cluster_mgt.h	/^	CLUSTER_PRI pvc_priority;$/;"	m	struct:pvc_state	access:public
+pvc_state	cluster_mgt.c	/^P_PVC_STAT pvc_state = NULL;$/;"	v
+pvc_state	cluster_mgt.h	/^	u_int8_t pvc_state;$/;"	m	struct:pvc_state	access:public
+pvc_state	cluster_mgt.h	/^typedef struct pvc_state$/;"	s
+pvc_state::pvc_ipaddr	cluster_mgt.h	/^	u_int32_t pvc_ipaddr;$/;"	m	struct:pvc_state	access:public
+pvc_state::pvc_mac	cluster_mgt.h	/^	u_int8_t pvc_mac[6];$/;"	m	struct:pvc_state	access:public
+pvc_state::pvc_priority	cluster_mgt.h	/^	CLUSTER_PRI pvc_priority;$/;"	m	struct:pvc_state	access:public
+pvc_state::pvc_state	cluster_mgt.h	/^	u_int8_t pvc_state;$/;"	m	struct:pvc_state	access:public
+pvc_state::svc_mac	cluster_mgt.h	/^	u_int8_t svc_mac[6];$/;"	m	struct:pvc_state	access:public
+pvc_state::timer	cluster_mgt.h	/^	u_int8_t  timer;$/;"	m	struct:pvc_state	access:public
+read_fds	cluster_mgt.c	/^static fd_set read_fds;$/;"	v	file:
+read_fs	cluster_mgt.c	/^static fd_set read_fs;$/;"	v	file:
+recv_scan_info	cluster_mgt.c	/^int recv_scan_info(unsigned char *msg, unsigned int len)$/;"	f	signature:(unsigned char *msg, unsigned int len)
+recv_scan_timeout	cluster_mgt.c	/^void recv_scan_timeout(void *arg)$/;"	f	signature:(void *arg)
+recv_thread	cluster_mgt.c	/^void recv_thread(void *ptr)$/;"	f	signature:(void *ptr)
+report_to_PVC_mode	cluster_mgt.c	/^void report_to_PVC_mode(void)$/;"	f	signature:(void)
+report_to_VC_mode	cluster_mgt.c	/^void report_to_VC_mode(void)$/;"	f	signature:(void)
+reserved	parse_message.h	/^	u_int16_t	reserved;$/;"	m	struct:protocolHeader	access:public
+rirp	libhccp.h	/^	RIRP_format rirp;$/;"	m	union:data	access:public
+rirp_send	cluster_mgt.c	/^void rirp_send( void )$/;"	f	signature:( void )
+role	libhccp.h	/^	unsigned char role;$/;"	m	struct:__anon10	access:public
+rscp	libhccp.h	/^	RSCP_format rscp;$/;"	m	union:data	access:public
+rscp_send	cluster_mgt.c	/^void rscp_send( void)$/;"	f	signature:( void)
+rsrp	libhccp.h	/^	RSRP_format rsrp;$/;"	m	union:data	access:public
+rsrp_send	cluster_mgt.c	/^void rsrp_send( void)$/;"	f	signature:( void)
+rsrp_timer_id	cluster_mgt.c	/^int rsrp_timer_id = -1;$/;"	v
+rssi	cluster_mgt.h	/^	unsigned char 	rssi;$/;"	m	struct:_scan_info	access:public
+scan_info	cluster_mgt.h	/^}scan_info;$/;"	t	typeref:struct:_scan_info
+self_state	cluster_mgt.c	/^P_AP_STAT self_state = NULL;$/;"	v
+send_dbcp	cluster_mgt.c	/^void  send_dbcp(void)$/;"	f	signature:(void)
+send_env_info	cluster_mgt.c	/^int send_env_info( struct sockaddr* model_addr )$/;"	f	signature:( struct sockaddr* model_addr )
+send_member_info	cluster_mgt.c	/^int send_member_info( struct sockaddr* model_addr )$/;"	f	signature:( struct sockaddr* model_addr )
+send_pvc_info	cluster_mgt.c	/^int send_pvc_info( struct sockaddr* model_addr )$/;"	f	signature:( struct sockaddr* model_addr )
+send_rirp	cluster_mgt.c	/^void send_rirp(void)$/;"	f	signature:(void)
+send_rscp	cluster_mgt.c	/^void  send_rscp(void)$/;"	f	signature:(void)
+send_rsrp	cluster_mgt.c	/^void send_rsrp(void)$/;"	f	signature:(void)
+seq_num	libhccp.h	/^	unsigned int seq_num;$/;"	m	struct:__anon7	access:public
+seqnum	libhccp.h	/^	unsigned short seqnum;$/;"	m	struct:__anon4	access:public
+show_mb_mac	cluster_mgt.c	/^inline int show_mb_mac( P_ELECT_MB_LIST ptr_mb_list)$/;"	f	signature:( P_ELECT_MB_LIST ptr_mb_list)
+show_member_list	cluster_mgt.c	/^void show_member_list(void)$/;"	f	signature:(void)
+show_pvc_state	cluster_mgt.c	/^void show_pvc_state(void)$/;"	f	signature:(void)
+show_self_state	cluster_mgt.c	/^void show_self_state(void)$/;"	f	signature:(void)
+sock_error_log	sock_domain.c	/^void sock_error_log(char *str_log)$/;"	f	signature:(char *str_log)
+sock_recv_scan	cluster_mgt.c	/^int sock_recv_scan()$/;"	f
+state	libhccp.h	/^	unsigned char state;$/;"	m	struct:__anon10	access:public
+state	libhccp.h	/^	unsigned char state;$/;"	m	struct:__anon9	access:public
+svc_mac	cluster_mgt.h	/^	u_int8_t svc_mac[6];$/;"	m	struct:pvc_state	access:public
+the_same_cluster_id	cluster_mgt.c	/^int  the_same_cluster_id(RSCP_format *rscp)$/;"	f	signature:(RSCP_format *rscp)
+the_same_pvc_mac	cluster_mgt.c	/^int  the_same_pvc_mac(RSCP_format *rscp)$/;"	f	signature:(RSCP_format *rscp)
+ticker	timerlib.c	/^	pthread_t	ticker;$/;"	m	struct:__anon1	file:	access:public
+time_now	timerlib.c	/^void time_now(){$/;"	f
+time_now	timerlib.h	/^void time_now();$/;"	p	signature:()
+timeout	timerlib.c	/^	struct timeval	timeout;$/;"	m	struct:timer	typeref:struct:timer::timeval	file:	access:public
+timeout_flag	cluster_mgt.h	/^	u_int8_t timeout_flag;$/;"	m	struct:elect_member	access:public
+timer	cluster_mgt.h	/^	u_int8_t  timer;$/;"	m	struct:pvc_state	access:public
+timer	timerlib.c	/^struct timer {$/;"	s	file:
+timer::cancelled	timerlib.c	/^	int 		cancelled;$/;"	m	struct:timer	file:	access:public
+timer::handler	timerlib.c	/^	void(*handler)(void *);$/;"	m	struct:timer	file:	access:public
+timer::handler_arg	timerlib.c	/^	void 		*handler_arg;$/;"	m	struct:timer	file:	access:public
+timer::id	timerlib.c	/^	int 		id;$/;"	m	struct:timer	file:	access:public
+timer::in_use	timerlib.c	/^	int 		in_use;$/;"	m	struct:timer	file:	access:public
+timer::next	timerlib.c	/^	tl_timer_t 	*next;$/;"	m	struct:timer	file:	access:public
+timer::prev	timerlib.c	/^	tl_timer_t 	*prev;$/;"	m	struct:timer	file:	access:public
+timer::timeout	timerlib.c	/^	struct timeval	timeout;$/;"	m	struct:timer	typeref:struct:timer::timeval	file:	access:public
+timer_add	timerlib.c	/^int timer_add(long sec, long usec, void(*hndlr)(void *), void *hndlr_arg) {$/;"	f	signature:(long sec, long usec, void(*hndlr)(void *), void *hndlr_arg)
+timer_add	timerlib.h	/^int timer_add(long \/*sec*\/, long \/*usec*\/, void(* \/*hndlr*\/)(void *), $/;"	p	signature:(long , long , void(* )(void *), void * )
+timer_dequeue	timerlib.c	/^static void timer_dequeue(tl_timer_t * \/*t*\/, int isFree);$/;"	p	file:	signature:(tl_timer_t * , int isFree)
+timer_dequeue	timerlib.c	/^static void timer_dequeue(tl_timer_t *t, int isFree) {$/;"	f	file:	signature:(tl_timer_t *t, int isFree)
+timer_destroy	timerlib.c	/^void timer_destroy() {$/;"	f
+timer_destroy	timerlib.h	/^void timer_destroy();$/;"	p	signature:()
+timer_free	timerlib.c	/^static void timer_free(tl_timer_t * \/*t*\/, int isFree);$/;"	p	file:	signature:(tl_timer_t * , int isFree)
+timer_free	timerlib.c	/^static void timer_free(tl_timer_t *t, int isFree) {$/;"	f	file:	signature:(tl_timer_t *t, int isFree)
+timer_init	timerlib.c	/^int timer_init() {$/;"	f
+timer_init	timerlib.h	/^int timer_init();$/;"	p	signature:()
+timer_print	timerlib.c	/^void timer_print() {$/;"	f
+timer_print	timerlib.h	/^void timer_print();$/;"	p	signature:()
+timer_rem	timerlib.c	/^void timer_rem(int id, int isFree) {$/;"	f	signature:(int id, int isFree)
+timer_rem	timerlib.h	/^void timer_rem(int \/*id*\/, int isFree);$/;"	p	signature:(int , int isFree)
+timer_start	timerlib.c	/^static void timer_start(struct timeval * \/*abs_to*\/);$/;"	p	file:	signature:(struct timeval * )
+timer_start	timerlib.c	/^static void timer_start(struct timeval *abs_to) {$/;"	f	file:	signature:(struct timeval *abs_to)
+timerq	timerlib.c	/^} timerq;$/;"	v	typeref:struct:__anon1	file:
+times_up_id	cluster_mgt.c	/^int times_up_id = -1;$/;"	v
+tl_timer_t	timerlib.c	/^typedef struct timer tl_timer_t;$/;"	t	typeref:struct:timer	file:
+tv	cluster_mgt.c	/^struct timeval tv;$/;"	v	typeref:struct:timeval
+type	libhccp.h	/^	unsigned char type;$/;"	m	struct:__anon14	access:public
+u	libhccp.h	/^	Hccp_Protocol_Union u;$/;"	m	struct:__anon14	access:public
+update_member_list	cluster_mgt.c	/^int  update_member_list(Hccp_Protocol_Struct *rscp)$/;"	f	signature:(Hccp_Protocol_Struct *rscp)
+update_pvc_state	cluster_mgt.c	/^void update_pvc_state(RSCP_format *packet,int ipaddr)$/;"	f	signature:(RSCP_format *packet,int ipaddr)
+version	parse_message.h	/^	u_int8_t	version;$/;"	m	struct:protocolHeader	access:public
+write_fds	cluster_mgt.c	/^static fd_set write_fds;$/;"	v	file:

@@ -1,0 +1,16 @@
+#!/bin/sh
+
+# after firmware uploaded to /tmp, make sure there is at least 4M ram for
+# upgrading
+MinUpgradeSize=4096
+
+# get free mem size (bytes)
+FreeMemSize=`cat /proc/meminfo | sed -n '/MemFree/p' | awk '{print $2}'`
+
+if [ "$FreeMemSize" -lt "$MinUpgradeSize" ]; then
+    echo "Not enough free mem - ($FreeMemSize) - for upgrading!!"
+    exit 1
+fi
+
+exit 0
+

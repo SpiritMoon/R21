@@ -1,0 +1,23 @@
+diff -urN a/capture.c b/capture.c
+--- a/capture.c	2014-11-05 00:57:51.000000000 -0800
++++ b/capture.c	2016-05-26 00:31:13.241544108 -0700
+@@ -38,12 +38,16 @@
+ device_index(int fd, const char *devname)
+ {
+ 	struct ifreq req;
+-
++	
++retry:
+ 	strncpy(req.ifr_name, devname, IFNAMSIZ);
+ 	req.ifr_addr.sa_family = AF_INET;
+ 
+-	if (ioctl(fd, SIOCGIFINDEX, &req) < 0)
+-		err(1, "Interface %s not found", devname);
++
++	if ((ioctl(fd, SIOCGIFINDEX, &req)) < 0) {
++		goto retry;
++		//err(1, "Interface %s not found", devname);
++	}
+ 
+ 	if (req.ifr_ifindex < 0)
+ 		err(1, "Interface %s not found", devname);

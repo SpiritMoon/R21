@@ -1,0 +1,52 @@
+#!/bin/sh
+
+PUB_CFG_DIR="/etc/cfm/config/config-pub"
+
+PUB_CFG_MD5_FILE="$PUB_CFG_DIR/pub-cfg-md5"
+PUB_CFG_REV_NUM_FILE="$PUB_CFG_DIR/revisionnumber"
+
+check_pub_cfg_md5()
+{
+	# check pub config files md5 value
+	if [ ! -f $PUB_CFG_MD5_FILE ]; then
+		echo "$ERR_PREFIX pub cfg md5 file not exist"
+		exit 1
+	fi
+
+	# del md5 file's md5
+	sed -i '/pub-cfg-md5/d' $PUB_CFG_MD5_FILE
+
+	cd $PUB_CFG_DIR; md5sum -cs $PUB_CFG_MD5_FILE
+	if [ $? -eq 0 ]; then
+		exit
+	fi
+}
+
+# 2^63-2
+REV_MAX=9223372036854775806
+update_rev_number()
+{
+	# if config files has been changed, then update rev-number
+	local rev_number=$(head -n 1 $PUB_CFG_REV_NUM_FILE)
+	let "rev_number = $rev_number + 1"
+
+	if [ $rev_number -ge $REV_MAX ]; then
+		rev_number=1
+	fi
+
+	# change rev number
+    echo $rev_number > $PUB_CFG_REV_NUM_FILE
+}
+
+generate_pub_cfg_md5_file()
+{
+    [ -f $PUB_CFG_MD5_FILE ] && rm -f $PUB_CFG_MD5_FILE
+	cd $PUB_CFG_DIR; md5sum * > $PUB_CFG_MD5_FILE
+}
+
+### process
+check_pub_cfg_md5
+update_rev_number
+
+# once pub cfg md5 changed, new md5 file should be created
+generate_pub_cfg_md5_file

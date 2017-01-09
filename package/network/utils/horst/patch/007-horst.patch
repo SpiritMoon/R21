@@ -1,0 +1,12 @@
+diff -urN a/han.c b/han.c
+--- a/han.c	2016-05-24 01:28:34.458800469 -0700
++++ b/han.c	2016-05-24 01:28:49.011830985 -0700
+@@ -572,7 +572,7 @@
+ 					packet_dump(tx_buffer, msg_len, NULL);
+ 					
+ 					sendto(deliver_fd, tx_buffer, msg_len, 
+-						0, (struct sockaddr *)&c_addr, sizeof(c_addr));
++						MSG_DONTWAIT, (struct sockaddr *)&c_addr, sizeof(c_addr));
+ 					msg_len = 0;
+ 					bzero(tx_buffer, sizeof(tx_buffer));
+ 				}

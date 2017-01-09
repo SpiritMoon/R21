@@ -1,0 +1,5 @@
+<?php
+define("SPECIAL_PORTAL_PREFIX_STATIC","");
+//echo SPECIAL_PORTAL_PREFIX_STATIC;
+;
+?>

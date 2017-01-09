@@ -1,0 +1,16 @@
+#!/bin/sh
+
+LOGHEAD="logger -t [cfgclr] -p 2 "
+
+expect <<-EOF
+spawn firstboot
+expect "*N/y*"
+send "y\r"
+interact
+expect eof
+EOF
+
+sleep 1
+$LOGHEAD "=reboot= firstboot and reboot"
+/usr/sbin/reset_reason add 03
+reboot

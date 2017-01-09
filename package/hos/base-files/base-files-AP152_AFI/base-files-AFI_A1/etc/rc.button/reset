@@ -1,0 +1,24 @@
+#!/bin/sh
+
+LOGHEAD="logger -t [reset-btn] -p 2 "
+
+[ "${ACTION}" = "released" ] || exit 0
+
+. /lib/functions.sh
+
+logger "$BUTTON pressed for $SEEN seconds"
+
+if [ "$SEEN" -lt 1 ]
+then
+    $LOGHEAD "=reboot= less than 1s click reboot"
+	/usr/sbin/reset_reason add 01
+	echo "REBOOT" > /dev/console
+	sync
+	reboot
+elif [ "$SEEN" -gt 5 ]
+then
+    $LOGHEAD "=reboot= larger than 5s click firstboot and reboot"
+	/usr/sbin/reset_reason add 02
+	echo "FACTORY RESET" > /dev/console
+	jffs2reset -y && reboot &
+fi

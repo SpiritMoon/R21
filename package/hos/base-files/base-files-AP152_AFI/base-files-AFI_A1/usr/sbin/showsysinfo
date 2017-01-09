@@ -1,0 +1,46 @@
+#!/bin/sh
+
+#soft version
+SOFT_VERSION="`cat /etc/version/version`"
+
+#product_info
+VENDOR_KEY="vendor"
+MODEL_KEY="model"
+SERIES_KEY="sn"
+MAC_KEY="mac"
+COUNTRY_CODE_KEY="country"
+SOFTWARE_NAME_KEY="sw_name"
+HARDWARE_VERSION_KEY="hw_version"
+ESSID_PREFIX_KEY="essid_prefix"
+CLUSTER_DESCRIBE_KEY="cluster_describe"
+LEGAL_KEY="legal"
+WEBSITE_KEY="website"
+
+SHOWSYSINFO_TMP=`productinfo show;partool -part mtd5 -show`
+    
+COMPANY_NAME=`echo "$SHOWSYSINFO_TMP" | awk -F "=" -v key=$VENDOR_KEY '{if($1 == key) {print $2;exit;}}'`
+PRODUCT_TYPE=`echo "$SHOWSYSINFO_TMP" | awk -F "=" -v key=$MODEL_KEY '{if($1 == key) {print $2;exit;}}'`
+SERIAL_NUMBER=`echo "$SHOWSYSINFO_TMP" | awk -F "=" -v key=$SERIES_KEY '{if($1 == key) {print $2;exit;}}'`
+MACADDR=`echo "$SHOWSYSINFO_TMP" | awk -F "=" -v key=$MAC_KEY '{if($1 == key) {print $2;exit;}}'`
+HARD_VERSION=`echo "$SHOWSYSINFO_TMP" | awk -F "=" -v key=$HARDWARE_VERSION_KEY '{if($1 == key) {print $2;exit;}}'`
+SOFT_NAME=`echo "$SHOWSYSINFO_TMP" | awk -F "=" -v key=$SOFTWARE_NAME_KEY '{if($1 == key) {print $2;exit;}}'`
+COUNTRY=`echo "$SHOWSYSINFO_TMP" | awk -F "=" -v key=$COUNTRY_CODE_KEY '{if($1 == key) {print $2;exit;}}'`
+ESSID_PREFIX=`echo "$SHOWSYSINFO_TMP" | awk -F "=" -v key=$ESSID_PREFIX_KEY '{if($1 == key) {print $2;exit;}}'`
+CLUSTER_DESCRIBE=`echo "$SHOWSYSINFO_TMP" | awk -F "=" -v key=$CLUSTER_DESCRIBE_KEY '{if($1 == key) {print $2;exit;}}'`
+LEGAL=`echo "$SHOWSYSINFO_TMP" | awk -F "=" -v key=$LEGAL_KEY '{if($1 == key) {print $2;exit;}}'`
+WEBSITE=`echo "$SHOWSYSINFO_TMP" | awk -F "=" -v key=$WEBSITE_KEY '{if($1 == key) {print $2;exit;}}'`
+
+
+#show
+echo "    Company Name:$COMPANY_NAME"
+echo "              SN:$SERIAL_NUMBER"
+echo "    Device Model:$PRODUCT_TYPE"
+echo "             MAC:$MACADDR"
+echo "         Country:$COUNTRY"
+echo "   Software Name:$SOFT_NAME"
+echo "Software Version:$SOFT_VERSION"
+echo "Hardware Version:$HARD_VERSION"
+echo "    Essid Prefix:$ESSID_PREFIX"
+echo "Cluster Describe:$CLUSTER_DESCRIBE"
+echo "         Website:$WEBSITE"
+echo "           Legal:$LEGAL"

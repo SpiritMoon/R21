@@ -1,0 +1,20 @@
+#!/bin/sh /etc/rc.common
+
+START=50
+USE_PROCD=1
+
+LED_SRV="/usr/bin/led_ctrl"
+
+start_service()
+{
+    echo 0 > /sys/class/leds/ap152_afi:yellow/brightness
+    echo 0 > /sys/class/leds/ap152_afi:red/brightness
+    echo 0 > /sys/class/leds/ap152_afi:blue/brightness
+    echo 0 > /sys/class/leds/ap152_afi:green/brightness
+
+    procd_open_instance
+    procd_set_param command $LED_SRV
+    procd_set_param respawn
+    procd_close_instance
+    echo led_ctrl start ...
+}

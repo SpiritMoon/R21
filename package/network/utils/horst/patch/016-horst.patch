@@ -1,0 +1,623 @@
+diff -urN a/capture.c b/capture.c
+--- a/capture.c	2016-08-09 03:54:37.748627874 -0700
++++ b/capture.c	2016-08-09 05:51:51.478676622 -0700
+@@ -138,7 +138,11 @@
+ 
+ 
+ int
++#if HAN_VERSION
++open_packet_socket(char* devname, int recv_buffer_size, int *ifi)
++#else
+ open_packet_socket(char* devname, int recv_buffer_size)
++#endif
+ {
+ 	int ret;
+ 	int mon_fd;
+@@ -156,6 +160,9 @@
+ 
+ 	/* bind only to one interface */
+ 	ifindex = device_index(mon_fd, devname);
++#if HAN_VERSION
++	*ifi = ifindex;
++#endif
+ 
+ 	memset(&sall, 0, sizeof(struct sockaddr_ll));
+ 	sall.sll_ifindex = ifindex;
+diff -urN a/capture.h b/capture.h
+--- a/capture.h	2016-08-09 03:54:37.752627799 -0700
++++ b/capture.h	2016-08-09 05:59:03.331659758 -0700
+@@ -24,7 +24,11 @@
+ 
+ 
+ int
++#if HAN_VERSION
++open_packet_socket(char* devname, int recv_buffer_size, int *ifi);
++#else
+ open_packet_socket(char* devname, int recv_buffer_size);
++#endif
+ 
+ int
+ recv_packet(int fd, unsigned char* buffer, size_t bufsize);
+diff -urN a/channel.c b/channel.c
+--- a/channel.c	2016-08-09 03:54:37.752627799 -0700
++++ b/channel.c	2016-08-09 20:04:44.523837466 -0700
+@@ -184,7 +184,6 @@
+ 
+ #if HAN_VERSION
+ int whole_channels_scanning = 1;
+-char stuffix[64] = {0};
+ int pause_scanning = 0;
+ 
+ void *
+@@ -200,9 +199,9 @@
+ 	while (true) {
+ rescan:
+ 		if (!pause_scanning) {
+-			pthread_mutex_lock(&scanif->p_lock);
++			l_lock_hold(&scanif->p_lock, __func__, __LINE__, scanif->ifname);
+ 			scanif_safe = *scanif;
+-			pthread_mutex_unlock(&scanif->p_lock);
++			l_lock_release(&scanif->p_lock);
+ 			bzero(&scanopt, sizeof(scanopt));
+ 			scanopt.max_channel_time = conf.duration_on_foreign * 3 / 2;
+ 			scanopt.min_channel_time = conf.duration_on_foreign;
+diff -urN a/control.c b/control.c
+--- a/control.c	2016-08-09 03:54:37.752627799 -0700
++++ b/control.c	2016-08-09 20:05:24.267296911 -0700
+@@ -140,17 +140,9 @@
+ 		pause_scanning = atoi(val);
+ 	}
+ 	else if (strcmp(cmd, "whole") == 0) {
+-		char tmp[64] = {0};
+-		bzero(stuffix, sizeof(stuffix));
+-		memcpy(stuffix, val, strlen(val));
+-		snprintf(tmp, sizeof(tmp), "touch /tmp/whole_%s", stuffix);
+-		system(tmp);
+ 		whole_channels_scanning = 1;
+ 	}
+ 	else if (strcmp(cmd, "single") == 0) {
+-		char tmp[64] = {0};
+-		snprintf(tmp, sizeof(tmp), "rm /tmp/whole_%s", stuffix);
+-		system(tmp);
+ 		whole_channels_scanning = 0;
+ 	} else if (strcmp(cmd, "display") == 0) {
+ 		if (strcmp(val, "status") == 0)
+diff -urN a/han.c b/han.c
+--- a/han.c	2016-08-09 03:54:37.756627727 -0700
++++ b/han.c	2016-08-09 20:28:13.178498069 -0700
+@@ -14,6 +14,16 @@
+ #include "wext.h"
+ 
+ 
++#define HAN_DEBUG(...) \
++	do { \
++		if (conf.debug) { \
++			DUMP_FILE = fopen(conf.dump_file, "a+"); \
++			fprintf(DUMP_FILE, __VA_ARGS__); \
++			fclose(DUMP_FILE); \
++		} \
++	} while (0)
++	
++
+ #define dec_and_check_inact(info) \
+ 	((info)->inact--, (info)->inact == 0)
+ 
+@@ -27,31 +37,74 @@
+ int deliver_fd = -1;
+ FILE *DUMP_FILE = NULL;
+ struct airinfo_head wlan_head[HASH_SIZE];
+-pthread_mutex_t wlan_table_lock;
++struct l_lock wlan_table_lock;
+ struct airinfo_head client_head[HASH_SIZE];
+-pthread_mutex_t client_table_lock;
++struct l_lock client_table_lock;
++	
++void
++l_lock_init(struct l_lock * lock)
++{
++	pthread_mutex_init(&lock->lock, NULL);
++	lock->func = NULL;
++	lock->hold = false;
++	lock->line = 0;
++	lock->extra = NULL;
++}
+ 
+-#define HAN_DEBUG(...) \
+-	do { \
+-		if (conf.debug) { \
+-			DUMP_FILE = fopen(conf.dump_file, "a+"); \
+-			fprintf(DUMP_FILE, __VA_ARGS__); \
+-			fclose(DUMP_FILE); \
+-		} \
+-	} while (0)
++void
++l_lock_destroy(struct l_lock * lock)
++{
++	lock->func = NULL;
++	lock->hold = false;
++	lock->line = 0;
++	lock->extra = NULL;
++	pthread_mutex_destroy(&lock->lock);
++}
++
++void
++l_lock_hold(struct l_lock * lock,
++				const char * func, int line, 
++				const char * extra)
++{
++	pthread_mutex_lock(&lock->lock);
++	lock->func = func;
++	lock->line = line;
++	lock->extra = extra;
++	lock->hold = true;
++}
++
++void
++l_lock_release(struct l_lock * lock)
++{
++	lock->hold = false;
++	lock->func = NULL;
++	lock->line = 0;
++	lock->extra = NULL;
++	pthread_mutex_unlock(&lock->lock);
++}
+ 
++void 
++l_lock_debug(struct l_lock * lock)
++{
++	if (lock->hold) {
++		D("hold func: %s, line: %d", lock->func, lock->line);
++		if (lock->extra)
++			D("extra info: %s", lock->extra);
++		D("\n");
++	}
++}
+ 
+ void
+ init_list(void) 
+ {
+ 	u_int8_t i = 0;
+ 
+-	pthread_mutex_init(&wlan_table_lock, NULL);
++	l_lock_init(&wlan_table_lock);
+ 	for (i=0; i<HASH_SIZE; i++) {
+ 		list_head_init(&wlan_head[i].head);
+ 	}
+ 
+-	pthread_mutex_init(&client_table_lock, NULL);
++	l_lock_init(&client_table_lock);
+ 	for (i=0; i<HASH_SIZE; i++) {
+ 		list_head_init(&client_head[i].head);
+ 	}
+@@ -110,7 +163,7 @@
+ 			if (mac[0] & 0x01) //multicast, drop
+ 				return;
+ 			hash = HASH(mac);
+-			pthread_mutex_lock(&client_table_lock);
++			l_lock_hold(&client_table_lock, __func__, __LINE__, NULL);
+ 			ai = find_airinfo_item(&client_head[hash].head, mac);
+ 			if (ai) {
+ 				MAC_ADDR_COPY(ai->u.ci.associate_wlan, pi->wlan_bssid);
+@@ -130,7 +183,7 @@
+ 					ai->u.ci.qos = 0;
+ 				ai->inact = conf.client_reload_inact;
+ 			}
+-			pthread_mutex_unlock(&client_table_lock);
++			l_lock_release(&client_table_lock);
+ 		}		
+ 	} else if ((pi->pkt_types & (PKT_TYPE_BEACON | PKT_TYPE_PROBE))) {
+ 		mac = pi->wlan_bssid;
+@@ -142,7 +195,7 @@
+ 				return ;
+ 			
+ 			hash = HASH(mac);
+-			pthread_mutex_lock(&wlan_table_lock);
++			l_lock_hold(&wlan_table_lock, __func__, __LINE__, NULL);
+ 			ai = find_airinfo_item(&wlan_head[hash].head, mac);
+ 			if (ai) {
+ 				ai->rss = pi->phy_signal;
+@@ -161,7 +214,7 @@
+ 					ai->u.wi.encryption_type = ENCRYPTION_OPEN;
+ 				ai->inact = conf.wlan_reload_inact;
+ 			}
+-			pthread_mutex_unlock(&wlan_table_lock);
++			l_lock_release(&wlan_table_lock);
+ 		}
+ 	 } else if (pi->pkt_types & PKT_TYPE_AUTH) {
+ 		if (WLAN_MODE_AP == pi->wlan_mode)
+@@ -172,7 +225,7 @@
+ 			if (mac[0] & 0x01) //multicast, drop
+ 				return;
+ 			hash = HASH(mac);
+-			pthread_mutex_lock(&client_table_lock);
++			l_lock_hold(&client_table_lock, __func__, __LINE__, NULL);
+ 			ai = find_airinfo_item(&client_head[hash].head, mac);
+ 			if (ai) {
+ 				MAC_ADDR_COPY(ai->u.ci.associate_wlan, pi->wlan_bssid);
+@@ -181,7 +234,7 @@
+ 				ai->u.ci.qos = 0;
+ 				ai->inact = conf.client_reload_inact;
+ 			}
+-			pthread_mutex_unlock(&client_table_lock);
++			l_lock_release(&client_table_lock);
+ 		}		
+ 	 }
+ }
+@@ -200,7 +253,7 @@
+ 	for(;;) {
+ 		sigwait(&signal_set, &sig_num);
+ 		if (SIGALRM == sig_num) {
+-			pthread_mutex_lock(&wlan_table_lock);
++			l_lock_hold(&wlan_table_lock, __func__, __LINE__, NULL);
+ 			for (i=0; i<HASH_SIZE; i++) {
+ 				list_for_each_safe(&wlan_head[i].head, ai, n, list) {
+ 					if (dec_and_check_inact(ai)) { // aging
+@@ -210,9 +263,9 @@
+ 					}
+ 				}
+ 			}
+-			pthread_mutex_unlock(&wlan_table_lock);
++			l_lock_release(&wlan_table_lock);
+ 		
+-			pthread_mutex_lock(&client_table_lock);
++			l_lock_hold(&client_table_lock, __func__, __LINE__, NULL);
+ 			for (i=0; i<HASH_SIZE; i++) {
+ 				list_for_each_safe(&client_head[i].head, ai, n, list) {
+ 					if (dec_and_check_inact(ai)) { // aging
+@@ -222,7 +275,7 @@
+ 					}
+ 				}
+ 			}
+-			pthread_mutex_unlock(&client_table_lock);
++			l_lock_release(&client_table_lock);
+ 			alarm(10);
+ 		}
+ 	}
+@@ -251,17 +304,17 @@
+ 
+ 
+ extern int
+-open_packet_socket(char* devname, int recv_buffer_size);
++open_packet_socket(char* devname, int recv_buffer_size, int *ifi);
+ 
+ static void
+ rebind_monitor_interface(struct iface_info *scan_if, char *ifname)
+ {
+-	int fd = open_packet_socket(ifname, 0);
++	int fd = open_packet_socket(ifname, 0, &scan_if->ifindex);
+ 
+ 	printf("ifname: %s\n", ifname);
+ 	if (fd > 0) {
+ 		//update fd
+-		pthread_mutex_lock(&scan_if->p_lock);
++		l_lock_hold(&scan_if->p_lock, __func__, __LINE__, NULL);
+ 		close(scan_if->fd);
+ 		scan_if->fd = fd;
+ 		
+@@ -271,7 +324,7 @@
+ 		
+ 		//update ch_num, ch_list
+ 		scan_if->ch_num = wext_get_channels(fd, ifname, scan_if->ch_list);
+-		pthread_mutex_unlock(&scan_if->p_lock);
++		l_lock_release(&scan_if->p_lock);
+ 	}
+ }
+ 
+@@ -359,7 +412,8 @@
+ 	
+ 	for (i = 0; i < MAX_SCAN_IFACE; i++) {
+ 		if (scan_iface[i].ifname[0] != '\0') {
+-			fprintf(DUMP_FILE, "Scan Interface %d: %s\n", i, scan_iface[i].ifname);
++			fprintf(DUMP_FILE, "Scan Interface %d: %s, ifindex: %d\n", i, scan_iface[i].ifname, 
++					scan_iface[i].ifindex);
+ 			for (j = 0; j < scan_iface[i].ch_num; j++)
+ 				fprintf(DUMP_FILE, "%d ", scan_iface[i].ch_list[j].chan);
+ 			fprintf(DUMP_FILE, "\n\n");
+@@ -398,7 +452,7 @@
+ 	
+ 	dump_file_open("w+");
+ 	fprintf(DUMP_FILE, "Wlan Table\t\t\n");
+-	pthread_mutex_lock(&wlan_table_lock);
++	l_lock_hold(&wlan_table_lock, __func__, __LINE__, NULL);
+ 	for (i=0; i<HASH_SIZE; i++) { 
+ 		list_for_each(&wlan_head[i].head, ai, list) {
+ 			fprintf(DUMP_FILE, "Mac: %s\t", ether_sprintf(ai->mac));
+@@ -409,7 +463,7 @@
+ 			fprintf(DUMP_FILE, "Essid: %s\n", ai->u.wi.essid);
+ 		}	
+ 	}
+-	pthread_mutex_unlock(&wlan_table_lock);
++	l_lock_release(&wlan_table_lock);
+ 	dump_file_close();
+ }
+ 
+@@ -421,7 +475,7 @@
+ 	
+ 	dump_file_open("w+");
+ 	fprintf(DUMP_FILE, "Client Table\t\t\n");
+-	pthread_mutex_lock(&client_table_lock);
++	l_lock_hold(&client_table_lock, __func__, __LINE__, NULL);
+ 	for (i=0; i<HASH_SIZE; i++) {
+ 		list_for_each(&client_head[i].head, ai, list) {
+ 			fprintf(DUMP_FILE, "Mac: %s\t", ether_sprintf(ai->mac));
+@@ -433,7 +487,7 @@
+ 				((u_int8_t *)&ai->u.ci.ip)[2], ((u_int8_t *)&ai->u.ci.ip)[3]);
+ 		}
+ 	}
+-	pthread_mutex_unlock(&client_table_lock);
++	l_lock_release(&client_table_lock);
+ 	dump_file_close();
+ }
+ 
+@@ -621,14 +675,14 @@
+ 				s.fd = deliver_fd;
+ 				s.c_addr = c_addr;
+ 				if (WLAN_INFO == hdr->msg_type) {
+-					pthread_mutex_lock(&wlan_table_lock);
++					l_lock_hold(&wlan_table_lock, __func__, __LINE__, NULL);
+ 					assemble_wlan_airinfo(tx_buffer, TX_BUFSIZE, (void *)&s);
+-					pthread_mutex_unlock(&wlan_table_lock);
++					l_lock_release(&wlan_table_lock);
+ 				}
+ 				else if (CLIENT_INFO == hdr->msg_type) {
+-					pthread_mutex_lock(&client_table_lock);
++					l_lock_hold(&client_table_lock, __func__, __LINE__, NULL);
+ 					assemble_client_airinfo(tx_buffer, TX_BUFSIZE, (void *)&s);
+-					pthread_mutex_unlock(&client_table_lock);
++					l_lock_release(&client_table_lock);
+ 				}
+ 			}
+ 			len = 0;
+@@ -644,7 +698,7 @@
+ {
+ 	int i = 0;
+ 	for (; i < MAX_SCAN_IFACE; i++)
+-		pthread_mutex_init(&scan_iface[i].p_lock, NULL);
++		l_lock_init(&scan_iface[i].p_lock);
+ }
+ 
+ void 
+@@ -652,6 +706,6 @@
+ {
+ 	int i = 0;
+ 	for (; i < MAX_SCAN_IFACE; i++)
+-		pthread_mutex_destroy(&scan_iface[i].p_lock);
++		l_lock_destroy(&scan_iface[i].p_lock);
+ }
+ 
+diff -urN a/han.h b/han.h
+--- a/han.h	2016-08-09 03:54:37.756627727 -0700
++++ b/han.h	2016-08-10 22:22:26.890552175 -0700
+@@ -9,6 +9,12 @@
+ #include <linux/wireless.h>
+ #include <pthread.h>
+ 
++extern FILE *dd;
++#define D(fmt, ...) \
++	do { \
++		fprintf(dd, fmt, ## __VA_ARGS__); \
++	} while(0)
++	
+ 
+ #ifndef MAC_LEN
+ #define MAC_LEN	6
+@@ -128,15 +134,35 @@
+ 
+ #define MAX_SCAN_IFACE 3
+ 
++struct l_lock {
++	bool hold;
++	pthread_mutex_t lock;
++	const char *func;
++	int line;
++	const char *extra;
++};
++
++void l_lock_init(struct l_lock *lock);
++void l_lock_destroy(struct l_lock *lock);
++void l_lock_hold(struct l_lock *lock, const char *func, int line, const char *extra);
++void l_lock_release(struct l_lock *lock);
++void l_lock_debug(struct l_lock *lock);
++
+ struct iface_info{
+ 	int fd;
+ 	char ifname[32];
++	int ifindex;
+ 	struct chan_freq ch_list[MAX_CHANNELS];
+ 	int ch_num;
+-	pthread_mutex_t p_lock;
++	struct l_lock p_lock;
+ };
+ 
+ extern struct iface_info scan_iface[];
++extern struct airinfo_head wlan_head[HASH_SIZE];
++extern struct l_lock wlan_table_lock;
++extern struct airinfo_head client_head[HASH_SIZE];
++extern struct l_lock client_table_lock;
++
+ 
+ 
+ #endif
+diff -urN a/main.c b/main.c
+--- a/main.c	2016-08-09 03:54:37.756627727 -0700
++++ b/main.c	2016-08-10 22:28:55.838549053 -0700
+@@ -43,6 +43,8 @@
+ #if HAN_VERSION
+ #include "han.h"
+ #include <pthread.h>
++#include <sys/stat.h>
++#include <fcntl.h>
+ #endif
+ 
+ 
+@@ -76,6 +78,23 @@
+ 
+ int mon; /* monitoring socket */
+ #ifdef HAN_VERSION
++FILE *dd = NULL;
++struct {
++	bool hold_lock;
++	char * const string;
++} hold_lock_debug[] = {
++		{.string = ""},
++};
++#define STAGE_STATE 6
++static const char stage_str[STAGE_STATE][128] = {
++	"begin",
++	"finish concsole and signal init",
++	"finish init control pipe",
++	"finish init scan iface(s)",
++	"finish init channel list",
++	"start running",
++};
++static int stage = 0;
+ pthread_t pth_do_scan[MAX_SCAN_IFACE];
+ struct iface_info scan_iface[MAX_SCAN_IFACE] = {
+ 		{
+@@ -560,6 +579,8 @@
+ 	if (!conf.quiet && !conf.debug)
+ 		finish_display();
+ #if HAN_VERSION
++	l_lock_destroy(&wlan_table_lock);
++	l_lock_destroy(&client_table_lock);
+ 	scan_iface_lock_destroy();
+ #endif
+ }
+@@ -575,6 +596,56 @@
+ static void
+ sigint_handler(__attribute__((unused)) int sig)
+ {
++	int i = 0, j = 0;
++	struct timeval current;
++	u_int32_t delta_sec = 0;
++	u_int16_t day = 0;
++	u_int8_t hour = 0, minute = 0;
++
++
++	if (SIGUSR1 == sig) {
++		dd = fopen("/tmp/dd", "w+");
++		if (!dd)
++			return ;
++		D("\nrunning stage: %s\n", stage_str[stage]);
++		if (stage == STAGE_STATE - 1) {
++			D("\n");
++			
++			gettimeofday(&current, NULL);
++			delta_sec = current.tv_sec - the_time.tv_sec;
++			day = delta_sec / (3600 * 24);
++			delta_sec %= (3600 * 24);
++			hour = delta_sec / 3600;
++			delta_sec %= 3600;
++			minute = delta_sec / 60;
++			delta_sec %= 60;
++			D("Running Time: %d day %d h %d min %d sec\n", 
++					day, hour, minute, delta_sec);
++			
++			D("Whole Scanning: %d\n", whole_channels_scanning);
++			D("Pause Scanning: %d\n", pause_scanning);
++			D("\nChannel List\t\t\n");
++	
++			for (i = 0; i < MAX_SCAN_IFACE; i++) {
++				if (scan_iface[i].ifname[0] != '\0') {
++					D("Scan Interface %d: %s,ifindex: %d\n", 
++							i, scan_iface[i].ifname, scan_iface[i].ifindex);
++					for (j = 0; j < scan_iface[i].ch_num; j++)
++						D("%d ", scan_iface[i].ch_list[j].chan);
++					D("\n\n");
++				}
++				
++			}
++			for (i = 0; i < MAX_SCAN_IFACE; i++) 
++				l_lock_debug(&scan_iface[i].p_lock);
++			l_lock_debug(&wlan_table_lock);
++			l_lock_debug(&client_table_lock);
++		}
++		//fflush(stderr);
++		//sync();
++		fclose(dd);
++		return ;
++	}
+ 	exit(0);
+ }
+ 
+@@ -586,7 +657,7 @@
+ }
+ 
+ static void
+-phrase_interface(char *iface_list)
++parse_interface(char *iface_list)
+ {
+ 	int i = 0;
+ 	char *p = strtok(iface_list, ",");
+@@ -626,7 +697,7 @@
+ #if !HAN_VERSION
+ 			conf.ifname = optarg;
+ #else
+-			phrase_interface(optarg);
++			parse_interface(optarg);
+ #endif
+ 			break;
+ 		case 'o':
+@@ -820,12 +891,15 @@
+ #endif
+ 
+ 	get_options(argc, argv);
+-
++	
+ 	signal(SIGINT, sigint_handler);
++	
+ 	signal(SIGTERM, sigint_handler);
+ 	signal(SIGHUP, sigint_handler);
+ 	signal(SIGPIPE, sigpipe_handler);
+ #if HAN_VERSION
++	signal(SIGUSR1, sigint_handler);
++	
+ 	sigemptyset(&signal_set);
+ 	sigaddset(&signal_set, SIGALRM);
+ 	
+@@ -833,6 +907,7 @@
+ 		err(1, "SIGALRM block error");
+ 		exit(0);
+ 	}
++	stage = 1; //finish concsole and signal init
+ #endif
+ 	atexit(exit_handler);
+ 
+@@ -845,6 +920,7 @@
+ 		printlog("Allowing control socket");
+ 		control_init_pipe();
+ 	}
++	stage = 2; //finish init control pipe
+ #if !HAN_VERSION
+ 	if (conf.serveraddr)
+ 		mon = net_open_client_socket(conf.serveraddr, conf.port);
+@@ -867,16 +943,18 @@
+ #else
+ 	for (i = 0; i < MAX_SCAN_IFACE; i++)
+ 		if (scan_iface[i].ifname[0] != '\0') {
+-			scan_iface[i].fd = open_packet_socket(scan_iface[i].ifname, conf.recv_buffer_size);
++			scan_iface[i].fd = open_packet_socket(scan_iface[i].ifname, conf.recv_buffer_size, 
++										&scan_iface[i].ifindex);
+ 			if (scan_iface[i].fd < 0) {
+ 				err(1, "Couldn't open packet socket");
+ 				exit(0);
+ 			}
+ 		}
+-	
++	stage = 3; //finish init scan iface(s)
+ 	conf.arphrd = ARPHRD_IEEE80211_PRISM;
+ 	channel_init();
+-
++	stage = 4; //finish init channel list
++	
+ 	init_deliver_fd();
+ 	//init_rtnl_fd();
+ 	//thread
+@@ -885,6 +963,7 @@
+ 			pthread_create(&pth_do_scan[i], NULL, do_scan, (void *)&scan_iface[i]);
+ 	pthread_create(&pth_deliver, NULL, thread_deliver_handle, NULL);
+ 	pthread_create(&pth_sighandler, NULL, thread_sigalrm_handler, NULL);
++	stage = 5; //start running
+ #endif
+ 
+ 	alarm(15);

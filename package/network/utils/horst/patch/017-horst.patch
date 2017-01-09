@@ -1,0 +1,25 @@
+diff -urN a/channel.c b/channel.c
+--- a/channel.c	2016-08-17 22:20:21.776022170 -0700
++++ b/channel.c	2016-08-17 22:15:32.402570129 -0700
+@@ -193,7 +193,7 @@
+ 	struct iface_info *scanif = (struct iface_info *) arg, scanif_safe;
+ 	struct iw_scan_req scanopt;
+ 	struct iwreq wrq;
+-	static u_int8_t i = 0;
++	u_int8_t i = 0;
+ 	int ret = 0;
+ 
+ 	while (true) {
+@@ -207,11 +207,11 @@
+ 			scanopt.min_channel_time = conf.duration_on_foreign;
+ 			scanopt.scan_type = IW_SCAN_TYPE_PASSIVE;
+ 			if (!whole_channels_scanning) {
++				i = i % scanif_safe.ch_num;
+ 				scanopt.num_channels = 1;
+ 				scanopt.channel_list[0].e = 1;
+ 				scanopt.channel_list[0].m = scanif_safe.ch_list[i].freq * 100000;
+ 				i++;
+-				i = i % scanif_safe.ch_num;
+ 			}
+ 			wrq.u.data.pointer = (caddr_t) &scanopt;
+ 			wrq.u.data.length = sizeof(scanopt);

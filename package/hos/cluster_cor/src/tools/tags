@@ -1,0 +1,61 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.7	//
+CLUSTER_PRI	show_member.c	/^}CLUSTER_PRI;$/;"	t	typeref:union:cluster_priority	file:
+CMD_FIFO_RECV	show_member.c	13;"	d	file:
+CMD_FIFO_SEND	show_member.c	12;"	d	file:
+ENTRY_ALL_SIZE	show_member.c	55;"	d	file:
+ENTRY_SIZE	show_member.c	54;"	d	file:
+FIFO_SERVER	show_member.c	11;"	d	file:
+PRI	show_member.c	/^}PRI;$/;"	t	typeref:struct:priority	file:
+ap_priority	show_member.c	/^	u_int64_t ap_priority;$/;"	m	union:cluster_priority	file:	access:public
+auth	show_member.c	/^    uint32_t auth;    \/\/  0 is not ;1 is auth$/;"	m	struct:cluster_member	file:	access:public
+cluster_id	show_member.c	/^    uint32_t cluster_id;$/;"	m	struct:cluster_member	file:	access:public
+cluster_m_t	show_member.c	/^} cluster_m_t;$/;"	t	typeref:struct:cluster_member	file:
+cluster_member	show_member.c	/^typedef struct cluster_member {$/;"	s	file:
+cluster_member::auth	show_member.c	/^    uint32_t auth;    \/\/  0 is not ;1 is auth$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::cluster_id	show_member.c	/^    uint32_t cluster_id;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::entry_mutex	show_member.c	/^    pthread_mutex_t entry_mutex;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::ip	show_member.c	/^    uint8_t ip[4];$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::mac	show_member.c	/^    uint8_t mac[6];$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::on	show_member.c	/^    uint16_t  on;  \/\/  0 is alive  ;1 is delete$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::pre_free	show_member.c	/^    uint32_t pre_free;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::prio	show_member.c	/^	CLUSTER_PRI prio;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::role	show_member.c	/^    uint8_t role;  \/\/ pvc \/svc\/vc ? 1:2:3$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::ssid	show_member.c	/^    uint32_t ssid;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::state	show_member.c	/^    uint8_t state;  \/\/ running ? or lost$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::timer	show_member.c	/^    uint32_t timer; \/\/ ageing time  default 30s$/;"	m	struct:cluster_member	file:	access:public
+cluster_priority	show_member.c	/^typedef union cluster_priority$/;"	u	file:
+cluster_priority::ap_priority	show_member.c	/^	u_int64_t ap_priority;$/;"	m	union:cluster_priority	file:	access:public
+cluster_priority::prio	show_member.c	/^	PRI prio;$/;"	m	union:cluster_priority	file:	access:public
+config_seq	show_member.c	/^	u_int8_t config_seq;$/;"	m	struct:priority	file:	access:public
+entry	show_member.c	/^cluster_m_t entry[ENTRY_SIZE];  $/;"	v
+entry_mutex	show_member.c	/^    pthread_mutex_t entry_mutex;$/;"	m	struct:cluster_member	file:	access:public
+flags	show_member.c	/^int flags=0;$/;"	v
+ip	show_member.c	/^    uint8_t ip[4];$/;"	m	struct:cluster_member	file:	access:public
+mac	show_member.c	/^    uint8_t mac[6];$/;"	m	struct:cluster_member	file:	access:public
+mac_tail	show_member.c	/^	u_int8_t mac_tail[3];$/;"	m	struct:priority	file:	access:public
+main	hello.c	/^int main(void)$/;"	f	signature:(void)
+main	show_member.c	/^int main(int argc,void *argv[])$/;"	f	signature:(int argc,void *argv[])
+on	show_member.c	/^    uint16_t  on;  \/\/  0 is alive  ;1 is delete$/;"	m	struct:cluster_member	file:	access:public
+overload	show_member.c	/^	u_int8_t overload[2];$/;"	m	struct:priority	file:	access:public
+pre_free	show_member.c	/^    uint32_t pre_free;$/;"	m	struct:cluster_member	file:	access:public
+prio	show_member.c	/^	CLUSTER_PRI prio;$/;"	m	struct:cluster_member	file:	access:public
+prio	show_member.c	/^	PRI prio;$/;"	m	union:cluster_priority	file:	access:public
+priority	show_member.c	/^	u_int8_t priority;$/;"	m	struct:priority	file:	access:public
+priority	show_member.c	/^typedef struct priority{$/;"	s	file:
+priority::config_seq	show_member.c	/^	u_int8_t config_seq;$/;"	m	struct:priority	file:	access:public
+priority::mac_tail	show_member.c	/^	u_int8_t mac_tail[3];$/;"	m	struct:priority	file:	access:public
+priority::overload	show_member.c	/^	u_int8_t overload[2];$/;"	m	struct:priority	file:	access:public
+priority::priority	show_member.c	/^	u_int8_t priority;$/;"	m	struct:priority	file:	access:public
+priority::product_type	show_member.c	/^	u_int8_t product_type;$/;"	m	struct:priority	file:	access:public
+product_type	show_member.c	/^	u_int8_t product_type;$/;"	m	struct:priority	file:	access:public
+role	show_member.c	/^    uint8_t role;  \/\/ pvc \/svc\/vc ? 1:2:3$/;"	m	struct:cluster_member	file:	access:public
+show_entry	show_member.c	/^cluster_m_t *show_entry;$/;"	v
+show_members_all	show_member.c	/^void show_members_all(cluster_m_t *entry)$/;"	f	signature:(cluster_m_t *entry)
+ssid	show_member.c	/^    uint32_t ssid;$/;"	m	struct:cluster_member	file:	access:public
+state	show_member.c	/^    uint8_t state;  \/\/ running ? or lost$/;"	m	struct:cluster_member	file:	access:public
+timer	show_member.c	/^    uint32_t timer; \/\/ ageing time  default 30s$/;"	m	struct:cluster_member	file:	access:public

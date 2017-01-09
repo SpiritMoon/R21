@@ -1,0 +1,69 @@
+    <div class="modal-header modal_type" ng-class="{'foldedlv1menupurple':skin.isPurple, 'foldedlv1menublue':skin.isBlue}">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">&times;</button>
+        <div class="modal-title">{{"Tools"|translate}}</div>
+    </div>
+    <div class="modal-body">
+        <form role="form" class="form-inline" name="toolsform" novalidate>
+            <div class="form-group">
+                <select class="form-control" ng-model="requestParams.command" ng-options="unit.id as unit.name for unit in tools" ng-change="changeTool()"></select>
+            </div>
+            <div class="form-group">
+                <label class="control-label">AP:</label>
+                <select class="form-control" ng-model="operation.selectApIp" ng-options="unit.mac for unit in aps"></select>&nbsp;
+            </div>
+            <div class="form-group" ng-if="showHostname" ng-class="{'has-error': toolsform.hostname.$dirty && toolsform.hostname.$invalid}">
+                <label class="control-label">{{"Host Name"|translate}}:</label>
+                <input type="text" class="form-control" name="hostname" ng-model="requestParams.hostname" tooltip="x.x.x.x or domain name" tooltip-trigger="mouseenter" placeholder="IP or Domain" ng-pattern="{{InterService.pattern.IPAndDomain}}" required>
+            </div>
+            <button class="btn btn-custommenu" ng-click="exec()" ng-disabled="toolsform.$invalid">{{"Exec"|translate}}</button>
+            <div class="form-group" ng-show="toolsform.hostname.$dirty && toolsform.hostname.$invalid">
+                <small class="text-danger" ng-show="toolsform.hostname.$error.pattern" ng-bind="InterService.validIPOrDomain()"></small>
+                <small class="text-danger" ng-show="toolsform.hostname.$error.required" ng-bind="InterService.valueNotNull('Host Name');"></small>
+            </div>
+        </form>
+        <br>    
+        <div>
+            {{"Result"|translate}}:
+             <textarea ng-show="other_command_flag" rows="15" ng-model="operation.result" style="width:100%;overflow:auto;resize:vertical;" disabled="disabled"></textarea>
+                <div ng-show="showsysinfo_flag" style="width:100%;background-color:#ebebe5;border:solid 1px #c6c6c2;padding:15px;height:306px;overflow:auto;">
+                     <table style="width:80%;margin-bottom:15px;">
+                        <tr ng-repeat="free_line in showsysinfo.free">
+                            <td ng-bind="free_line.lineOne"></td>
+                            <td ng-bind="free_line.lineTwo"></td>
+                            <td ng-bind="free_line.lineThree"></td>
+                            <td ng-bind="free_line.lineFour"></td>
+                            <td ng-bind="free_line.lineFive"></td>
+                            <td ng-bind="free_line.lineSix"></td>
+                        </tr>
+                    </table>
+                    <table style="width:80%;" >
+                        <tbody>
+                            <tr ng-repeat="each_line in showsysinfo.df">
+                                <td ng-bind="each_line.lineOne"></td>
+                                <td ng-bind="each_line.lineTwo"></td>
+                                <td ng-bind="each_line.lineThree"></td>
+                                <td ng-bind="each_line.lineFour"></td>
+                                <td ng-bind="each_line.lineFive"></td>
+                                <td ng-bind="each_line.lineSix"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+        </div>
+
+        <br>
+
+        <form role="form" class="form-inline" name="pmdform" novalidate>
+            <div class="form-group" >
+                <label class="control-label">{{"PMD"|translate}}:</label>
+                <toggle-switch display-permission='Permission_Admin' ng-model="pmdInformation.pmdSwitch"  ng-change="configStatus()"></toggle-switch>
+                <span display-permission='!Permission_Admin'>{{ pmdInformation.pmdSwitch | switchFilter }}</span> &nbsp;&nbsp;&nbsp;&nbsp;
+               <label class="control-label">{{"TFTP Server"|translate}}:</label>
+                <input type="text" name="pmdServer" ng-disabled="userName!='Administrator'"  class="form-control" name="hostname" ng-model="pmdInformation.tftpServer"  tooltip="x.x.x.x" tooltip-trigger="mouseenter" placeholder="IP Address" ng-pattern="{{InterService.pattern.IPAndDomain}}" required>
+                <button class="btn btn-custommenu" ng-disabled="userName!='Administrator' || pmdform.$invalid" ng-click="savePmd()">{{"Save"|translate}}</button>
+                <small class="text-danger" ng-show="pmdform.pmdServer.$error.pattern" ng-bind="InterService.validIPOrDomain()"></small>
+                <small class="text-danger" ng-show="pmdform.pmdServer.$error.required" ng-bind="InterService.valueNotNull('Server IP');"></small>
+            </div>
+        </form>
+
+    </div>

@@ -1,0 +1,19 @@
+diff -urN a/networking/udhcp/dhcpc.c b/networking/udhcp/dhcpc.c
+--- a/networking/udhcp/dhcpc.c	2016-11-10 16:20:41.632141416 +0800
++++ b/networking/udhcp/dhcpc.c	2016-11-10 16:21:26.850569600 +0800
+@@ -1610,7 +1610,14 @@
+ 			/* Start things over */
+ 			packet_num = 0;
+ 			/* Kill any timeouts, user wants this to hurry along */
+-			timeout = 0;
++/* zhouke add priority recognition option43(OXO R10 VCI) */
++#if 1
++            if(state != INIT_SELECTING)
++			    timeout = 0;
++#else
++            timeout = 0;
++#endif
++/* zhouke add end */
+ 			continue;
+ 		case SIGUSR2:
+ 			perform_release(server_addr, requested_ip);

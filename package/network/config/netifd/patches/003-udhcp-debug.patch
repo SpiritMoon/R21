@@ -1,0 +1,39 @@
+--- a/main.c
++++ b/main.c
+@@ -319,6 +319,7 @@ int main(int argc, char **argv)
+ 	}
+ 
+ 	if (use_syslog)
++        (void)0;// openlog for debug
+ 		openlog("netifd", 0, LOG_DAEMON);
+ 
+ 	netifd_setup_signals();
+--- a/netifd.h
++++ b/netifd.h
+@@ -28,6 +28,26 @@
+ 
+ #include "utils.h"
+ 
++
++#include <time.h>
++#include <fcntl.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <syslog.h>
++
++#define kill(pid, sig) do{\
++    struct timespec t;\
++    clock_gettime(CLOCK_REALTIME, &t);\
++    char buf[64];\
++    sprintf(buf, "/proc/%d/cmdline",pid);\
++    int fd = open(buf, O_RDONLY);\
++    read(fd,buf,sizeof(buf));\
++    close(fd);\
++    syslog(LOG_INFO, "%s %d tv_sec=%ld,tv_nsec=%ld:kill %s sig %d\n", __func__, __LINE__,t.tv_sec,t.tv_nsec,buf,sig);\
++    kill(pid,sig);\
++}while(0)
++
++
+ #ifdef DUMMY_MODE
+ #define DEFAULT_MAIN_PATH	"./examples"
+ #define DEFAULT_CONFIG_PATH	"./config"

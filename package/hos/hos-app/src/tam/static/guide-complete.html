@@ -1,0 +1,15 @@
+<div ui-view>
+    <div class="modal-header modal_type">
+        <h3 class="modal-title">{{"Notice"|translate}}</h3>
+    </div>
+    <div class="modal-body" style="height: 200px;">
+        <div class="div_title">
+            {{"Complete Info1"|translate}}<br>
+            {{"Complete Info2"|translate}}<span style="font-weight: bold">{{wlanName}}.</span><br>
+            {{"Complete Info3"|translate}}
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="complete()">{{"OK"|translate}}</button>
+    </div>
+</div>

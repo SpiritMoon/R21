@@ -1,0 +1,463 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_PROGRAM_AUTHOR	Darren Hiebert	/dhiebert@users.sourceforge.net/
+!_TAG_PROGRAM_NAME	Exuberant Ctags	//
+!_TAG_PROGRAM_URL	http://ctags.sourceforge.net	/official site/
+!_TAG_PROGRAM_VERSION	5.7	//
+ACS	libhccp.h	/^    ACS = 6,$/;"	e	enum:__anon3
+ACSType	libhccp.h	/^}ACSType;$/;"	t	typeref:enum:__anon4
+ACS_format	libhccp.h	/^}ACS_format;$/;"	t	typeref:struct:__anon5
+AUTH_SIZE	cluster_cor.c	195;"	d	file:
+Assemble_ACS_SequenceRequest	libhccp.c	/^HANBool Assemble_ACS_SequenceRequest(char *buf, ACS_format *acs_packet) $/;"	f	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_SequenceRequest	libhccp.h	/^HANBool Assemble_ACS_SequenceRequest(char *buf, ACS_format *acs_packet) ;$/;"	p	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_SequenceResponse	libhccp.c	/^HANBool Assemble_ACS_SequenceResponse(char *buf, ACS_format *acs_packet) $/;"	f	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_SequenceResponse	libhccp.h	/^HANBool Assemble_ACS_SequenceResponse(char *buf, ACS_format *acs_packet) ;$/;"	p	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_TokenRequest	libhccp.c	/^HANBool Assemble_ACS_TokenRequest(char *buf, ACS_format *acs_packet) $/;"	f	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_TokenRequest	libhccp.h	/^HANBool Assemble_ACS_TokenRequest(char *buf, ACS_format *acs_packet) ;$/;"	p	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_TokenResponse	libhccp.c	/^HANBool Assemble_ACS_TokenResponse(char *buf, ACS_format *acs_packet) $/;"	f	signature:(char *buf, ACS_format *acs_packet)
+Assemble_ACS_TokenResponse	libhccp.h	/^HANBool Assemble_ACS_TokenResponse(char *buf, ACS_format *acs_packet) ;$/;"	p	signature:(char *buf, ACS_format *acs_packet)
+Assemble_DBCP	libhccp.c	/^HANBool Assemble_DBCP(char *buf, DBCP_format *dbcp) $/;"	f	signature:(char *buf, DBCP_format *dbcp)
+Assemble_DBCP	libhccp.h	/^HANBool Assemble_DBCP(char *buf, DBCP_format *dbcp) ;$/;"	p	signature:(char *buf, DBCP_format *dbcp)
+Assemble_HCCPHeader	libhccp.c	/^HANBool Assemble_HCCPHeader(char *buf, HCCPHeaderValues *protocolVal)$/;"	f	signature:(char *buf, HCCPHeaderValues *protocolVal)
+Assemble_RIRP	libhccp.c	/^HANBool Assemble_RIRP(char *buf, RIRP_format *rirp) $/;"	f	signature:(char *buf, RIRP_format *rirp)
+Assemble_RIRP	libhccp.h	/^HANBool Assemble_RIRP(char *buf, RIRP_format *rirp) ;$/;"	p	signature:(char *buf, RIRP_format *rirp)
+Assemble_RSCP	libhccp.c	/^HANBool Assemble_RSCP(char *buf, RSCP_format *rscp) $/;"	f	signature:(char *buf, RSCP_format *rscp)
+Assemble_RSCP	libhccp.h	/^HANBool Assemble_RSCP(char *buf, RSCP_format *rscp) ;$/;"	p	signature:(char *buf, RSCP_format *rscp)
+Assemble_RSRP	libhccp.c	/^HANBool Assemble_RSRP(char *buf, RSRP_format *rsrp) $/;"	f	signature:(char *buf, RSRP_format *rsrp)
+Assemble_RSRP	libhccp.h	/^HANBool Assemble_RSRP(char *buf, RSRP_format *rsrp) ;$/;"	p	signature:(char *buf, RSRP_format *rsrp)
+CHECK	cluster_cor.c	/^    CHECK,$/;"	e	enum:cluster_state	file:
+CLIENT_PORT	acs.c	20;"	d	file:
+CLUSTER_FIFO	cluster_cor.c	149;"	d	file:
+CLUSTER_PORT_RECV	cluster_cor.c	31;"	d	file:
+CLUSTER_PORT_SEND	cluster_cor.c	32;"	d	file:
+CLUSTER_PRI	cluster_cor.c	/^} CLUSTER_PRI;$/;"	t	typeref:union:cluster_priority	file:
+CLUSTER_PRI	tools/show_member.c	/^}CLUSTER_PRI;$/;"	t	typeref:union:cluster_priority	file:
+CLUSTER_STATE	cluster_cor.c	/^} CLUSTER_STATE;$/;"	t	typeref:enum:cluster_state	file:
+CMD_FIFO_RECV	cluster_cor.c	151;"	d	file:
+CMD_FIFO_RECV	tools/show_member.c	13;"	d	file:
+CMD_FIFO_SEND	cluster_cor.c	150;"	d	file:
+CMD_FIFO_SEND	tools/show_member.c	12;"	d	file:
+DBCP	libhccp.h	/^    DBCP = 1,$/;"	e	enum:__anon3
+DBCP_format	libhccp.h	/^}DBCP_format;$/;"	t	typeref:struct:__anon6
+DEBUG_SWITCH	acs.c	21;"	d	file:
+DISCOVERY	cluster_cor.c	/^    DISCOVERY,$/;"	e	enum:cluster_state	file:
+ENTRY_ALL_SIZE	cluster_cor.c	196;"	d	file:
+ENTRY_ALL_SIZE	tools/show_member.c	55;"	d	file:
+ENTRY_SIZE	cluster_cor.c	194;"	d	file:
+ENTRY_SIZE	tools/show_member.c	54;"	d	file:
+FIFO_SERVER	test/ppp.c	8;"	d	file:
+FIFO_SERVER	test/ppp2.c	8;"	d	file:
+FIFO_SERVER	test/recv.c	27;"	d	file:
+FIFO_SERVER	test/send.c	27;"	d	file:
+FIFO_SERVER	tools/show_member.c	11;"	d	file:
+HANBool	libhccp.h	/^} HANBool;$/;"	t	typeref:enum:__anon1
+HAN_FALSE	libhccp.h	/^	HAN_FALSE = 0,$/;"	e	enum:__anon1
+HAN_TRUE	libhccp.h	/^	HAN_TRUE = 1$/;"	e	enum:__anon1
+HCCPHeaderValues	libhccp.h	/^}HCCPHeaderValues;$/;"	t	typeref:struct:__anon2
+HCCPType	libhccp.h	/^}HCCPType;$/;"	t	typeref:enum:__anon3
+HCCP_HEADER_LEN	libhccp.c	7;"	d	file:
+Hccp_Protocol_Struct	libhccp.h	/^}Hccp_Protocol_Struct;$/;"	t	typeref:struct:__anon12
+Hccp_Protocol_Union	libhccp.h	/^}Hccp_Protocol_Union;$/;"	t	typeref:union:data
+ID	test/recv.c	/^    uint32_t  ID;$/;"	m	struct:hccphdr	file:	access:public
+ID	test/send.c	/^    uint32_t ID;$/;"	m	struct:hccphdr	file:	access:public
+JOIN	cluster_cor.c	/^    JOIN,$/;"	e	enum:cluster_state	file:
+LIBHCCP_H	libhccp.h	3;"	d
+LIBS_DEPEND	Makefile	/^LIBS_DEPEND=-lpthread$/;"	m
+LIMIT	cluster_cor.c	30;"	d	file:
+LOST	cluster_cor.c	/^    LOST$/;"	e	enum:cluster_state	file:
+MAC_LEN	libhccp.h	11;"	d
+MAX_CLUSTER_AP	libhccp.h	10;"	d
+OBJS	Makefile	/^OBJS=cluster_cor.o libhccp.o$/;"	m
+PRI	cluster_cor.c	/^} PRI;$/;"	t	typeref:struct:priority	file:
+PRI	tools/show_member.c	/^}PRI;$/;"	t	typeref:struct:priority	file:
+PVC	cluster_cor.c	/^    PVC = 1,$/;"	e	enum:cluster_role	file:
+Parse_ACS	libhccp.c	/^HANBool Parse_ACS(char *buf, Hccp_Protocol_Struct *parse_packet)$/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_DBCP	libhccp.c	/^HANBool Parse_DBCP(char *buf, Hccp_Protocol_Struct *parse_packet)$/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_HCCPHeader	libhccp.c	/^HANBool Parse_HCCPHeader(char *buf,  Hccp_Protocol_Struct *parse_packet) $/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_HCCPProtocol	libhccp.c	/^HANBool Parse_HCCPProtocol(char *buf,  Hccp_Protocol_Struct *parse_packet) $/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_HCCPProtocol	libhccp.h	/^HANBool Parse_HCCPProtocol(char *buf,  Hccp_Protocol_Struct *parse_packet) ;$/;"	p	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_RIRP	libhccp.c	/^HANBool Parse_RIRP(char *buf, Hccp_Protocol_Struct *parse_packet)$/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_RSCP	libhccp.c	/^HANBool Parse_RSCP(char *buf, Hccp_Protocol_Struct *parse_packet)$/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+Parse_RSRP	libhccp.c	/^HANBool Parse_RSRP(char *buf, Hccp_Protocol_Struct *parse_packet)$/;"	f	signature:(char *buf, Hccp_Protocol_Struct *parse_packet)
+RIRP	libhccp.h	/^    RIRP = 4,$/;"	e	enum:__anon3
+RIRP_cluster_neighbor	libhccp.h	/^}RIRP_cluster_neighbor;$/;"	t	typeref:struct:__anon10
+RIRP_format	libhccp.h	/^}RIRP_format;$/;"	t	typeref:struct:__anon11
+RISP	libhccp.h	/^    RISP = 5,$/;"	e	enum:__anon3
+ROLE	cluster_cor.c	/^} ROLE;$/;"	t	typeref:enum:cluster_role	file:
+RSCP	libhccp.h	/^    RSCP = 2,$/;"	e	enum:__anon3
+RSCP_LEN	cluster_cor.c	33;"	d	file:
+RSCP_cluster_member	libhccp.h	/^}RSCP_cluster_member;$/;"	t	typeref:struct:__anon8
+RSCP_format	libhccp.h	/^}RSCP_format;$/;"	t	typeref:struct:__anon9
+RSRP	libhccp.h	/^    RSRP = 3,$/;"	e	enum:__anon3
+RSRP_LEN	cluster_cor.c	34;"	d	file:
+RSRP_LEN	test/recv.c	50;"	d	file:
+RSRP_LEN	test/send.c	49;"	d	file:
+RSRP_format	libhccp.h	/^}RSRP_format;$/;"	t	typeref:struct:__anon7
+RUN	cluster_cor.c	/^    RUN,$/;"	e	enum:cluster_state	file:
+SOCKET_PATH	cluster_cor.c	152;"	d	file:
+SOCKET_PATH	test/recv.c	52;"	d	file:
+SOCKET_PATH	test/send.c	50;"	d	file:
+SVC	cluster_cor.c	/^    SVC,$/;"	e	enum:cluster_role	file:
+Sequence_req	libhccp.h	/^    Sequence_req = 1,$/;"	e	enum:__anon4
+Sequence_resp	libhccp.h	/^    Sequence_resp = 2,$/;"	e	enum:__anon4
+TARGET	Makefile	/^TARGET=$(__TARGET)$/;"	m
+Token_req	libhccp.h	/^    Token_req = 3,$/;"	e	enum:__anon4
+Token_resp	libhccp.h	/^    Token_resp = 4,$/;"	e	enum:__anon4
+VC	cluster_cor.c	/^    VC$/;"	e	enum:cluster_role	file:
+_2g_channel	libhccp.h	/^	unsigned char _2g_channel;$/;"	m	struct:__anon10	access:public
+_2g_rssi	libhccp.h	/^	unsigned char _2g_rssi;$/;"	m	struct:__anon10	access:public
+_5g_channel	libhccp.h	/^	unsigned char _5g_channel;	$/;"	m	struct:__anon10	access:public
+_5g_rssi	libhccp.h	/^	unsigned char _5g_rssi;$/;"	m	struct:__anon10	access:public
+__TARGET	Makefile	/^__TARGET=cluster_cor$/;"	m
+__anon10::_2g_channel	libhccp.h	/^	unsigned char _2g_channel;$/;"	m	struct:__anon10	access:public
+__anon10::_2g_rssi	libhccp.h	/^	unsigned char _2g_rssi;$/;"	m	struct:__anon10	access:public
+__anon10::_5g_channel	libhccp.h	/^	unsigned char _5g_channel;	$/;"	m	struct:__anon10	access:public
+__anon10::_5g_rssi	libhccp.h	/^	unsigned char _5g_rssi;$/;"	m	struct:__anon10	access:public
+__anon10::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon10	access:public
+__anon11::cluster_neighbor	libhccp.h	/^	RIRP_cluster_neighbor cluster_neighbor[MAX_CLUSTER_AP];$/;"	m	struct:__anon11	access:public
+__anon11::head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon11	access:public
+__anon11::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon11	access:public
+__anon11::neighbor_count	libhccp.h	/^	unsigned char neighbor_count;$/;"	m	struct:__anon11	access:public
+__anon12::type	libhccp.h	/^	unsigned char type;$/;"	m	struct:__anon12	access:public
+__anon12::u	libhccp.h	/^	Hccp_Protocol_Union u;$/;"	m	struct:__anon12	access:public
+__anon2::clusterID	libhccp.h	/^	unsigned int clusterID;$/;"	m	struct:__anon2	access:public
+__anon2::protocolLen	libhccp.h	/^	unsigned short protocolLen;$/;"	m	struct:__anon2	access:public
+__anon2::protocolType	libhccp.h	/^	unsigned char protocolType;$/;"	m	struct:__anon2	access:public
+__anon2::protocolver	libhccp.h	/^	unsigned char protocolver;$/;"	m	struct:__anon2	access:public
+__anon2::seqnum	libhccp.h	/^	unsigned short seqnum;$/;"	m	struct:__anon2	access:public
+__anon5::head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon5	access:public
+__anon5::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon5	access:public
+__anon5::msgtype	libhccp.h	/^	unsigned short msgtype;$/;"	m	struct:__anon5	access:public
+__anon5::seq_num	libhccp.h	/^	unsigned int seq_num;$/;"	m	struct:__anon5	access:public
+__anon6::config_sequence	libhccp.h	/^	unsigned char config_sequence;$/;"	m	struct:__anon6	access:public
+__anon6::head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon6	access:public
+__anon6::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon6	access:public
+__anon6::priority	libhccp.h	/^	unsigned char priority;$/;"	m	struct:__anon6	access:public
+__anon6::product_type	libhccp.h	/^	unsigned char product_type;$/;"	m	struct:__anon6	access:public
+__anon7::config_sequence	libhccp.h	/^	unsigned char config_sequence;$/;"	m	struct:__anon7	access:public
+__anon7::head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon7	access:public
+__anon7::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon7	access:public
+__anon7::priority	libhccp.h	/^	unsigned char priority;$/;"	m	struct:__anon7	access:public
+__anon7::product_type	libhccp.h	/^	unsigned char product_type;$/;"	m	struct:__anon7	access:public
+__anon7::state	libhccp.h	/^	unsigned char state;$/;"	m	struct:__anon7	access:public
+__anon8::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon8	access:public
+__anon8::role	libhccp.h	/^	unsigned char role;$/;"	m	struct:__anon8	access:public
+__anon8::state	libhccp.h	/^	unsigned char state;$/;"	m	struct:__anon8	access:public
+__anon9::cluster_member	libhccp.h	/^	RSCP_cluster_member cluster_member[MAX_CLUSTER_AP];$/;"	m	struct:__anon9	access:public
+__anon9::config_sequence	libhccp.h	/^	unsigned char config_sequence;$/;"	m	struct:__anon9	access:public
+__anon9::count	libhccp.h	/^	unsigned char count;$/;"	m	struct:__anon9	access:public
+__anon9::head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon9	access:public
+__anon9::mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon9	access:public
+__anon9::priority	libhccp.h	/^	unsigned char priority;$/;"	m	struct:__anon9	access:public
+__anon9::product_type	libhccp.h	/^	unsigned char product_type;$/;"	m	struct:__anon9	access:public
+acs	libhccp.h	/^	ACS_format  acs;$/;"	m	union:data	access:public
+ap_priority	cluster_cor.c	/^    u_int64_t ap_priority;$/;"	m	union:cluster_priority	file:	access:public
+ap_priority	tools/show_member.c	/^	u_int64_t ap_priority;$/;"	m	union:cluster_priority	file:	access:public
+auth	cluster_cor.c	/^    uint32_t auth;    \/\/  0 is not ;1 is auth$/;"	m	struct:cluster_member	file:	access:public
+auth	cluster_cor.c	/^    uint32_t auth;$/;"	m	struct:table_auth	file:	access:public
+auth	cluster_cor.c	/^struct table_auth  auth[16];$/;"	v	typeref:struct:table_auth
+auth	tools/show_member.c	/^    uint32_t auth;    \/\/  0 is not ;1 is auth$/;"	m	struct:cluster_member	file:	access:public
+auth_cnt	cluster_cor.c	/^    uint32_t auth_cnt;$/;"	m	struct:table_entry	file:	access:public
+channel2	cluster_cor.c	/^    uint8_t channel2;$/;"	m	struct:cluster_nbr	file:	access:public
+channel5	cluster_cor.c	/^    uint8_t channel5;$/;"	m	struct:cluster_nbr	file:	access:public
+check	test/ppp.c	/^void  *check(void)$/;"	f	signature:(void)
+clusterID	cluster_cor.c	/^    uint32_t clusterID;$/;"	m	struct:hccphdr	file:	access:public
+clusterID	libhccp.h	/^	unsigned int clusterID;$/;"	m	struct:__anon2	access:public
+cluster_id	cluster_cor.c	/^    uint32_t cluster_id;$/;"	m	struct:cluster_member	file:	access:public
+cluster_id	tools/show_member.c	/^    uint32_t cluster_id;$/;"	m	struct:cluster_member	file:	access:public
+cluster_m_t	cluster_cor.c	/^} cluster_m_t;$/;"	t	typeref:struct:cluster_member	file:
+cluster_m_t	tools/show_member.c	/^} cluster_m_t;$/;"	t	typeref:struct:cluster_member	file:
+cluster_member	cluster_cor.c	/^typedef struct cluster_member {$/;"	s	file:
+cluster_member	libhccp.h	/^	RSCP_cluster_member cluster_member[MAX_CLUSTER_AP];$/;"	m	struct:__anon9	access:public
+cluster_member	tools/show_member.c	/^typedef struct cluster_member {$/;"	s	file:
+cluster_member::auth	cluster_cor.c	/^    uint32_t auth;    \/\/  0 is not ;1 is auth$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::auth	tools/show_member.c	/^    uint32_t auth;    \/\/  0 is not ;1 is auth$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::cluster_id	cluster_cor.c	/^    uint32_t cluster_id;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::cluster_id	tools/show_member.c	/^    uint32_t cluster_id;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::entry_mutex	cluster_cor.c	/^    pthread_mutex_t entry_mutex;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::entry_mutex	tools/show_member.c	/^    pthread_mutex_t entry_mutex;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::ip	cluster_cor.c	/^    uint8_t ip[4];$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::ip	tools/show_member.c	/^    uint8_t ip[4];$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::mac	cluster_cor.c	/^    uint8_t mac[6];$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::mac	tools/show_member.c	/^    uint8_t mac[6];$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::on	cluster_cor.c	/^    uint16_t  on;  \/\/  0 is alive  ;1 is delete$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::on	tools/show_member.c	/^    uint16_t  on;  \/\/  0 is alive  ;1 is delete$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::pre_free	cluster_cor.c	/^    uint32_t pre_free;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::pre_free	tools/show_member.c	/^    uint32_t pre_free;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::prio	cluster_cor.c	/^    CLUSTER_PRI prio;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::prio	tools/show_member.c	/^	CLUSTER_PRI prio;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::role	cluster_cor.c	/^    uint8_t role;  \/\/ pvc \/svc\/vc ? 1:2:3$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::role	tools/show_member.c	/^    uint8_t role;  \/\/ pvc \/svc\/vc ? 1:2:3$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::ssid	cluster_cor.c	/^    uint32_t ssid;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::ssid	tools/show_member.c	/^    uint32_t ssid;$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::state	cluster_cor.c	/^    uint8_t state;  \/\/ running ? or lost$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::state	tools/show_member.c	/^    uint8_t state;  \/\/ running ? or lost$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::timer	cluster_cor.c	/^    uint32_t timer; \/\/ ageing time  default 30s$/;"	m	struct:cluster_member	file:	access:public
+cluster_member::timer	tools/show_member.c	/^    uint32_t timer; \/\/ ageing time  default 30s$/;"	m	struct:cluster_member	file:	access:public
+cluster_nbr	cluster_cor.c	/^struct cluster_nbr {$/;"	s	file:
+cluster_nbr::channel2	cluster_cor.c	/^    uint8_t channel2;$/;"	m	struct:cluster_nbr	file:	access:public
+cluster_nbr::channel5	cluster_cor.c	/^    uint8_t channel5;$/;"	m	struct:cluster_nbr	file:	access:public
+cluster_nbr::mac	cluster_cor.c	/^    uint8_t mac[6];$/;"	m	struct:cluster_nbr	file:	access:public
+cluster_nbr::rssi	cluster_cor.c	/^    uint8_t rssi;$/;"	m	struct:cluster_nbr	file:	access:public
+cluster_nbr::rssi5	cluster_cor.c	/^    uint8_t rssi5;$/;"	m	struct:cluster_nbr	file:	access:public
+cluster_neighbor	libhccp.h	/^	RIRP_cluster_neighbor cluster_neighbor[MAX_CLUSTER_AP];$/;"	m	struct:__anon11	access:public
+cluster_priority	cluster_cor.c	/^typedef union cluster_priority {$/;"	u	file:
+cluster_priority	tools/show_member.c	/^typedef union cluster_priority$/;"	u	file:
+cluster_priority::ap_priority	cluster_cor.c	/^    u_int64_t ap_priority;$/;"	m	union:cluster_priority	file:	access:public
+cluster_priority::ap_priority	tools/show_member.c	/^	u_int64_t ap_priority;$/;"	m	union:cluster_priority	file:	access:public
+cluster_priority::prio	cluster_cor.c	/^    PRI prio;$/;"	m	union:cluster_priority	file:	access:public
+cluster_priority::prio	tools/show_member.c	/^	PRI prio;$/;"	m	union:cluster_priority	file:	access:public
+cluster_role	cluster_cor.c	/^typedef enum cluster_role {$/;"	g	file:
+cluster_state	cluster_cor.c	/^typedef enum cluster_state {$/;"	g	file:
+conf_seq	cluster_cor.c	/^    uint8_t conf_seq;$/;"	m	struct:rscphdr	file:	access:public
+conf_seq	cluster_cor.c	/^    uint8_t conf_seq;$/;"	m	struct:rsrphdr	file:	access:public
+conf_seq	test/recv.c	/^    uint8_t conf_seq;$/;"	m	struct:rsrphdr	file:	access:public
+conf_seq	test/send.c	/^    uint8_t conf_seq;$/;"	m	struct:rsrphdr	file:	access:public
+config_seq	cluster_cor.c	/^    u_int8_t config_seq;$/;"	m	struct:priority	file:	access:public
+config_seq	tools/show_member.c	/^	u_int8_t config_seq;$/;"	m	struct:priority	file:	access:public
+config_sequence	libhccp.h	/^	unsigned char config_sequence;$/;"	m	struct:__anon6	access:public
+config_sequence	libhccp.h	/^	unsigned char config_sequence;$/;"	m	struct:__anon7	access:public
+config_sequence	libhccp.h	/^	unsigned char config_sequence;$/;"	m	struct:__anon9	access:public
+count	cluster_cor.c	/^    uint8_t count;   \/\/ cluster member count$/;"	m	struct:rscphdr	file:	access:public
+count	cluster_cor.c	/^    uint8_t count;$/;"	m	struct:rirphdr	file:	access:public
+count	libhccp.h	/^	unsigned char count;$/;"	m	struct:__anon9	access:public
+count	test/test.c	/^int count=0;$/;"	v
+create_check_pvc_thread	cluster_cor.c	/^void *create_check_pvc_thread(void)$/;"	f	signature:(void)
+create_cluster_ageing_thread	cluster_cor.c	/^void *create_cluster_ageing_thread(void)$/;"	f	signature:(void)
+create_risp_recv_thread	cluster_cor.c	/^void *create_risp_recv_thread(void)$/;"	f	signature:(void)
+create_risp_send_thread	cluster_cor.c	/^void *create_risp_send_thread(void)$/;"	f	signature:(void)
+create_rscp_send_thread	cluster_cor.c	/^void *create_rscp_send_thread(void)$/;"	f	signature:(void)
+create_rsrp_recv_thread	cluster_cor.c	/^void *create_rsrp_recv_thread(void)$/;"	f	signature:(void)
+create_show_members_thread	cluster_cor.c	/^void *create_show_members_thread(void)$/;"	f	signature:(void)
+data	libhccp.h	/^typedef union data$/;"	u
+data::acs	libhccp.h	/^	ACS_format  acs;$/;"	m	union:data	access:public
+data::dbcp	libhccp.h	/^	DBCP_format dbcp;$/;"	m	union:data	access:public
+data::rirp	libhccp.h	/^	RIRP_format rirp;$/;"	m	union:data	access:public
+data::rscp	libhccp.h	/^	RSCP_format rscp;$/;"	m	union:data	access:public
+data::rsrp	libhccp.h	/^	RSRP_format rsrp;$/;"	m	union:data	access:public
+dbcp	libhccp.h	/^	DBCP_format dbcp;$/;"	m	union:data	access:public
+delete_auth_entry	cluster_cor.c	/^int delete_auth_entry(char *mac)$/;"	f	signature:(char *mac)
+delete_entry	cluster_cor.c	/^int  delete_entry(char  *mac)$/;"	f	signature:(char *mac)
+elect_svc	cluster_cor.c	/^int elect_svc(void)$/;"	f	signature:(void)
+entry	cluster_cor.c	/^cluster_m_t entry[ENTRY_SIZE];      \/\/  size  32*64 =2048$/;"	v
+entry	tools/show_member.c	/^cluster_m_t entry[ENTRY_SIZE];  $/;"	v
+entry_cnt	cluster_cor.c	/^    uint32_t entry_cnt;$/;"	m	struct:table_entry	file:	access:public
+entry_cnt	cluster_cor.c	/^int entry_cnt = 0;$/;"	v
+entry_mutex	cluster_cor.c	/^    pthread_mutex_t entry_mutex;$/;"	m	struct:cluster_member	file:	access:public
+entry_mutex	tools/show_member.c	/^    pthread_mutex_t entry_mutex;$/;"	m	struct:cluster_member	file:	access:public
+flags	cluster_cor.c	/^int flags = 0; \/\/ pvc :1 ; not pvc :0; svn or  vc$/;"	v
+flags	test/ppp.c	/^int flags=0;$/;"	v
+flags	tools/show_member.c	/^int flags=0;$/;"	v
+free_cnt	cluster_cor.c	/^    uint32_t free_cnt;$/;"	m	struct:table_entry	file:	access:public
+gSeqnum	acs.c	/^int gSeqnum = 1;$/;"	v
+get_cluster_covering	cluster_cor.c	/^int get_cluster_covering(void)$/;"	f	signature:(void)
+get_cluster_id	cluster_cor.c	/^void get_cluster_id()$/;"	f
+get_cluster_member	cluster_cor.c	/^int get_cluster_member(void)$/;"	f	signature:(void)
+get_mac	cluster_cor.c	/^void get_mac()$/;"	f
+get_priority	cluster_cor.c	/^void get_priority()$/;"	f
+get_pvc_info	cluster_cor.c	/^int  get_pvc_info(void)$/;"	f	signature:(void)
+get_state	cluster_cor.c	/^void get_state()$/;"	f
+get_svc_info	cluster_cor.c	/^int get_svc_info(void)$/;"	f	signature:(void)
+hccphdr	cluster_cor.c	/^struct hccphdr {$/;"	s	file:
+hccphdr	test/recv.c	/^struct hccphdr {$/;"	s	file:
+hccphdr	test/send.c	/^struct hccphdr {$/;"	s	file:
+hccphdr::ID	test/recv.c	/^    uint32_t  ID;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::ID	test/send.c	/^    uint32_t ID;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::clusterID	cluster_cor.c	/^    uint32_t clusterID;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::packet_len	cluster_cor.c	/^    uint16_t  packet_len;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::packet_len	test/recv.c	/^    uint16_t  packet_len;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::packet_len	test/send.c	/^    uint16_t  packet_len;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::sequence	cluster_cor.c	/^    uint16_t sequence;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::sequence	test/recv.c	/^    uint16_t sequence;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::sequence	test/send.c	/^    uint16_t sequence;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::type	cluster_cor.c	/^    uint8_t  type;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::type	test/recv.c	/^    uint8_t  type;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::type	test/send.c	/^    uint8_t  type;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::version	cluster_cor.c	/^    uint8_t  version;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::version	test/recv.c	/^    uint8_t  version;$/;"	m	struct:hccphdr	file:	access:public
+hccphdr::version	test/send.c	/^    uint8_t  version;$/;"	m	struct:hccphdr	file:	access:public
+head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon11	access:public
+head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon5	access:public
+head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon6	access:public
+head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon7	access:public
+head	libhccp.h	/^	HCCPHeaderValues head;$/;"	m	struct:__anon9	access:public
+insert_auth_entry	cluster_cor.c	/^int  insert_auth_entry(char *mac)$/;"	f	signature:(char *mac)
+insert_entry	cluster_cor.c	/^int  insert_entry(RSRP_format *rsrp)$/;"	f	signature:(RSRP_format *rsrp)
+ip	cluster_cor.c	/^    uint8_t ip[4];$/;"	m	struct:cluster_member	file:	access:public
+ip	tools/show_member.c	/^    uint8_t ip[4];$/;"	m	struct:cluster_member	file:	access:public
+load_config	cluster_cor.c	/^void load_config()$/;"	f
+local_sock_interface	cluster_cor.c	/^int  local_sock_interface(void)$/;"	f	signature:(void)
+mac	cluster_cor.c	/^    uint32_t mac;$/;"	m	struct:table_auth	file:	access:public
+mac	cluster_cor.c	/^    uint8_t mac[6];$/;"	m	struct:cluster_member	file:	access:public
+mac	cluster_cor.c	/^    uint8_t mac[6];$/;"	m	struct:cluster_nbr	file:	access:public
+mac	cluster_cor.c	/^    uint8_t mac[6];$/;"	m	struct:rirphdr	file:	access:public
+mac	cluster_cor.c	/^    uint8_t mac[6];$/;"	m	struct:role_entry	file:	access:public
+mac	cluster_cor.c	/^    uint8_t mac[6];$/;"	m	struct:rscphdr	file:	access:public
+mac	cluster_cor.c	/^    uint8_t mac[6];$/;"	m	struct:rsrphdr	file:	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon10	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon11	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon5	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon6	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon7	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon8	access:public
+mac	libhccp.h	/^	unsigned char mac[MAC_LEN];$/;"	m	struct:__anon9	access:public
+mac	test/recv.c	/^    uint8_t mac[6];$/;"	m	struct:rsrphdr	file:	access:public
+mac	test/send.c	/^    uint8_t mac[6];$/;"	m	struct:rsrphdr	file:	access:public
+mac	tools/show_member.c	/^    uint8_t mac[6];$/;"	m	struct:cluster_member	file:	access:public
+mac_tail	cluster_cor.c	/^    u_int8_t mac_tail[3];$/;"	m	struct:priority	file:	access:public
+mac_tail	tools/show_member.c	/^	u_int8_t mac_tail[3];$/;"	m	struct:priority	file:	access:public
+main	acs.c	/^int main(int argc, char *argv[])$/;"	f	signature:(int argc, char *argv[])
+main	cluster_cor.c	/^int main(int argc, char *argv[])$/;"	f	signature:(int argc, char *argv[])
+main	test/hello.c	/^int main(void)$/;"	f	signature:(void)
+main	test/ppp.c	/^int main(void)$/;"	f	signature:(void)
+main	test/ppp2.c	/^int main(void)$/;"	f	signature:(void)
+main	test/recv.c	/^int main(void)$/;"	f	signature:(void)
+main	test/send.c	/^int main(void)$/;"	f	signature:(void)
+main	test/test.c	/^int main(void)$/;"	f	signature:(void)
+main	tools/hello.c	/^int main(void)$/;"	f	signature:(void)
+main	tools/show_member.c	/^int main(int argc,void *argv[])$/;"	f	signature:(int argc,void *argv[])
+msgtype	libhccp.h	/^	unsigned short msgtype;$/;"	m	struct:__anon5	access:public
+neighbor_count	libhccp.h	/^	unsigned char neighbor_count;$/;"	m	struct:__anon11	access:public
+new_free	cluster_cor.c	/^    uint32_t new_free;$/;"	m	struct:table_entry	file:	access:public
+num	cluster_cor.c	/^    uint32_t num;$/;"	m	struct:table_auth	file:	access:public
+on	cluster_cor.c	/^    uint16_t  on;  \/\/  0 is alive  ;1 is delete$/;"	m	struct:cluster_member	file:	access:public
+on	tools/show_member.c	/^    uint16_t  on;  \/\/  0 is alive  ;1 is delete$/;"	m	struct:cluster_member	file:	access:public
+overload	cluster_cor.c	/^    u_int8_t overload[2];$/;"	m	struct:priority	file:	access:public
+overload	tools/show_member.c	/^	u_int8_t overload[2];$/;"	m	struct:priority	file:	access:public
+packet_len	cluster_cor.c	/^    uint16_t  packet_len;$/;"	m	struct:hccphdr	file:	access:public
+packet_len	test/recv.c	/^    uint16_t  packet_len;$/;"	m	struct:hccphdr	file:	access:public
+packet_len	test/send.c	/^    uint16_t  packet_len;$/;"	m	struct:hccphdr	file:	access:public
+pre_free	cluster_cor.c	/^    uint32_t pre_free;$/;"	m	struct:cluster_member	file:	access:public
+pre_free	tools/show_member.c	/^    uint32_t pre_free;$/;"	m	struct:cluster_member	file:	access:public
+prio	cluster_cor.c	/^    CLUSTER_PRI prio;$/;"	m	struct:cluster_member	file:	access:public
+prio	cluster_cor.c	/^    PRI prio;$/;"	m	union:cluster_priority	file:	access:public
+prio	cluster_cor.c	/^    uint8_t prio;$/;"	m	struct:rscphdr	file:	access:public
+prio	cluster_cor.c	/^    uint8_t prio;$/;"	m	struct:rsrphdr	file:	access:public
+prio	test/recv.c	/^    uint8_t prio;$/;"	m	struct:rsrphdr	file:	access:public
+prio	test/send.c	/^    uint8_t prio;$/;"	m	struct:rsrphdr	file:	access:public
+prio	tools/show_member.c	/^	CLUSTER_PRI prio;$/;"	m	struct:cluster_member	file:	access:public
+prio	tools/show_member.c	/^	PRI prio;$/;"	m	union:cluster_priority	file:	access:public
+priority	cluster_cor.c	/^    u_int8_t priority;$/;"	m	struct:priority	file:	access:public
+priority	cluster_cor.c	/^typedef struct priority {$/;"	s	file:
+priority	libhccp.h	/^	unsigned char priority;$/;"	m	struct:__anon6	access:public
+priority	libhccp.h	/^	unsigned char priority;$/;"	m	struct:__anon7	access:public
+priority	libhccp.h	/^	unsigned char priority;$/;"	m	struct:__anon9	access:public
+priority	tools/show_member.c	/^	u_int8_t priority;$/;"	m	struct:priority	file:	access:public
+priority	tools/show_member.c	/^typedef struct priority{$/;"	s	file:
+priority::config_seq	cluster_cor.c	/^    u_int8_t config_seq;$/;"	m	struct:priority	file:	access:public
+priority::config_seq	tools/show_member.c	/^	u_int8_t config_seq;$/;"	m	struct:priority	file:	access:public
+priority::mac_tail	cluster_cor.c	/^    u_int8_t mac_tail[3];$/;"	m	struct:priority	file:	access:public
+priority::mac_tail	tools/show_member.c	/^	u_int8_t mac_tail[3];$/;"	m	struct:priority	file:	access:public
+priority::overload	cluster_cor.c	/^    u_int8_t overload[2];$/;"	m	struct:priority	file:	access:public
+priority::overload	tools/show_member.c	/^	u_int8_t overload[2];$/;"	m	struct:priority	file:	access:public
+priority::priority	cluster_cor.c	/^    u_int8_t priority;$/;"	m	struct:priority	file:	access:public
+priority::priority	tools/show_member.c	/^	u_int8_t priority;$/;"	m	struct:priority	file:	access:public
+priority::product_type	cluster_cor.c	/^    u_int8_t product_type;$/;"	m	struct:priority	file:	access:public
+priority::product_type	tools/show_member.c	/^	u_int8_t product_type;$/;"	m	struct:priority	file:	access:public
+product_type	cluster_cor.c	/^    u_int8_t product_type;$/;"	m	struct:priority	file:	access:public
+product_type	libhccp.h	/^	unsigned char product_type;$/;"	m	struct:__anon6	access:public
+product_type	libhccp.h	/^	unsigned char product_type;$/;"	m	struct:__anon7	access:public
+product_type	libhccp.h	/^	unsigned char product_type;$/;"	m	struct:__anon9	access:public
+product_type	tools/show_member.c	/^	u_int8_t product_type;$/;"	m	struct:priority	file:	access:public
+protocolLen	libhccp.h	/^	unsigned short protocolLen;$/;"	m	struct:__anon2	access:public
+protocolType	libhccp.h	/^	unsigned char protocolType;$/;"	m	struct:__anon2	access:public
+protocolver	libhccp.h	/^	unsigned char protocolver;$/;"	m	struct:__anon2	access:public
+rirp	libhccp.h	/^	RIRP_format rirp;$/;"	m	union:data	access:public
+rirp_recv	cluster_cor.c	/^int rirp_recv(void)$/;"	f	signature:(void)
+rirp_send	cluster_cor.c	/^int rirp_send(void)$/;"	f	signature:(void)
+rirphdr	cluster_cor.c	/^struct  rirphdr {$/;"	s	file:
+rirphdr::count	cluster_cor.c	/^    uint8_t count;$/;"	m	struct:rirphdr	file:	access:public
+rirphdr::mac	cluster_cor.c	/^    uint8_t mac[6];$/;"	m	struct:rirphdr	file:	access:public
+role	cluster_cor.c	/^    uint8_t role;  \/\/ pvc \/svc\/vc ? 1:2:3$/;"	m	struct:cluster_member	file:	access:public
+role	cluster_cor.c	/^    uint8_t role;$/;"	m	struct:role_entry	file:	access:public
+role	libhccp.h	/^	unsigned char role;$/;"	m	struct:__anon8	access:public
+role	tools/show_member.c	/^    uint8_t role;  \/\/ pvc \/svc\/vc ? 1:2:3$/;"	m	struct:cluster_member	file:	access:public
+role_entry	cluster_cor.c	/^struct role_entry {$/;"	s	file:
+role_entry::mac	cluster_cor.c	/^    uint8_t mac[6];$/;"	m	struct:role_entry	file:	access:public
+role_entry::role	cluster_cor.c	/^    uint8_t role;$/;"	m	struct:role_entry	file:	access:public
+role_entry::state	cluster_cor.c	/^    uint8_t state;$/;"	m	struct:role_entry	file:	access:public
+rscp	libhccp.h	/^	RSCP_format rscp;$/;"	m	union:data	access:public
+rscp_recv	cluster_cor.c	/^int rscp_recv(void)$/;"	f	signature:(void)
+rscp_send	cluster_cor.c	/^int rscp_send(void)$/;"	f	signature:(void)
+rscphdr	cluster_cor.c	/^struct rscphdr {$/;"	s	file:
+rscphdr::conf_seq	cluster_cor.c	/^    uint8_t conf_seq;$/;"	m	struct:rscphdr	file:	access:public
+rscphdr::count	cluster_cor.c	/^    uint8_t count;   \/\/ cluster member count$/;"	m	struct:rscphdr	file:	access:public
+rscphdr::mac	cluster_cor.c	/^    uint8_t mac[6];$/;"	m	struct:rscphdr	file:	access:public
+rscphdr::prio	cluster_cor.c	/^    uint8_t prio;$/;"	m	struct:rscphdr	file:	access:public
+rscphdr::type	cluster_cor.c	/^    uint8_t type;$/;"	m	struct:rscphdr	file:	access:public
+rsrp	libhccp.h	/^	RSRP_format rsrp;$/;"	m	union:data	access:public
+rsrp_entry	test/send.c	/^struct rsrphdr rsrp_entry[512];$/;"	v	typeref:struct:rsrphdr
+rsrphdr	cluster_cor.c	/^struct rsrphdr {$/;"	s	file:
+rsrphdr	test/recv.c	/^struct rsrphdr {$/;"	s	file:
+rsrphdr	test/send.c	/^struct rsrphdr {$/;"	s	file:
+rsrphdr::conf_seq	cluster_cor.c	/^    uint8_t conf_seq;$/;"	m	struct:rsrphdr	file:	access:public
+rsrphdr::conf_seq	test/recv.c	/^    uint8_t conf_seq;$/;"	m	struct:rsrphdr	file:	access:public
+rsrphdr::conf_seq	test/send.c	/^    uint8_t conf_seq;$/;"	m	struct:rsrphdr	file:	access:public
+rsrphdr::mac	cluster_cor.c	/^    uint8_t mac[6];$/;"	m	struct:rsrphdr	file:	access:public
+rsrphdr::mac	test/recv.c	/^    uint8_t mac[6];$/;"	m	struct:rsrphdr	file:	access:public
+rsrphdr::mac	test/send.c	/^    uint8_t mac[6];$/;"	m	struct:rsrphdr	file:	access:public
+rsrphdr::prio	cluster_cor.c	/^    uint8_t prio;$/;"	m	struct:rsrphdr	file:	access:public
+rsrphdr::prio	test/recv.c	/^    uint8_t prio;$/;"	m	struct:rsrphdr	file:	access:public
+rsrphdr::prio	test/send.c	/^    uint8_t prio;$/;"	m	struct:rsrphdr	file:	access:public
+rsrphdr::type	cluster_cor.c	/^    uint8_t type;$/;"	m	struct:rsrphdr	file:	access:public
+rsrphdr::type	test/recv.c	/^    uint8_t type;$/;"	m	struct:rsrphdr	file:	access:public
+rsrphdr::type	test/send.c	/^    uint8_t type;$/;"	m	struct:rsrphdr	file:	access:public
+rssi	cluster_cor.c	/^    uint8_t rssi;$/;"	m	struct:cluster_nbr	file:	access:public
+rssi5	cluster_cor.c	/^    uint8_t rssi5;$/;"	m	struct:cluster_nbr	file:	access:public
+self_ap	cluster_cor.c	/^cluster_m_t  self_ap;$/;"	v
+send_rscp	cluster_cor.c	/^int  send_rscp(void)$/;"	f	signature:(void)
+seq_num	libhccp.h	/^	unsigned int seq_num;$/;"	m	struct:__anon5	access:public
+seqnum	libhccp.h	/^	unsigned short seqnum;$/;"	m	struct:__anon2	access:public
+sequence	cluster_cor.c	/^    uint16_t sequence;$/;"	m	struct:hccphdr	file:	access:public
+sequence	test/recv.c	/^    uint16_t sequence;$/;"	m	struct:hccphdr	file:	access:public
+sequence	test/send.c	/^    uint16_t sequence;$/;"	m	struct:hccphdr	file:	access:public
+show_entry	tools/show_member.c	/^cluster_m_t *show_entry;$/;"	v
+show_members_all	cluster_cor.c	/^void show_members_all(void)$/;"	f	signature:(void)
+show_members_all	tools/show_member.c	/^void show_members_all(cluster_m_t *entry)$/;"	f	signature:(cluster_m_t *entry)
+show_members_auth	cluster_cor.c	/^void  show_members_auth(void)$/;"	f	signature:(void)
+ssid	cluster_cor.c	/^    uint32_t ssid;$/;"	m	struct:cluster_member	file:	access:public
+ssid	tools/show_member.c	/^    uint32_t ssid;$/;"	m	struct:cluster_member	file:	access:public
+state	cluster_cor.c	/^    uint8_t state;  \/\/ running ? or lost$/;"	m	struct:cluster_member	file:	access:public
+state	cluster_cor.c	/^    uint8_t state;$/;"	m	struct:role_entry	file:	access:public
+state	libhccp.h	/^	unsigned char state;$/;"	m	struct:__anon7	access:public
+state	libhccp.h	/^	unsigned char state;$/;"	m	struct:__anon8	access:public
+state	tools/show_member.c	/^    uint8_t state;  \/\/ running ? or lost$/;"	m	struct:cluster_member	file:	access:public
+svc_appoint	cluster_cor.c	/^int  svc_appoint(void)$/;"	f	signature:(void)
+table	cluster_cor.c	/^struct table_entry table;$/;"	v	typeref:struct:table_entry
+table_auth	cluster_cor.c	/^struct table_auth {$/;"	s	file:
+table_auth::auth	cluster_cor.c	/^    uint32_t auth;$/;"	m	struct:table_auth	file:	access:public
+table_auth::mac	cluster_cor.c	/^    uint32_t mac;$/;"	m	struct:table_auth	file:	access:public
+table_auth::num	cluster_cor.c	/^    uint32_t num;$/;"	m	struct:table_auth	file:	access:public
+table_entry	cluster_cor.c	/^struct table_entry {$/;"	s	file:
+table_entry::auth_cnt	cluster_cor.c	/^    uint32_t auth_cnt;$/;"	m	struct:table_entry	file:	access:public
+table_entry::entry_cnt	cluster_cor.c	/^    uint32_t entry_cnt;$/;"	m	struct:table_entry	file:	access:public
+table_entry::free_cnt	cluster_cor.c	/^    uint32_t free_cnt;$/;"	m	struct:table_entry	file:	access:public
+table_entry::new_free	cluster_cor.c	/^    uint32_t new_free;$/;"	m	struct:table_entry	file:	access:public
+table_entry::table_mutex	cluster_cor.c	/^    pthread_mutex_t table_mutex;$/;"	m	struct:table_entry	file:	access:public
+table_mutex	cluster_cor.c	/^    pthread_mutex_t table_mutex;$/;"	m	struct:table_entry	file:	access:public
+test1	test/test.c	/^pthread_t  test1;$/;"	v
+test1_fun	test/test.c	/^void *test1_fun(void)$/;"	f	signature:(void)
+test2	test/ppp.c	/^void *test2(void)$/;"	f	signature:(void)
+test2	test/test.c	/^pthread_t test2;$/;"	v
+test2_fun	test/test.c	/^void *test2_fun(void)$/;"	f	signature:(void)
+test3	test/test.c	/^pthread_t test3;$/;"	v
+test3_fun	test/test.c	/^void* test3_fun(void)$/;"	f	signature:(void)
+test4	test/test.c	/^pthread_t test4;$/;"	v
+test4_fun	test/test.c	/^void* test4_fun(void)$/;"	f	signature:(void)
+test_read	test/ppp.c	/^void*test_read(void)$/;"	f	signature:(void)
+timer	cluster_cor.c	/^    uint32_t timer; \/\/ ageing time  default 30s$/;"	m	struct:cluster_member	file:	access:public
+timer	tools/show_member.c	/^    uint32_t timer; \/\/ ageing time  default 30s$/;"	m	struct:cluster_member	file:	access:public
+type	cluster_cor.c	/^    uint8_t  type;$/;"	m	struct:hccphdr	file:	access:public
+type	cluster_cor.c	/^    uint8_t type;$/;"	m	struct:rscphdr	file:	access:public
+type	cluster_cor.c	/^    uint8_t type;$/;"	m	struct:rsrphdr	file:	access:public
+type	libhccp.h	/^	unsigned char type;$/;"	m	struct:__anon12	access:public
+type	test/recv.c	/^    uint8_t  type;$/;"	m	struct:hccphdr	file:	access:public
+type	test/recv.c	/^    uint8_t type;$/;"	m	struct:rsrphdr	file:	access:public
+type	test/send.c	/^    uint8_t  type;$/;"	m	struct:hccphdr	file:	access:public
+type	test/send.c	/^    uint8_t type;$/;"	m	struct:rsrphdr	file:	access:public
+u	libhccp.h	/^	Hccp_Protocol_Union u;$/;"	m	struct:__anon12	access:public
+vc_auth	cluster_cor.c	/^int vc_auth(void)$/;"	f	signature:(void)
+vc_join	cluster_cor.c	/^int vc_join(void)$/;"	f	signature:(void)
+version	cluster_cor.c	/^    uint8_t  version;$/;"	m	struct:hccphdr	file:	access:public
+version	test/recv.c	/^    uint8_t  version;$/;"	m	struct:hccphdr	file:	access:public
+version	test/send.c	/^    uint8_t  version;$/;"	m	struct:hccphdr	file:	access:public

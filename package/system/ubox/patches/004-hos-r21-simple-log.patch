@@ -1,0 +1,277 @@
+--- a/log/logread.c
++++ b/log/logread.c
+@@ -34,6 +34,21 @@
+ #include <net/if.h>
+ #include <sys/ioctl.h>
+ #include <arpa/inet.h>
++#include <string.h>
++#include <errno.h>
++
++/* 远程syslog只支持配置一个, 否则发送详细log会有问题 */
++#define HOS_SIMPLE_LOG "_GOLSOH_"
++#define REMOTE_DEBUG_LOG_BUF_SIZE (1024*100)
++/* /tmp/log/ may be deleted!!!, use tmp instead, mkdir is commented */
++#define REMOTE_DEBUG_LOG_BUF_DIR "/tmp/"
++#define REMOTE_DEBUG_LOG_BUF_BASENAME "DEBUG_INFO"
++#define REMOTE_DEBUG_LOG_BUF_NAME  REMOTE_DEBUG_LOG_BUF_DIR REMOTE_DEBUG_LOG_BUF_BASENAME
++
++static int remote_debug_log_buf_fd;
++static int remote_debug_log_on;
++static pthread_mutex_t remote_debug_log_buf_lock = PTHREAD_MUTEX_INITIALIZER;
++
+ 
+ enum {
+ 	LOG_STDOUT,
+@@ -59,9 +74,25 @@ static const struct blobmsg_policy log_p
+ };
+ 
+ static struct uloop_timeout retry;
++static struct uloop_timeout remote_debug_log_sender;
+ static struct uloop_fd sender;
+ static const char *log_file, *log_ip, *log_port, *log_prefix, *pid_file, *hostname;
+ 
++
++
++static void remote_debug_log_handler(struct uloop_timeout *timeout)
++{
++	close(remote_debug_log_buf_fd);
++	remote_debug_log_buf_fd = -10;
++
++	system("cd " REMOTE_DEBUG_LOG_BUF_DIR ";"
++			"MAC_INFO=$(showsysinfo |grep MAC);"
++			"for f in " REMOTE_DEBUG_LOG_BUF_BASENAME "-${MAC_INFO:29:2}.${MAC_INFO:32:2}-*;"
++			"do tftp_server=`uci get upload_core.upload_core.server 2>/dev/null`;"
++			"tftp -pr $f $tftp_server 2>/dev/null; rm $f; done");
++}
++
++
+ /* zhouke add for hos-r21 support filter and kes_syslog */
+ static const char *log_module,*log_priority,*log_ifname;
+ #define KES_SYSLOG_PATH "/proc/kes_syslog"
+@@ -190,6 +221,58 @@ static void log_handle_fd(struct uloop_f
+ 	}
+ }
+ 
++/* should be protected by remote_debug_log_buf_lock */
++static void remote_debug_log_write(char *buf, int buflen)
++{
++	int l, len;
++	struct stat sb = {0};
++
++	/* open可能失败, resource not avaliable, 原因不明, 现在已经不能复现 */
++	if(remote_debug_log_buf_fd <= 0)
++	{
++		int reopen_i = 0;
++reopen:
++		//mkdir(REMOTE_DEBUG_LOG_BUF_DIR, 0);
++		remote_debug_log_buf_fd = open(REMOTE_DEBUG_LOG_BUF_NAME, O_CREAT|O_WRONLY|O_TRUNC, 0600);
++		if(remote_debug_log_buf_fd <= 0)
++		{
++			syslog(LOG_NOTICE, "Failed to create buffer file: %s\n", strerror(errno));
++			reopen_i++;
++			if(reopen_i > 5)
++			{
++				syslog(LOG_NOTICE, "Failed to recreate buffer file: %s\n", strerror(errno));
++				exit(1);
++			}
++			goto reopen;
++		}
++	}
++
++	l = len = 0;
++	do{
++		l = write(remote_debug_log_buf_fd, &buf[len], buflen-len);
++		if(l <= 0)
++		{
++			syslog(LOG_NOTICE, "write buffer file failed %s\n", strerror(errno));
++			break;
++		}
++		len += l;
++	}while(len < buflen);
++
++	fstat(remote_debug_log_buf_fd, &sb);
++	if(sb.st_size > REMOTE_DEBUG_LOG_BUF_SIZE)
++	{
++		close(remote_debug_log_buf_fd);
++		remote_debug_log_buf_fd = -10;
++
++		system("cd " REMOTE_DEBUG_LOG_BUF_DIR ";"
++				"MAC_INFO=$(showsysinfo |grep MAC);DATE=$(date +%Y.%m.%d-%H.%M.%S);"
++				"mv " REMOTE_DEBUG_LOG_BUF_BASENAME " " REMOTE_DEBUG_LOG_BUF_BASENAME "-${MAC_INFO:29:2}.${MAC_INFO:32:2}-$DATE;");
++
++		remote_debug_log_sender.cb = remote_debug_log_handler;
++		uloop_timeout_set(&remote_debug_log_sender, 10);
++	}
++}
++
+ static int log_notify(struct blob_attr *msg)
+ {
+ 	struct blob_attr *tb[__LOG_MAX];
+@@ -290,8 +373,43 @@ static int log_notify(struct blob_attr *
+ 
+ /* zhouke add end */
+ 
++	pthread_mutex_lock(&remote_debug_log_buf_lock);
++	if(remote_debug_log_on)
++	{
++		snprintf(buf, sizeof(buf), "%s %s.%s%s %s\n",
++				c, getcodetext(LOG_FAC(p) << 3, facilitynames), getcodetext(LOG_PRI(p), prioritynames),
++				(blobmsg_get_u32(tb[LOG_SOURCE])) ? ("") : (" kernel:"), m);
++
++		remote_debug_log_write(buf, strlen(buf));
++	}
++	pthread_mutex_unlock(&remote_debug_log_buf_lock);
++
+ 	if (log_type == LOG_NET) {
+-		int err;
++		int err, middle_offset, tmp_len;
++		char *middle, *m_backup;
++
++		m_backup = m;
++		if ((middle=strstr(m_backup, HOS_SIMPLE_LOG)) == NULL)
++		{
++			free(str);
++			return 0;
++		}
++
++		middle_offset = middle - m_backup;
++
++		tmp_len = strlen(m_backup);
++		m = malloc(tmp_len);
++		if(m == NULL)
++		{
++			free(str);
++			return 0;
++		}
++
++		/* delete HOS_SIMPLE_LOG */
++		memcpy(m, m_backup, middle_offset);
++		tmp_len -= sizeof(HOS_SIMPLE_LOG) - 1;
++		memcpy(m+middle_offset, m_backup+middle_offset+sizeof(HOS_SIMPLE_LOG)-1, tmp_len-middle_offset);
++		m[tmp_len] = 0;
+ 
+ 		snprintf(buf, sizeof(buf), "<%u>", p);
+ 		strncat(buf, c + 4, 16);
+@@ -352,6 +470,9 @@ static int log_notify(struct blob_attr *
+ 			sender.fd = -1;
+ 			uloop_timeout_set(&retry, 1000);
+ 		}
++
++		free(m);
++		m = m_backup;
+ 	} else {
+ 		snprintf(buf, sizeof(buf), "%s %s.%s%s %s\n",
+ 			c, getcodetext(LOG_FAC(p) << 3, facilitynames), getcodetext(LOG_PRI(p), prioritynames),
+@@ -417,6 +538,82 @@ static void logread_complete_cb(struct u
+ {
+ }
+ 
++static void _remote_debug_log_reload(void)
++{
++	FILE *fp;
++
++	fp = popen("uci get upload_core.upload_core.enable 2>/dev/null", "r");
++	if(fp != NULL)
++	{
++		int tmp, send_syslog;
++		char buf[4]={0};
++
++		fgets(buf, sizeof(buf), fp);
++		if(strncmp(buf, "1", 1) == 0)
++			tmp = 1;
++		else
++			tmp = 0;
++
++		pthread_mutex_lock(&remote_debug_log_buf_lock);
++
++		send_syslog = 0;
++		if(remote_debug_log_on == 0 && tmp == 1)
++			send_syslog = 1;
++
++		remote_debug_log_on = tmp;
++		if(!remote_debug_log_on)
++		{
++			close(remote_debug_log_buf_fd);
++			remote_debug_log_buf_fd = -11;
++			unlink(REMOTE_DEBUG_LOG_BUF_NAME);
++		}
++		pthread_mutex_unlock(&remote_debug_log_buf_lock);
++
++		if(send_syslog)
++		{
++			system("cd " REMOTE_DEBUG_LOG_BUF_DIR ";"
++					"MAC_INFO=$(showsysinfo |grep MAC);DATE=$(date +%Y.%m.%d-%H.%M.%S);"
++					"cp /proc/kes_syslog " REMOTE_DEBUG_LOG_BUF_BASENAME "-${MAC_INFO:29:2}.${MAC_INFO:32:2}-$DATE;");
++
++			remote_debug_log_sender.cb = remote_debug_log_handler;
++			uloop_timeout_set(&remote_debug_log_sender, 10);
++		}
++
++	}
++	pclose(fp);
++}
++
++static int remote_debug_log_reload(struct ubus_context *ctx, struct ubus_object *obj,
++		struct ubus_request_data *req, const char *method,
++		struct blob_attr *msg)
++{
++	_remote_debug_log_reload();
++	return 0;
++}
++
++
++static const struct ubus_method remote_debug_log_set_methods[] = {
++	UBUS_METHOD_NOARG("reload",   remote_debug_log_reload),
++};
++
++static struct ubus_object_type remote_debug_log_object_type = 
++UBUS_OBJECT_TYPE("remote_debug_log", remote_debug_log_set_methods);
++
++
++
++static struct ubus_object remote_debug_log_object = {
++	.name = "remote_debug_log",
++	.type = &remote_debug_log_object_type,
++	.methods = remote_debug_log_set_methods,
++	.n_methods = ARRAY_SIZE(remote_debug_log_set_methods),
++};
++
++	
++static void clean(void)
++{
++	unlink(REMOTE_DEBUG_LOG_BUF_NAME);
++}
++
+ int main(int argc, char **argv)
+ {
+ 	static struct ubus_request req;
+@@ -429,6 +626,8 @@ int main(int argc, char **argv)
+ 
+ 	signal(SIGPIPE, SIG_IGN);
+ 
++	atexit(clean);
++
+ 	while ((ch = getopt(argc, argv, "ufcs:l:r:F:p:S:P:h:i:m:o:")) != -1) {
+ 		switch (ch) {
+ 		case 'u':
+@@ -535,6 +734,20 @@ int main(int argc, char **argv)
+ 		req.complete_cb = logread_complete_cb;
+ 		ubus_complete_request_async(ctx, &req);
+ 
++		if(log_type == LOG_NET)
++		{
++			int ret;
++
++			ret = ubus_add_object(ctx, &remote_debug_log_object);
++			if (ret)
++			{
++				syslog(LOG_NOTICE, "Failed to add object: %s\n", ubus_strerror(ret));
++				exit(1);
++			}
++		}
++
++		_remote_debug_log_reload();
++
+ 		uloop_run();
+ 		ubus_free(ctx);
+ 		uloop_done();

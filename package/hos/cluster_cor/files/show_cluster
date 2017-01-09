@@ -1,0 +1,15 @@
+#!/bin/sh
+
+
+
+role=`cluster_mgt -x show=self | sed -n '/role/{n;p}' | awk '{print $3}'`
+                                                                             
+
+if [ "$role" == "PVC" ];
+then
+cluster_cli show
+else
+cluster_mgt -x show=mb_list
+fi 
+
+exit 0

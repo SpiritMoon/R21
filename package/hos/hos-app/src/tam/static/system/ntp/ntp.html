@@ -1,0 +1,100 @@
+<div class="panel" ng-class="{'border_purple':skin.isPurple, 'border_blue':skin.isBlue}" ng-controller="NTPContronller">
+	<div tooltip="{{'systemTime'|translate}}" tooltip-enable="{{helpTip.isEabled}}" class="panel-heading second_level_header" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+		<h3 class="panel-title">{{"systemtime"|translate}}</h3>
+	</div>
+	<div class="panel-body second_level_content">
+		<form class="form-horizontal" role="form" name="configurationForm">
+			<div class="form-group " style="line-height: 20px;">
+				<label class="col-md-4 control-label">{{"Date and Time"|translate}}:</label>
+				<div class="col-md-8"  ng-show="!apDateTimeConfig.showPickerFlag">
+					<div class="row">
+						<div class="col-md-10">
+							<p id="ntpDatetime" class="form-control-static" ></p>
+						</div>
+						<div class="col-md-2" style="height: 34px;line-height:30px;vertical-align:middle;">
+							<a class="glyphicon glyphicon-pencil pencil_color" display-permission='Permission_Admin' ng-if="apDateTimeConfig.modifyFlag" ng-click="showApDatetimePicker(true)"></a>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-8" ng-show="apDateTimeConfig.showPickerFlag"  style="height: 34px;line-height:30px;vertical-align:middle;align:left;" >
+					<div class='input-group date' id='apdatetimepicker' style="width:80%;float:left;">
+						<input type='text' class="form-control"/>
+						<span class="input-group-addon">
+							<span class="glyphicon glyphicon-calendar"></span>
+						</span>
+					</div>
+					&nbsp;
+					<a class="glyphicon glyphicon-ok" ng-click="modifyDatetime()"></a>
+					&nbsp;
+					<a class="glyphicon glyphicon-remove" ng-click="showApDatetimePicker(false)"></a>
+				</div>
+			</div>
+			<div class="form-group " style="line-height: 20px;">
+				<label class="col-md-4 control-label">{{"DayLight Saving Time"|translate}}:</label>
+				<div class="col-md-8"  style="height: 34px;line-height:30px;vertical-align:middle;align:left;" >
+					<span ng-if="userName!='Administrator'">{{daylightSwitch.switch|ntpSwitchFilter}}</span>
+					<span ng-if="userName=='Administrator'"><toggle-switch ng-disabled="daylightSwitch.enable"  ng-model="daylightSwitch.switch"  ng-change="configStatus()"></toggle-switch></span>
+				</div>
+			</div>
+			<div class="form-group" style="line-height: 20px;">
+				<label  class="col-md-4 control-label">{{"Time Zone"|translate}}:</label>
+				<div class="col-md-8"  ng-show="!apDateTimeConfig.showTimezoneSelectFlag">
+					<div class="row" >
+						<div class="col-md-10" style="padding-top: 7px; word-wrap: break-word; word-break: break-word;">
+							{{ntpConfig.timeZone |translate}}
+						</div>
+						<div class="col-md-2" style="height: 34px;line-height:30px;vertical-align:middle;">
+							<a class="glyphicon glyphicon-pencil pencil_color" display-permission='Permission_Admin'  ng-if="apDateTimeConfig.modifyFlag" ng-click="showTimezoneSelect(true)"></a>
+						</div>
+					</div>
+				</div>
+				<div class="col-md-8" ng-show="apDateTimeConfig.showTimezoneSelectFlag"  style="height: 34px;line-height:30px;vertical-align:middle;align:left;">
+					<div style="width:80%;float:left;" >
+						<select class="form-control" ng-model="apDateTimeConfig.selectTimeZone" 
+ 								ng-options="v| translate  for v in timeZoneArray"></select>
+					</div>
+					&nbsp;
+					<a class="glyphicon glyphicon-ok" ng-click="modifyTimezone()"></a>
+					&nbsp;
+					<a class="glyphicon glyphicon-remove" ng-click="showTimezoneSelect(false)"></a>
+				</div>
+			</div>
+			<div class="form-group" style="margin-bottom:0px;">
+				<label class="col-md-12 control-label">{{"NTP Server IP List"|translate}}:</label>
+			</div>
+			<div class="form-group" style="margin-bottom:0px;">
+				<div class="col-md-12">
+					<div style="height:150px;overflow:auto;margin-bottom:5px;">
+						<table class="table table-striped table-hover table-condensed">
+							<tr ng-repeat="ntpserver in ntpConfig.ntpServerList">
+								<td style="width: 65%;" class="ssidbreak">
+									<span ng-bind="ntpserver"></span>
+								</td>
+								<td>
+									<span  display-permission='Permission_Admin' ng-hide="$first" class="glyphicon glyphicon-arrow-up sort_color" style="cursor:pointer;" ng-click="Moveup($index)"></span>
+									<span  display-permission='Permission_Admin' ng-hide="$last" class="glyphicon glyphicon-arrow-down sort_color" style="cursor:pointer;" ng-click="Movedown($index)"></span>
+									<span  display-permission='Permission_Admin' class="glyphicon glyphicon-remove del_color" ng-click="removeNtpserver(ntpserver)" style="cursor:pointer;"></span>
+								</td>
+							</tr>
+						</table>
+					</div>
+				</div>
+			</div>
+		</form>
+		<form  role="form" display-permission='Permission_Admin' class="form-inline" name="addNTPServerForm" novalidate>
+
+			<div class="form-group">
+				<label class="control-label">{{"NTP Server"|translate}}:</label>
+				<input type="text" class="form-control input-sm" name="ntp_server" ng-model="NTP_ServerIP_Temp" placeholder="x.x.x.x"  ng-pattern="{{InterService.pattern.IPAndDomain}}" required>
+				<button class="btn btn-addbtn btn-xs" ng-click="AddNTPServerIP()" ng-disabled="addNTPServerForm.ntp_server.$invalid">{{"Add"|translate}}</button>
+			</div>
+			<div class="form-group">
+				<div ng-show="addNTPServerForm.ntp_server.$dirty && addNTPServerForm.ntp_server.$invalid">
+					<small class="text-danger" ng-show="addNTPServerForm.ntp_server.$error.pattern" ng-bind="InterService.validIPOrDomain()"></small>
+					<!--<small class="text-danger" ng-show="addNTPServerForm.ntp_server.$error.required" ng-bind="InterService.valueNotNull('NTP server')"></small>
+				-->
+			</div>
+		</div>
+	</form>
+</div>
+</div>

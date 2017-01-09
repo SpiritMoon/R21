@@ -1,0 +1,40 @@
+<div ui-view>
+    <div class="modal-header modal_type">
+        <h3 class="modal-title">{{"User Guide"|translate}}</h3>
+    </div>
+    <div class="modal-body">
+        <div class="div_title">
+            Step {{first}}&nbsp;&nbsp;&nbsp;&nbsp;{{"Update Password"|translate}}
+        </div>
+        <div class="row">
+            <form class="form-horizontal" role="form" name="changePassForm" novalidate>
+                <div class="form-group" ng-class="{'has-error': changePassForm.adminpass.$dirty && changePassForm.adminpass.$invalid}">
+                    <label class="control-label col-md-offset-2 col-md-2">{{"Passphrase"|translate}}:</label>
+                    <div class="col-md-6">
+                        <input type="password" name="adminpass" class="form-control" ng-model="updateParam.password" placeholder="4-16 chars(0-9a-zA-Z_)"  ng-pattern="{{regularExpression.pattern.ldu4To16}}" required onkeypress="javascript:if(event.keyCode==32)event.returnValue=false;">
+                    </div>
+                </div>
+                <div class="form-group" ng-show="changePassForm.adminpass.$dirty && changePassForm.adminpass.$invalid">
+                    <div class="col-md-offset-4">
+                        <small class="text-danger" ng-show="changePassForm.adminpass.$error.required" ng-bind="regularExpression.valueNotNull('password');"></small>
+                        <small class="text-danger" ng-show="changePassForm.adminpass.$error.pattern" ng-bind="regularExpression.adminPassTip();"></small>
+                    </div>
+                </div>
+                <div class="form-group" ng-class="{'has-error': changePassForm.adminpass_confirm.$dirty && changePassForm.adminpass_confirm.$invalid}">
+                    <label class="control-label col-md-offset-2 col-md-2">{{"Confirm"|translate}}:</label>
+                    <div class="col-md-6">
+                        <input type="password" name="adminpass_confirm" class="form-control" ng-model="updateParam.confirm" required repeat="adminpass" onkeypress="javascript:if(event.keyCode==32)event.returnValue=false;">
+                    </div>
+                </div>
+                <div class="form-group" ng-show="changePassForm.adminpass_confirm.$dirty && changePassForm.adminpass_confirm.$invalid">
+                    <div class="col-md-offset-4">
+                        <small class="text-danger" ng-show="changePassForm.adminpass_confirm.$error.repeat" ng-bind="regularExpression.passNotSame()"></small>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="firstStepOk()" ng-disabled="changePassForm.$invalid">{{"Save"|translate}}</button>
+    </div>
+</div>

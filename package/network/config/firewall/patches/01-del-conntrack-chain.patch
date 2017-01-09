@@ -1,0 +1,19 @@
+diff -urN a/defaults.c b/defaults.c
+--- a/defaults.c	2016-06-16 07:45:29.747903084 +0800
++++ b/defaults.c	2016-06-16 07:50:22.980061160 +0800
+@@ -250,11 +250,14 @@
+ 
+ 		for (i = 0; i < ARRAY_SIZE(chains); i += 2)
+ 		{
++/* zhouke del connect track chain for ACL rule is no effect */
++#if 0
+ 			r = fw3_ipt_rule_new(handle);
+ 			fw3_ipt_rule_extra(r, "-m conntrack --ctstate RELATED,ESTABLISHED");
+ 			fw3_ipt_rule_target(r, "ACCEPT");
+ 			fw3_ipt_rule_append(r, chains[i]);
+-
++#endif
++/* zhouke del end */
+ 			if (defs->drop_invalid)
+ 			{
+ 				r = fw3_ipt_rule_new(handle);

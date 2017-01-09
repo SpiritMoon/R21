@@ -1,0 +1,846 @@
+
+<div class="modal-header modal_type" ng-class="{'foldedlv1menupurple':skin.isPurple, 'foldedlv1menublue':skin.isBlue}">
+
+    <button ng-if="currentUser != 'GuestOperator'" type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="close()">&times;</button>
+    <div class="modal-title">{{"AuthenticationConf"|translate}}
+        <span ng-if="currentUser == 'GuestOperator'"  style="float: right"><a  ng-click="logoutToLoginPage()">{{"Logout"|translate}}</a></span>
+    </div>
+</div>
+<div class="modal-body">
+
+   <div class="row">
+        <div class="col-md-7">
+            <div class="detailBorder detailBgColor" style="height: 500px">
+                <!-- Captive Portal -->
+                <div class="row" style="padding-top:5px;padding-bottom:10px;">
+                    <div class="col-md-6 paddingL20">
+                        <tr>
+                            <td>{{"Captive Portal"|translate}}:</td>
+                            <td >
+                                <toggle-switch display-permission='Permission_Admin' ng-model="authenticationParams.CaptiveStatus" ng-change="setPortalSwitch()">
+                                </toggle-switch>
+                                <span display-permission='!Permission_Admin'>
+                                {{authenticationParams.CaptiveStatus | switchFilter}} </span>
+                            </td>
+                        </tr>
+                    </div>
+                    <div class="col-md-6">
+                        <button  operation-permission='Permission_Admin' type="button" class="btn btn-custommenu" style="float: right;" ng-click="ShowCustomizedPortal();" >{{"Customized Portal Page"|translate}} </button>
+                    </div>
+                </div>
+                <!-- Account AccessCode Termsofuser-->
+                <div class="row">
+                    <div class="col-md-12">
+                        <label class="col-md-3">{{"Login by"|translate}}:</label>
+                        <input operation-permission='Permission_Admin' type="radio" value="account" ng-model="Authconf.type" ng-change="setPortalType(1)">{{"Account"|translate}}</input>
+                        &nbsp;&nbsp;
+                        <input operation-permission='Permission_Admin' type="radio" value="accesscode" ng-model="Authconf.type" ng-change="setPortalType(2)">
+                        {{"Access Code"|translate}}</input>
+                        <input operation-permission='Permission_Admin' type="radio" value="terms" ng-model="Authconf.type" ng-change="setPortalType(3)">
+                        {{"Terms of use"|translate}}</input>
+                    </div>
+                </div>
+                <div class="row" style="margin-top:10px;">
+                    <div class="col-md-12">
+                        <form class="form-inline" role="form" novalidate>
+                            <label class="col-md-3" style="font-weight:bold;">{{"Redirect Url"|translate}}:</label>
+                            <span class="col-md-2">
+                                <toggle-switch  display-permission='Permission_Admin' ng-model="portalInfo.switch"  ng-change="configStatus()"></toggle-switch>
+                            </span>
+
+                            <input ng-if="currentUser=='Administrator'" ng-disabled="isFormat" ng-change="changeFormat()" type="text"  class="form-control input-sm" name="hostname" ng-model="portalInfo.url"   tooltip='{{"portalURLInfo"|translate}}'   tooltip-trigger="mouseenter" placeholder='{{"portalURLInfo"|translate}}'  required>&nbsp;&nbsp;
+                            <input ng-if="currentUser!='Administrator'" ng-disabled="true" ng-change="changeFormat()" type="text"  class="form-control input-sm" name="hostname" ng-model="portalInfo.url" tooltip='{{"portalURLInfo"|translate}}'  tooltip-trigger="mouseenter" placeholder='{{"portalURLInfo"|translate}}' required>&nbsp;&nbsp;
+
+                            <button ng-if="currentUser=='Administrator'" ng-disabled="checkbox_checked" class="btn btn-primary btn-xs " ng-click="setPortalCaptive()">{{"Save"|translate}}</button>
+                            <button ng-if="currentUser!='Administrator'" ng-disabled="true" class="btn btn-primary btn-xs" ng-click="setPortalCaptive()">{{"Save"|translate}}</button>
+                            <p ng-if="checkButton" style="color:red;height: 10px;">{{"portalURLInfo"|translate}}</p>
+                        </form>
+                    </div>
+                </div>
+                <div class="panel-body" >
+                    <div style=" margin-top: 2%;">
+                        <div ng-show="Authconf.type == 'account'" align="center">
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <table  class="table  table-hover table-condensed" style="margin-bottom: 0px;">
+                                        <thead ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}">
+                                        <tr>
+                                            <td style="width:30%" ng-click="col='UserName';desc=!desc">{{"UserName"|translate}}</td>
+                                            <td style="width:30%" ng-click="col='StartingDate';desc!=desc">{{"StartingDate"|translate}}</td>
+                                            <td style="width:30%;" ng-click="col='EndingDate';desc!=desc">{{"EndingDate"|translate}}</td>
+                                            <td style="width:10%">{{"Operate"|translate}}</td>
+                                        </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row" >
+                                <div class="col-md-12 " style="height:270px;overflow:auto;" id="Auth_account">
+                                    <table class="table table-condensed" >
+                                        <tbody>
+                                            <tr ng-repeat="selectUser in localUserList | orderBy:col:desc" high-light>
+                                                <td style="width:30%"  ng-click="ShowLocalUserDetail(selectUser);">
+                                                    <div class="self_adaptation_td" title="selectUser.UserName" ng-bind="selectUser.UserName"></div>
+                                                </td>
+                                                <td style="width:30%;" ng-bind="selectUser.StartingDate" ng-click="ShowLocalUserDetail(selectUser);">
+                                                    <div class="self_adaptation_td" title="selectUser.StartingDate" ng-bind="selectUser.StartingDate"></div>
+                                                </td>
+                                                <td style="width:30%;" ng-click="ShowLocalUserDetail(selectUser);">
+                                                    <div class="self_adaptation_td" title="selectUser.EndingDate" ng-bind="selectUser.EndingDate"></div>
+                                                </td>
+                                                <td style="width:10%">
+                                                    <span display-permission="!Permission_Viewer" class="glyphicon glyphicon-pencil pencil_color" ng-click="Show_Edit_Localauth_User(selectUser);"></span>
+                                                    <span display-permission='!Permission_Viewer' class="glyphicon glyphicon-remove del_color" ng-click="Delete_LocalUser(selectUser)"></span>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div style="float:left">
+                                        <button display-permission='!Permission_Viewer' type="button" class="btn btn-addbtn ng-binding" ng-click="ShowAddLocalUser();" ng-disabled="isGetTime">{{"Add"|translate}}</button><!-- -->
+                                        <!--<button operation-permission='!Permission_Viewer' type="button" class="btn btn-addbtn" ng-click="ShowBatchImport();">{{"BatchImport"|translate}}</button>-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ng-show="Authconf.type == 'accesscode'" align="center">
+                            <div class="row">
+                                <div class="col-md-12 ">
+                                    <table  class="table  table-hover table-condensed" style="margin-bottom: 0px;">
+                                        <thead ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}">
+                                        <tr>
+                                            <td style="width:70%" ng-click="col='access_code';desc=!desc">{{"Access Code"|translate}}</td>
+                                            <td style="width:30%">{{"Operate"|translate}}</td>
+                                        </tr>
+                                        </thead>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-12 " style="height:270px;overflow:auto;">
+                                    <table class="table table-striped table-hover table-condensed">
+                                        <tbody>
+                                        <tr ng-repeat="accesscode in accessCodeList | orderBy:col:desc">
+                                        <td style="width:80%" ng-bind="accesscode.access_code"></td>
+                                            <td style="width:20%">
+                                            <span display-permission='!Permission_Viewer' class="glyphicon glyphicon-remove del_color" ng-click="DelAccessCode(accesscode.access_code);"></span>
+                                            </td>
+                                        </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div style="float:left">
+                                        <button display-permission='!Permission_Viewer' type="button" class="btn btn-addbtn" ng-click="ShowAddAccessCode();">{{"Add"|translate}}</button>
+                                        <!--<button operation-permission='!Permission_Viewer' type="button" class="btn btn-custommenu" ng-click="ShowCodeImport();">{{"BatchImport"|translate}}</button>-->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div ng-show="Authconf.type == 'terms'" align="center">
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="detailBorder detailBgColor" style="margin-top:10px;height:100px;">
+                <div class="col-md-12 row marginT10">
+                    <label>{{"User Behavior"|translate}}:</label>
+                    <toggle-switch display-permission='Permission_Admin' class="marginL10" ng-model="tftpInfo.FTFPStatus" ng-change="setTftpSwitch()"></toggle-switch>
+                    <span display-permission='!Permission_Admin'>{{ tftpInfo.FTFPStatus | switchFilter }}</span>
+                </div>
+                <div class="row" style="margin-top: 15px">
+                    <div class="col-md-12">
+                        <form name="tftpServerForm" class="form-inline" role="form" novalidate>
+                            <div class="form-group" ng-class="{'has-error': tftpServerForm.tftp_server.$dirty &&tftpServerForm.tftp_server.$invalid}">
+                                <label for="tftp_server" ><span ng-if="tftpInfo.FTFPStatus" class="text-danger">*</span>{{"TFTP Server"|translate}}:</label>
+                                <input ng-if="tftpInfo.FTFPStatus" operation-permission='Permission_Admin' type="text" class="form-control input-sm inputWidth" id="tftp_server" name="tftp_server" ng-model="tftpInfo.TFTPIp"
+                                       placeholder="x.x.x.x" ng-pattern="{{InterService.pattern.IP}}" required tooltip="" title="{{tftpInfo.TFTPIp}}">
+                                <input ng-if="!tftpInfo.FTFPStatus" ng-disabled="!tftpInfo.FTFPStatus" type="text" class="form-control input-sm inputWidth"  name="tftp_server" ng-model="tftpInfo.TFTPIp"
+                                       placeholder="x.x.x.x" ng-pattern="{{InterService.pattern.IP}}" required tooltip="" title="{{tftpInfo.TFTPIp}}">
+                                <label >{{"Cycle"|translate}}:</label>
+                                <span ng-if = "userNameInfo !='Administrator'">
+                                    <select operation-permission='Permission_Admin'ng-change="changeCycleLevel()"  class="form-control input-sm" ng-model="cycleLevel" ng-options="obj.name for obj in tftpCycle" ng-disabled = 'true'></select>
+                                </span>
+                                <span ng-if = "userNameInfo =='Administrator'">
+                                    <select class="form-control input-sm" ng-change="changeCycleLevel()" ng-model="cycleLevel" ng-options="obj.name for obj in tftpCycle" ng-disabled="!tftpInfo.FTFPStatus"></select>
+                                </span>
+                                <button display-permission='Permission_Admin' class="btn btn-primary btn-xs" ng-click="saveTftpInfo()" ng-disabled="tftpServerForm.$invalid || !tftpInfo.FTFPStatus">{{"Save"|translate}}</button>
+                                <button display-permission='Permission_Admin' class="btn btn-custommenu btn-xs" ng-click="uploadTftpNow()" ng-disabled="tftpServerForm.$invalid || !tftpInfo.FTFPStatus">{{"Upload Now"|translate}}</button>
+                                <small class="text-danger" ng-show="tftpServerForm.tftp_server.$error.pattern" ng-bind="InterService.validIP()"></small>
+                            </div>
+                        </form>
+                    </div>
+                </div> 
+            </div>
+        </div>
+
+       <!-- Edit Area -->
+        <div class="col-md-5">
+            <div class="row">
+                <!--customized portal page -->
+                <div class="col-md-12 paddingL0" ng-show="customized_portal">
+                    <div class="text-center font16 authDetailHead" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+                        <span>{{"Customized Portal Page"|translate}}</span>
+                    </div>
+                    <div class="detailBorder detailBgColor authDetailBody overflowauto">
+                        <div class="row">
+                            <form class="form-inline marginT20 marginL15">
+                            <a ng-if="authenticationParams.CaptiveType==0" href="/internal_portal/portal_account_login.html" target="_blank" class="btn btn-custommenu btn-sm">{{"Preview"|translate}}</a>
+                            <a ng-if="authenticationParams.CaptiveType==1" href="/internal_portal/portal_accesscode_login.html" target="_blank" class="btn btn-custommenu btn-sm">{{"Preview"|translate}}</a>
+                            <a ng-if="authenticationParams.CaptiveType==2" href="/internal_portal/portal_item_use_login.html" target="_blank" class="btn btn-custommenu btn-sm">{{"Preview"|translate}}</a>
+                            <a href="#" ng-click="restoredefault()" class="btn btn-custommenu btn-sm">{{"Default"|translate}}</a>
+                                <!--<button class="btn btn-custommenu" ng-click="restoredefault()" >{{"Default"|translate}}</button>-->
+                            </form>
+                        </div>
+                        <div class="row marginT10">
+                            <div class="col-sm-12">
+                            <form class="form-horizontal" name="logo_page">
+                                <div>
+                                    <label  class="col-sm-12 text-danger control-label font16">{{"Note"|translate}}:{{"Customized_Portal_Page_Note1"|translate}}</label>
+                                </div>
+                                
+                                <div class="form-group col-sm-7" >
+                                    <label  class="col-sm-12">{{"Logo"|translate}}:</label>
+                                    <input type="file" nv-file-select="" uploader="logo" ng-click="clearlogo()" />
+                                    <ul>
+                                         <li ng-repeat="item in logo.queue">
+                                             <div ng-if="item.file.size/1024 > 10">{{"Size"|translate}}: {{ item.file.size/1024/1024|number:2 }} Mb</div>
+                                             <div ng-if="item.file.size/1024 <= 10">{{"Size"|translate}}: 0.01 Mb</div>
+                                             <div ng-show="logo.isHTML5">
+                                                 <div class="progress" style="margin-bottom: 0;">
+                                                     <div class="progress-bar" role="progressbar" ng-style="{ 'width': item.progress + '%' }"></div>
+                                                 </div>
+                                             </div>
+                                             <div>
+                                                 <br>
+                                                 <button class="btn btn-custommenu" style="padding-bottom:5px;" ng-click="uploadlogo(item)" >{{"Upload"|translate}}</button>
+                                             </div>
+                                         </li>
+                                     </ul>
+                                </div>
+                            </form>
+                            </div>
+                        </div>
+                        <div class="row marginT10">
+                            <div class="col-sm-12" style="padding-bottom:10px;">
+                            <form class="form-horizontal" name="logo_page">
+                                <div>
+                                    <label  class="col-sm-12 text-danger control-label font16">{{"Note"|translate}}:{{"Customized_Portal_Page_Note2"|translate}}</label>
+                                </div>
+                                <div class="form-group col-sm-7 panel-body "  style="height:120px" >
+                                    <label  class="col-sm-6">{{"Background"|translate}}:</label>
+                                    <input type="file" nv-file-select="" uploader="main" ng-click="clearmain()" />
+                                    <ul>
+                                         <li ng-repeat="item in main.queue">
+                                             <div ng-if="item.file.size/1024 > 10">{{"Size"|translate}}: {{ item.file.size/1024/1024|number:2 }} Mb</div>
+                                             <div ng-if="item.file.size/1024 <= 10">{{"Size"|translate}}: 0.01 Mb</div>
+                                             <div ng-show="main.isHTML5">
+                                                 <div class="progress" style="margin-bottom: 0;">
+                                                     <div class="progress-bar" role="progressbar" ng-style="{ 'width': item.progress + '%' }"></div>
+                                                 </div>
+                                             </div>
+                                             <div>
+                                                 <br>
+                                                 <button class="btn btn-custommenu" ng-click="uploadmain(item)" >{{"Upload"|translate}}</button>
+                                             </div>
+                                         </li>
+                                     </ul>
+                                </div>
+                            </form>
+                            </div>
+                        </div>
+                        <div class="row marginT10">
+                            <div class="col-sm-12">
+                            <form class="form-horizontal" name="logo_page">
+                                <div>
+                                    <label  class="col-sm-12 text-danger control-label font16">{{"Note"|translate}}:{{"Customized_Portal_Page_Note3"|translate}}</label>
+                                </div>
+                            
+                                <div class="form-group col-sm-7 panel-body "  style="height:120px" >
+                                    <label  class="col-sm-8">{{"Terms of use"|translate}}:</label>
+                                    <input type="file" nv-file-select="" uploader="license" ng-click="clearlicense()" />
+                                    <ul>
+                                         <li ng-repeat="item in license.queue">
+                                             <div ng-if="item.file.size/1024 > 10">{{"Size"|translate}}: {{ item.file.size/1024/1024|number:2 }} Mb</div>
+                                             <div ng-if="item.file.size/1024 <= 10">{{"Size"|translate}}: 0.01 Mb</div>
+                                             <div ng-show="license.isHTML5">
+                                                 <div class="progress" style="margin-bottom: 0;">
+                                                     <div class="progress-bar" role="progressbar" ng-style="{ 'width': item.progress + '%' }"></div>
+                                                 </div>
+                                             </div>
+                                             <div>
+                                                 <br>
+                                                 <button class="btn btn-custommenu" ng-click="uploadlicense(item)" >{{"Upload"|translate}}</button>
+                                             </div>
+                                         </li>
+                                     </ul>
+                                </div>
+                            </form>
+                            </div>
+                        </div>
+                        <div class="col-sm-offset-8">
+                            <!--<button type="button" class="btn btn-default">Save</button>-->
+                            <button type="button" class="btn btn-warning" ng-click="Cancel();">{{"Cancel"|translate}}</button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Add Local User -->
+                <div class="col-md-12 paddingL0" ng-show="add_local_auth_user">
+                    <div class="text-center font16 authDetailHead" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+                            <span class="font16">{{"Add Local Auth User"|translate}}</span>
+                    </div>
+                    <div class="detailBorder detailBgColor authDetailBody overflowauto">
+                        <form class="form-horizontal marginT20"  role="form" name="add_localauth_user" novalidate>
+                            <div class="form-group" ng-class="{'has-error': add_localauth_user.local_username.$dirty && add_localauth_user.local_username.$invalid}">
+                                <label for="local_username" class="col-sm-4 control-label"><span class="text-danger">*</span>{{"UserName"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-sm" id="local_username"  name="local_username" ng-model="localUserListTemp.UserName" placeholder='{{"authAddUsernamePla"|translate}}' tooltip='{{"authAddUsernameTool"|translate}}' tooltip-placement="bottom"
+                                           tooltip-trigger="mouseenter" ng-minlength=4  ng-maxlength=16  ng-pattern="{{InterService.pattern.ldu4To16}}"  required><!-- -->
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="add_localauth_user.local_username.$dirty && add_localauth_user.local_username.$invalid ">
+                                <div class="col-sm-12 ssidbreak" ng-show="add_localauth_user.local_username.$dirty && add_localauth_user.local_username.$invalid ">
+                                    <small  class="text-danger " ng-show="add_localauth_user.local_username.$error.required" ng-bind="InterService.valueNotNull('username')"></small>
+                                    <small class="text-danger" ng-show="add_localauth_user.local_username.$error.pattern" ng-bind="InterService.lduLengthRangeTip(4,16)"></small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': add_localauth_user.local_userpass.$dirty && add_localauth_user.local_userpass.$invalid}">
+                                <label for="local_userpass" class="col-sm-4 control-label"><span class="text-danger">*</span>{{"Passphrase"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                                    <input type="password" class="form-control input-sm" id="local_userpass" name="local_userpass" ng-model="localUserListTemp.Password"
+                                           placeholder='{{"authAddPasswordPla"|translate}}' tooltip='{{"authAddPasswordTool"|translate}}' tooltip-trigger="mouseenter"
+                                           ng-minlength="4" ng-maxlength="16" ng-pattern="{{InterService.pattern.passwordInfo}}" required>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="add_localauth_user.local_userpass.$dirty && add_localauth_user.local_userpass.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="add_localauth_user.local_userpass.$dirty && add_localauth_user.local_userpass.$invalid">
+                                    <small  class="text-danger" ng-show="add_localauth_user.local_userpass.$error.required" ng-bind="InterService.valueNotNull('password')">{{InterService.errorTip.passnull}}</small>
+                                    <small class="text-danger" ng-show="add_localauth_user.local_userpass.$error.pattern" ng-bind="InterService.lduLengthRangeTipDemo(4,16)"></small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': add_localauth_user.local_userpass_confirm.$dirty && add_localauth_user.local_userpass_confirm.$invalid}">
+                                <label for="local_userpass_confirm" class="col-sm-4 control-label"><span class="text-danger">*</span>{{"Confirm"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                                    <input type="password" class="form-control input-sm" id="local_userpass_confirm" name="local_userpass_confirm" ng-model="localUserListTemp.PasswordConfirm"
+                                           placeholder='{{"authAddPasswordPla"|translate}}' tooltip='{{"authAddPasswordTool"|translate}}' tooltip-trigger="mouseenter" repeat="local_userpass" required>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="add_localauth_user.local_userpass_confirm.$dirty  && add_localauth_user.local_userpass_confirm.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="add_localauth_user.local_userpass_confirm.$dirty  && add_localauth_user.local_userpass_confirm.$invalid">
+                                    <small class="text-danger" ng-show="add_localauth_user.local_userpass_confirm.$error.repeat" ng-bind="InterService.passNotSame()"></small>
+                                </div>
+                            </div>
+                           <!-- <div class="form-group">
+                                <label for="localuser_group" class="col-sm-4 control-label">{{"Group"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <select class="form-control" ng-options="option for option in LocalUserGroupType"  ng-model="localUserListTemp.Group" id="localuser_group"></select>
+                                </div>
+                            </div>-->
+                            <div class="form-group" ng-class="{'has-error': add_localauth_user.local_firstname.$dirty && add_localauth_user.local_firstname.$invalid}">
+                                <label class="col-sm-4 control-label">{{"FirstName"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-sm" name="local_firstname" ng-model="localUserListTemp.FirstName"
+                                           placeholder='{{"authAddFirstNamePla"|translate}}' tooltip='{{"authAddFirstNameTool"|translate}}' tooltip-trigger="mouseenter" tooltip-placement="top" ng-pattern="{{InterService.pattern.FirstName}}" >
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="add_localauth_user.local_firstname.$dirty && add_localauth_user.local_firstname.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="add_localauth_user.local_firstname.$dirty && add_localauth_user.local_firstname.$invalid">
+                                    <small class="text-danger" ng-show="add_localauth_user.local_firstname.$error.pattern">{{"validFirstname"|translate}}</small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': add_localauth_user.local_lastname.$dirty && add_localauth_user.local_lastname.$invalid}">
+                                <label class="col-sm-4 control-label">{{"LastName"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-sm" name="local_lastname" ng-model="localUserListTemp.LastName" placeholder='{{"authAddFirstNamePla"|translate}}'
+                                           tooltip='{{"authAddFirstNameTool"|translate}}' tooltip-trigger="mouseenter" tooltip-placement="top" ng-pattern="{{InterService.pattern.LastName}}" >
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="add_localauth_user.local_lastname.$dirty && add_localauth_user.local_lastname.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="add_localauth_user.local_lastname.$dirty && add_localauth_user.local_lastname.$invalid">
+                                    <small class="text-danger" ng-show="add_localauth_user.local_lastname.$error.pattern">{{"validLastname"|translate}}</small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': add_localauth_user.local_mail.$dirty && add_localauth_user.local_mail.$invalid}">
+                                <label class="col-sm-4 control-label">{{"Mail"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-sm" name="local_mail" ng-model="localUserListTemp.Mail"
+                                           placeholder='{{"authAddMailPla"|translate}}' tooltip='{{"authAddMailTool"|translate}}' tooltip-trigger="mouseenter" tooltip-placement="top"
+                                           ng-pattern="{{InterService.pattern.Mail}}" ng-change="checkMail(localUserListTemp.Mail)">
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="add_localauth_user.local_mail.$dirty && add_localauth_user.local_mail.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="add_localauth_user.local_mail.$dirty && add_localauth_user.local_mail.$invalid">
+                                    <small class="text-danger" ng-show="add_localauth_user.local_mail.$error.pattern">{{"validMail"|translate}}</small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="localuser_param_error">
+                                <div class="col-sm-12 ssidbreak" ng-show="mailError">
+                                    <small class="text-danger" ng-show="mailError">{{"MailTooLong"|translate}}</small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': add_localauth_user.local_phone.$dirty && add_localauth_user.local_phone.$invalid}">
+                                <label class="col-sm-4 control-label">{{"Phone"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-sm" name="local_phone" ng-model="localUserListTemp.Phone"
+                                           placeholder='{{"authAddPhonePla"|translate}}' tooltip='{{"authAddPhoneTool"|translate}}' tooltip-trigger="mouseenter" tooltip-placement="top"  ng-pattern="{{InterService.pattern.Phone}}">
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="add_localauth_user.local_phone.$dirty && add_localauth_user.local_phone.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="add_localauth_user.local_phone.$dirty && add_localauth_user.local_phone.$invalid">
+                                    <small class="text-danger" ng-show="add_localauth_user.local_phone.$error.pattern">{{"validPhone"|translate}}</small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': add_localauth_user.local_company.$dirty && add_localauth_user.local_company.$invalid}">
+                                <label class="col-sm-4 control-label">{{"Company"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-sm" name="local_company" ng-model="localUserListTemp.Company"
+                                           placeholder='{{"authAddCompanyPla"|translate}}' tooltip='{{"authAddCompanyTool"|translate}}' tooltip-trigger="mouseenter"
+                                           tooltip-placement="top" ng-pattern="{{InterService.pattern.Company}}" >
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="add_localauth_user.local_company.$dirty && add_localauth_user.local_company.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="add_localauth_user.local_company.$dirty && add_localauth_user.local_company.$invalid">
+                                    <small class="text-danger" ng-show="add_localauth_user.local_company.$error.pattern">{{"validCompany"|translate}}</small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': add_localauth_user.local_startdate.$dirty && add_localauth_user.local_startdate.$invalid}">
+                                <label class="col-sm-4 control-label"><span class="text-danger">*</span>{{"StartingDate"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <!--<input type="text" class="class='input-group date'" name="local_startdate" ng-model="localUserListTemp.StartingDate">-->
+                                    <div class='input-group date' id='add_startdatepicker'>
+                                        <input type='text' class="form-control" id="add_start_date_value" readonly="readonly"/>
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="add_localauth_user.local_startdate.$dirty && add_localauth_user.local_startdate.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="add_localauth_user.local_startdate.$dirty && add_localauth_user.local_startdate.$invalid">
+                                    <small class="text-danger" ng-show="add_localauth_user.local_startdate.$error.pattern"></small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': add_localauth_user.local_enddate.$dirty && add_localauth_user.local_enddate.$invalid}">
+                                <label class="col-sm-4 control-label"><span class="text-danger">*</span>{{"EndingDate"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <!--<input type="text" class="form-control input-sm" name="local_enddate" ng-model="localUserListTemp.EndgingDate">-->
+                                    <div class='input-group date' id='add_enddatepicker'>
+                                        <span>
+                                            <input type='text' class="form-control" id="add_end_date_value" readonly="readonly" />
+                                        </span>
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="add_localauth_user.local_enddate.$dirty && add_localauth_user.local_enddate.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="add_localauth_user.local_enddate.$dirty && add_localauth_user.local_enddate.$invalid">
+                                    <small class="text-danger" ng-show="add_localauth_user.local_enddate.$error.pattern"></small>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-7">
+                                    <button type="button" ng-click="Cancel()" class="btn btn-warning">{{"Cancel"|translate}}</button>
+                                    <button type="button" ng-click="Add_Localauth_User(localUserListTemp)" class="btn btn-primary" ng-disabled="add_localauth_user.$invalid || localuser_param_error">{{"Save"|translate}}</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- Local User Detail-->
+                <div class="col-md-12 paddingL0" ng-show="localuser_detail">
+                    <div class="text-center font16 authDetailHead" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+                        <span class="font16">{{"LocalUserDetail"|translate}}</span>
+                    </div>
+                    <div class="detailBorder detailBgColor authDetailBody">
+                        <form role="form" class="form-horizontal marginT20" name="localuserdetail">
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">{{"UserName"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <p class="form-control-static ssidbreak" ng-bind="localUserListTemp.UserName"></p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">{{"FirstName"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <p class="form-control-static ssidbreak" ng-bind="localUserListTemp.FirstName"></p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">{{"LastName"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <p class="form-control-static ssidbreak" ng-bind="localUserListTemp.LastName"></p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">{{"Mail"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <p class="form-control-static ssidbreak" ng-bind="localUserListTemp.Mail"></p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">{{"Phone"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <p class="form-control-static ssidbreak" ng-bind="localUserListTemp.Phone"></p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">{{"Company"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <p class="form-control-static ssidbreak" ng-bind="localUserListTemp.Company"></p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">{{"StartingDate"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <p class="form-control-static ssidbreak" ng-bind="localUserListTemp.StartingDate"></p>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label class="col-sm-4 control-label">{{"EndingDate"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <p class="form-control-static ssidbreak" ng-bind="localUserListTemp.EndingDate"></p>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- Edit Local User  -->
+                <div class="col-md-12 paddingL0" ng-show="edit_local_auth_user">
+                    <div class="text-center font16 authDetailHead" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+                        <span class="font16">{{"Edit Local Auth User"|translate}}</span>
+                    </div>
+                    <div class="detailBorder detailBgColor authDetailBody overflowauto">
+                        <form class="form-horizontal marginT20"  role="form" name="edit_localauth_user" novalidate>
+                            <div class="form-group" ng-class="{'has-error': edit_localauth_user.edit_username.$dirty && edit_localauth_user.edit_username.$invalid}">
+                                <label for="local_username" class="col-sm-4 control-label"><span class="text-danger">*</span>{{"UserName"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-sm"  name="edit_username" ng-model="localUserListTemp.UserName" placeholder='{{"authAddUsernamePla"|translate}}}' tooltip='{{"authAddUsernameTool"|translate}}' tooltip-placement="bottom"
+                                           tooltip-trigger="mouseenter" ng-minlength=4  ng-maxlength=16  ng-pattern="{{InterService.pattern.ldu4To16}}"  required><!-- -->
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="edit_localauth_user.edit_username.$dirty && edit_localauth_user.edit_username.$invalid ">
+                                <div class="col-sm-12 ssidbreak" ng-show="edit_localauth_user.edit_username.$dirty && edit_localauth_user.edit_username.$invalid ">
+                                    <small  class="text-danger " ng-show="edit_localauth_user.edit_username.$error.required" ng-bind="InterService.valueNotNull('username')"></small>
+                                    <small class="text-danger" ng-show="edit_localauth_user.edit_username.$error.pattern" ng-bind="InterService.lduLengthRangeTip(4,16)"></small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': edit_localauth_user.edit_userpass.$dirty && edit_localauth_user.edit_userpass.$invalid}">
+                                <label for="local_userpass" class="col-sm-4 control-label"><span class="text-danger">*</span>{{"Passphrase"|translate}}:</label>
+                                <div class="col-sm-7">
+                                    <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                                    <input type="password" class="form-control input-sm" name="edit_userpass" ng-model="localUserListTemp.Password"
+                                           placeholder='{{"authAddPasswordPla"|translate}}' tooltip='{{"authAddPasswordTool"|translate}}' tooltip-trigger="mouseenter"
+                                           ng-minlength="4" ng-maxlength="16" ng-pattern="{{InterService.pattern.passwordInfo}}"  required>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="edit_localauth_user.edit_userpass.$dirty && edit_localauth_user.edit_userpass.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="edit_localauth_user.edit_userpass.$dirty && edit_localauth_user.edit_userpass.$invalid">
+                                    <small  class="text-danger" ng-show="edit_localauth_user.edit_userpass.$error.required" ng-bind="InterService.valueNotNull('password')">{{InterService.errorTip.passnull}}</small>
+                                    <small class="text-danger" ng-show="edit_localauth_user.edit_userpass.$error.pattern" ng-bind="InterService.lduLengthRangeTipDemo(4,16)"></small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': edit_localauth_user.edit_userpass_confirm.$dirty && edit_localauth_user.edit_userpass_confirm.$invalid}">
+                                <label for="local_userpass_confirm" class="col-sm-4 control-label"><span class="text-danger">*</span>Confirm:</label>
+                                <div class="col-sm-7">
+                                    <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                                    <input type="password" class="form-control input-sm"  name="edit_userpass_confirm" ng-model="localUserListTemp.PasswordConfirm"
+                                           placeholder='{{"authAddPasswordPla"|translate}}' tooltip='{{"authAddPasswordTool"|translate}}' tooltip-trigger="mouseenter" repeat="edit_userpass" required>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="edit_localauth_user.edit_userpass_confirm.$dirty  && edit_localauth_user.edit_userpass_confirm.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="edit_localauth_user.edit_userpass_confirm.$dirty  && edit_localauth_user.edit_userpass_confirm.$invalid">
+                                    <small class="text-danger" ng-show="edit_localauth_user.edit_userpass_confirm.$error.repeat" ng-bind="InterService.passNotSame()"></small>
+                                </div>
+                            </div>
+                            <!-- <div class="form-group">
+                                 <label for="localuser_group" class="col-sm-4 control-label">{{"Group"|translate}}:</label>
+                                 <div class="col-sm-7">
+                                     <select class="form-control" ng-options="option for option in LocalUserGroupType"  ng-model="localUserListTemp.Group" id="localuser_group"></select>
+                                 </div>
+                             </div>-->
+                            <div class="form-group" ng-class="{'has-error': edit_localauth_user.edit_firstname.$dirty && edit_localauth_user.edit_firstname.$invalid}">
+                                <label class="col-sm-4 control-label">{{"FirstName"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-sm" name="edit_firstname" ng-model="localUserListTemp.FirstName"
+                                           placeholder='{{"authAddFirstNamePla"|translate}}' tooltip='{{"authAddFirstNameTool"|translate}}' tooltip-trigger="mouseenter" tooltip-placement="top" ng-pattern="{{InterService.pattern.FirstName}}" >
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="edit_localauth_user.edit_firstname.$dirty && edit_localauth_user.edit_firstname.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="edit_localauth_user.edit_firstname.$dirty && edit_localauth_user.edit_firstname.$invalid">
+                                    <small class="text-danger" ng-show="edit_localauth_user.edit_firstname.$error.pattern">{{"validFirstname"|translate}}</small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': edit_localauth_user.edit_lastname.$dirty && edit_localauth_user.edit_lastname.$invalid}">
+                                <label class="col-sm-4 control-label">{{"LastName"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-sm" name="edit_lastname" ng-model="localUserListTemp.LastName" placeholder='{{"authAddFirstNamePla"|translate}}' tooltip='{{"authAddFirstNameTool"|translate}}'  tooltip-trigger="mouseenter" tooltip-placement="top" ng-pattern="{{InterService.pattern.LastName}}" >
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="edit_localauth_user.edit_lastname.$dirty && edit_localauth_user.edit_lastname.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="edit_localauth_user.edit_lastname.$dirty && edit_localauth_user.edit_lastname.$invalid">
+                                    <small class="text-danger" ng-show="edit_localauth_user.edit_lastname.$error.pattern">{{"validLastname"|translate}}</small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': edit_localauth_user.edit_mail.$dirty && edit_localauth_user.edit_mail.$invalid}">
+                                <label class="col-sm-4 control-label">{{"Mail"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-sm" name="edit_mail" ng-model="localUserListTemp.Mail"
+                                           placeholder='{{"authAddMailPla"|translate}}' tooltip='{{"authAddMailTool"|translate}}'  tooltip-trigger="mouseenter" tooltip-placement="top"
+                                           ng-pattern="{{InterService.pattern.Mail}}" ng-change="checkMail(localUserListTemp.Mail)">
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="edit_localauth_user.edit_mail.$dirty && edit_localauth_user.edit_mail.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="edit_localauth_user.edit_mail.$dirty && edit_localauth_user.edit_mail.$invalid">
+                                    <small class="text-danger" ng-show="edit_localauth_user.edit_mail.$error.pattern">{{"validMail"|translate}}</small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="mailError">
+                                <div class="col-sm-12 ssidbreak" ng-show="mailError">
+                                    <small class="text-danger" ng-show="mailError">{{"MailTooLong"|translate}}</small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': edit_localauth_user.edit_phone.$dirty && edit_localauth_user.edit_phone.$invalid}">
+                                <label class="col-sm-4 control-label">{{"Phone"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-sm" name="edit_phone" ng-model="localUserListTemp.Phone"
+                                           placeholder='{{"authAddPhonePla"|translate}}' tooltip='{{"authAddPhoneTool"|translate}}' tooltip-trigger="mouseenter" tooltip-placement="top"  ng-pattern="{{InterService.pattern.Phone}}">
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="edit_localauth_user.edit_phone.$dirty && edit_localauth_user.edit_phone.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="edit_localauth_user.edit_phone.$dirty && edit_localauth_user.edit_phone.$invalid">
+                                    <small class="text-danger" ng-show="edit_localauth_user.edit_phone.$error.pattern">{{"validPhone"|translate}}</small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': edit_localauth_user.edit_company.$dirty && edit_localauth_user.edit_company.$invalid}">
+                                <label class="col-sm-4 control-label">{{"Company"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <input type="text" class="form-control input-sm" name="edit_company" ng-model="localUserListTemp.Company"
+                                           placeholder='{{"authAddCompanyPla"|translate}}' tooltip='{{"authAddCompanyTool"|translate}}' tooltip-trigger="mouseenter"
+                                           tooltip-placement="top" ng-pattern="{{InterService.pattern.Company}}" >
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="edit_localauth_user.edit_company.$dirty && edit_localauth_user.edit_company.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="edit_localauth_user.edit_company.$dirty && edit_localauth_user.edit_company.$invalid">
+                                    <small class="text-danger" ng-show="edit_localauth_user.edit_company.$error.pattern">{{"validCompany"|translate}}</small>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-class="{'has-error': edit_localauth_user.edit_startdate.$dirty && edit_localauth_user.edit_startdate.$invalid}">
+                                <label class="col-sm-4 control-label"><span class="text-danger">*</span>{{"StartingDate"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <!--<input type="text" class="form-control input-sm" name="edit_startdate" ng-model="localUserListTemp.StartingDate">-->
+                                    <div class='input-group date' id='edit_start_date'>
+                                        <span>
+                                            <input type='text' class="form-control" id="edit_start_value" readonly="readonly" />
+                                        </span>
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <!--<div class="form-group" ng-show="edit_localauth_user.edit_startdate.$dirty && edit_localauth_user.edit_startdate.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="edit_localauth_user.edit_startdate.$dirty && edit_localauth_user.edit_startdate.$invalid">
+                                    <small class="text-danger" ng-show="edit_localauth_user.edit_startdate.$error.pattern"></small>
+                                </div>
+                            </div>-->
+                            <div class="form-group" ng-class="{'has-error': edit_localauth_user.edit_enddate.$dirty && edit_localauth_user.edit_enddate.$invalid}">
+                                <label class="col-sm-4 control-label"><span class="text-danger">*</span>{{"EndingDate"|translate}}</label>
+                                <div class="col-sm-7">
+                                    <!--<input type="text" class="form-control input-sm" name="edit_enddate" ng-model="localUserListTemp.EndingDate">-->
+                                    <div class='input-group date' id='edit_end_date'>
+                                        <input type='text' class="form-control" id="edit_end_value" readonly="readonly" />
+                                        <span class="input-group-addon">
+                                            <span class="glyphicon glyphicon-calendar"></span>
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="form-group" ng-show="edit_localauth_user.edit_enddate.$dirty && edit_localauth_user.edit_enddate.$invalid">
+                                <div class="col-sm-12 ssidbreak" ng-show="edit_localauth_user.edit_enddate.$dirty && edit_localauth_user.edit_enddate.$invalid">
+                                    <small class="text-danger" ng-show="edit_localauth_user.edit_enddate.$error.pattern"></small>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-4 col-sm-7">
+                                    <button type="button" ng-click="Cancel()" class="btn btn-warning">{{"Cancel"|translate}}</button>
+                                    <button type="button" ng-click="Edit_localauth_user(localUserListTemp)" class="btn btn-primary" ng-disabled="edit_localauth_user.$invalid || localuser_param_error">{{"Save"|translate}}</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <!-- Add Access Code-->
+                <div class="col-md-12 paddingL0" ng-show="add_access_code">
+                    <div class="text-center font16 authDetailHead" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+                        <span class="font16">{{"Add Access Code"|translate}}</span>
+                    </div>
+                    <div class="detailBorder detailBgColor authDetailBody">
+                        <form class="form-horizontal marginT20" role="form" name="add_accesscode" novalidate>
+                        <div class="form-group" ng-class="{'has-error': add_accesscode.accessCode.$dirty && add_accesscode.accessCode.$invalid}">
+                            <label for="accessCode" class="col-sm-5 control-label"><span class="text-danger">*</span>{{"Access Code"|translate}}: </label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control input-sm" id="accessCode" name="accessCode" ng-model="accessCodeTemp.access_code"
+                                        placeholder='{{"accessCodePla"|translate}}' ng-minlength="4" ng-maxlength="8"  ng-pattern="{{InterService.pattern.LetterDigit4To8}}" tooltip='{{"accessCodeTool"|translate}}' tooltip-trigger="mouseenter" tooltip-placement="bottom" required >
+                            </div>
+                            <div class="error col-sm-12" ng-show="add_accesscode.accessCode.$dirty && add_accesscode.accessCode.$invalid">
+                                <small class="text-danger" ng-show="add_accesscode.accessCode.$error.required" ng-bind="InterService.valueNotNull('access code')"></small>
+                                <small class="text-danger" ng-show="add_accesscode.accessCode.$error.pattern" ng-bind="InterService.LetterDigitErrorTip(4, 8)"></small>
+                            </div>
+                        </div>
+
+                        <div class="form-group" >
+                            <div class="col-sm-offset-5 col-sm-7">
+                                <button type="button" ng-click="Cancel()" class="btn btn-warning">{{"Cancel"|translate}}</button>
+                                <button type="button" ng-click="Add_AccessCode()" class="btn btn-primary" ng-disabled="add_accesscode.accessCode.$invalid">{{"Save"|translate}}</button>
+                            </div>
+                        </div>
+                    </form>
+                    </div>
+                </div>
+                <!-- Add Mac Address -->
+                <div class="col-md-12 paddingL0" ng-show="add_macauth_account">
+                    <div class="text-center font16 authDetailHead" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+                        <span>{{"Add Local MAC"|translate}}</span>
+                    </div>
+                    <div class="detailBorder detailBgColor authDetailBody">
+                        <form class="form-horizontal marginT20"  role="form" name="add_local_mac" novalidate>
+                        <div class="form-group" ng-class="{'has-error': add_local_mac.startmac.$dirty && add_local_mac.startmac.$invalid}">
+                            <label for="Start_NAC" class="col-sm-5 control-label">{{"Starting MAC"|translate}}:</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control" id="Start_NAC" name="startmac" ng-model="ExternalMACListTemp.Begin_MAC"
+                                       placeholder="Starging MAC" tooltip="XX:XX:XX:XX:XX:XX or XX:XX:XX" tooltip-trigger="mouseenter"
+                                       ng-pattern="{{InterService.pattern.AuthMAC}}" required>
+                            </div>
+                            <div class="col-sm-12" ng-show="add_local_mac.startmac.$dirty && add_local_mac.startmac.$invalid">
+                                <small class="text-danger" ng-show="add_local_mac.startmac.$error.required" ng-bind="InterService.valueNotNull('starting mac')"></small>
+                                <small class="text-danger" ng-show="add_local_mac.startmac.$error.pattern" ng-bind="InterService.validMac()"></small>
+                            </div>
+                        </div>
+                        <div class="form-group" ng-class="{'has-error': add_local_mac.endmac.$dirty && add_local_mac.endmac.$invalid}">
+                            <label for="end_MAC" class="col-sm-5 control-label">{{"Ending MAC"|translate}}:</label>
+                            <div class="col-sm-7">
+                                <input type="text" class="form-control" id="end_MAC" name="endmac" ng-model="ExternalMACListTemp.End_MAC"
+                                       placeholder="Ending MAC" tooltip="XX:XX:XX:XX:XX:XX" tooltip-trigger="mouseenter" ng-pattern="{{InterService.pattern.normalMAC}}" ng-disabled="ExternalMACListTemp.Begin_MAC.length==8">
+                            </div>
+                            <div class="col-sm-12" ng-show="add_local_mac.endmac.$dirty && add_local_mac.endmac.$invalid">
+                                <small class="text-danger" ng-show="add_local_mac.endmac.$error.pattern" ng-bind="InterService.validMac()"></small>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <div class="col-sm-offset-5 col-sm-7">
+                                <button type="button" ng-click="Cancel()" class="btn btn-warning">{{"Cancel"|translate}}</button>
+                                <button type="button" ng-click="Add_MACAccount()" class="btn btn-primary"  ng-disabled="add_local_mac.$invalid">{{"Save"|translate}}</button>
+                            </div>
+                        </div>
+                    </form>
+                    </div>
+                </div>
+
+                <div class="col-md-12 paddingL0" ng-show="batch_import">
+                    <div class="text-center font16 authDetailHead" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+                        <span class="font16">{{"BatchImportAuthUser"|translate}}</span>
+                    </div>
+                    <div class="detailBorder detailBgColor authDetailBody">
+                        <div class="row">
+                            <div class="col-md-12">
+                            <form class="marginT20 marginL15">
+                                <button operation-permission='!Permission_Viewer' type="button" class="btn btn-custommenu ng-binding" ng-click="downloadcsv();">{{"Accounttemplate"|translate}}</button>
+                            </form>
+                            </div>
+                        </div>
+                        <div class="row marginT20">
+                            <div class="col-md-12">
+                        <form class="form-horizontal marginT20"  role="form" name="batch_import_user" novalidate>
+                            <div class="form-group" >
+                                <label  class="col-sm-3 paddingR0">{{"File"|translate}}:</label>
+
+                                <div class="form-group col-sm-7" >
+                                    <input type="file" nv-file-select="" uploader="user" ng-click="clearuser()" />
+                                    <ul>
+                                         <li ng-repeat="item in user.queue">
+                                             <div>{{"Size"|translate}}: {{ item.file.size/1024|number:2 }} kb</div>
+                                             <div ng-show="user.isHTML5">
+                                                 <div class="progress" style="margin-bottom: 0;">
+                                                     <div class="progress-bar" role="progressbar" ng-style="{ 'width': item.progress + '%' }"></div>
+                                                 </div>
+                                             </div>
+                                             <div>
+                                                 <br>
+                                                 <button class="btn btn-custommenu" ng-click="importuser(item)" >{{"Upload"|translate}}</button>
+                                             </div>
+                                         </li>
+                                     </ul>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-3 col-sm-8">
+                                    <button type="button" ng-click="Cancel()" class="btn btn-warning">{{"Cancel"|translate}}</button>
+                                </div>
+                            </div>
+                        </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-12 paddingL0" ng-show="batch_code">
+                    <div class="text-center font16 authDetailHead" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+                        <span class="font16">{{"BatchImportAccessCode"|translate}}</span>
+                    </div>
+                    <div class="detailBorder detailBgColor authDetailBody">
+                        <div class="row">
+                            <div class="col-md-12">
+                            <form class="marginT20 marginL15">
+                            <button class="btn btn-custommenu" ng-click="downloadcodecsv()">{{"Codetemplate"|translate}}</button>
+                            </form>
+                            </div>
+                        </div>
+                        <div class="row marginT20">
+                        <div class="col-md-12">
+                        <form class="form-horizontal marginT20"  role="form" name="batch_import_code" novalidate>
+                            <div class="form-group" >
+                                <label  class="col-sm-3">{{"File"|translate}}:</label>
+                                <div class="form-group col-sm-7" >
+                                    <input type="file" nv-file-select="" uploader="code" ng-click="clearuser()" />
+                                    <ul>
+                                         <li ng-repeat="item in code.queue">
+                                             <div>{{"Size"|translate}}: {{ item.file.size/1024|number:2 }} kb</div>
+                                             <div ng-show="code.isHTML5">
+                                                 <div class="progress" style="margin-bottom: 0;">
+                                                     <div class="progress-bar" role="progressbar" ng-style="{ 'width': item.progress + '%' }"></div>
+                                                 </div>
+                                             </div>
+                                             <div>
+                                                 <br>
+                                                 <button class="btn btn-custommenu" ng-click="importcode(item)" >{{"Upload"|translate}}</button>
+                                             </div>
+                                         </li>
+                                     </ul>
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <div class="col-sm-offset-3 col-sm-8">
+                                    <button type="button" ng-click="Cancel()" class="btn btn-warning">{{"Cancel"|translate}}</button>
+                                </div>
+                            </div>
+                        </form>
+                        </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+   </div>
+</div>
+
+
+        
+

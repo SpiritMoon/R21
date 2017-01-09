@@ -1,0 +1,117 @@
+<div class="panel" ng-class="{'border_purple':skin.isPurple, 'border_blue':skin.isBlue}" ng-controller="OthersViewController">
+	<div tooltip="{{'othersTip'|translate}}" tooltip-enable="{{helpTip.isEabled}}" class="panel-heading second_level_header" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+		<h3 class="panel-title">{{"Performance Optimization"|translate}}</h3>
+	</div>
+	<div class="panel-body second_level_content">
+		<div>
+			<ul id="otherTab" class="nav nav-tabs">
+				<li class="active">
+					<a href="#wireless" data-toggle="tab">{{"Wireless"|translate}}</a>
+				</li>
+				<li>
+					<a href="#network" data-toggle="tab">{{"Network"|translate}}</a>
+				</li>
+			</ul>
+			<div id="myTabContent" class="tab-content">
+				<!-- Wireless Backgroup Scanning and Band Steering -->
+				<div class="tab-pane fade in active" id="wireless">
+					<div class="row marginT10">
+						<div class="col-sm-12">
+							<fieldset>
+							<legend>
+								<span display-permission='Permission_Admin'>{{"Background Scanning"|translate}}</span> &nbsp;&nbsp;&nbsp;
+								<span display-permission='!Permission_Admin'>{{"Backgroup Scanning"|translate}}:</span> &nbsp;&nbsp;&nbsp;
+								<toggle-switch display-permission='Permission_Admin' class="switchMarginLeft25" ng-model="backgroupScanningParams.backgroupScanning" ng-change="configBackgroupScanningSwtich()"></toggle-switch>
+								<span display-permission='!Permission_Admin'>{{ backgroupScanningParams.backgroupScanning | switchFilter }}</span>
+							</legend>
+							<table class="wireless_table table-condensed">
+								<tr>
+									<td style="width:34%;">
+										<span>{{"Scan Interval"|translate}}:</span>
+										<span style="color:#428bca;" id="scanIntervalValue" ng-bind="backgroupScanningParams.scanInterval"></span>s
+									</td>
+									<td display-permission='Permission_Admin'>
+										<div style="width:90%;" id="scan-interval-slider"></div>
+									</td>
+								</tr>
+								<tr>
+									<td style="width:34%;"><span>{{"Scanning Duration"|translate}}:</span>
+										<span style="color:#428bca;" id="foreignChannelValue" ng-bind="backgroupScanningParams.foreignChannelDuration"></span>ms
+									</td>
+									<td display-permission='Permission_Admin'>
+										<div id="foreign-channel-slider" style="width:90%;"></div>
+									</td>
+								</tr>
+							</table>
+						</fieldset>
+						</div>
+					</div>
+					<div class="row  margintop20">
+						<div class="col-sm-4" style="width: 50%;">
+							<span >{{"Band Steering"|translate}}:</span>
+						</div>
+						<div class="col-sm-6">
+							<toggle-switch display-permission='Permission_Admin' ng-model="bandSteeringParams.bandSteering" ng-change="configBandSteering()"></toggle-switch>
+							<span display-permission='!Permission_Admin'>{{ bandSteeringParams.bandSteering | switchFilter }}</span>
+						</div>
+					</div>
+					<div class="row  margintop20">
+						<span class="col-sm-4" style="width: 50%;">{{"Voice and Video Awarness"|translate}}:</span>
+						<div class="col-sm-6">
+							<toggle-switch display-permission='Permission_Admin' ng-model="awareParams.aware" ng-change="configAware()"></toggle-switch>
+							<span display-permission='!Permission_Admin'>{{ awareParams.aware | switchFilter }}</span>
+						</div>
+					</div>
+				</div>
+
+				<!-- Network IGMP Snooping and ARP Proxy Snooping -->
+				<div class="tab-pane fade" style="margin-left: 20px" id="network">
+					<div class="marginT35">
+						<fieldset>
+							<legend>{{"Multicast"|translate}}</legend>
+							<table style="height:150px;">
+								<tr>
+									<td><span>{{"IGMP Snooping"|translate}}:</span></td>
+									<td><toggle-switch display-permission='Permission_Admin' ng-model="igmpSnoopingParams.snoopingSwitch" ng-change="igmpSnoopingParamChange('switch')"></toggle-switch>
+									<span display-permission='!Permission_Admin'>{{ igmpSnoopingParams.snoopingSwitch | switchFilter }}</span>
+									</td>
+								</tr>
+								<tr>
+									<td><span>{{"Multi to Uni"|translate}}:</span></td>
+									<td>
+										<div display-permission='Permission_Admin'>
+											<toggle-switch ng-if="igmpSnoopingParams.snoopingSwitch==true" ng-model="igmpSnoopingParams.mulitowuicastSwitch" ng-change="igmpSnoopingParamChange('multounicast')"></toggle-switch>
+											<span ng-if="igmpSnoopingParams.snoopingSwitch==false && igmpSnoopingParams.mulitowuicastSwitch==true">{{'Open'|translate}}</span>
+											<span ng-if="igmpSnoopingParams.snoopingSwitch==false && igmpSnoopingParams.mulitowuicastSwitch==false">{{'Close'|translate}}</span>
+										</div>
+										<span display-permission='!Permission_Admin'>{{ igmpSnoopingParams.mulitowuicastSwitch | switchFilter }}</span>
+									</td>
+								</tr>
+                                <tr>
+                                    <td style="width:35%;"><span>{{"Aging Time"|translate}}:</span><span id="age_value" ng-bind="igmpSnoopingParams.hostLifeAgeingTime"></span>s</td>
+                                    <td>
+										<div display-permission='Permission_Admin' style="width:90%;" id="aging-time-slider"></div><!--margin-left:7px; -->
+                                    </td>
+                                </tr>
+
+							</table>
+						</fieldset>
+                    </div>
+					<!-- <div class="marginT10">
+						<fieldset>
+							<legend>{{"ARP Proxy Snooping"|translate}}</legend>
+                            <table>
+                                <tr>
+                                    <td style="width:35%;"><span>{{"ARP Proxy Snooping"|translate}}:</span></td>
+                                    <td><toggle-switch display-permission='Permission_Admin' ng-model="ARPProxySnooping.proxySwitch" ng-change="ARPProxySnoopingChange()"></toggle-switch>
+                                    <span display-permission='!Permission_Admin'>{{ ARPProxySnooping.proxySwitch | switchFilter }}</span>
+                                    </td>
+                                </tr>
+                            </table>
+						</fieldset>
+					</div> -->
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

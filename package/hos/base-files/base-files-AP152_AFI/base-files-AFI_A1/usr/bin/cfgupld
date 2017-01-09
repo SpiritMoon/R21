@@ -1,0 +1,65 @@
+#!/bin/sh
+
+PUB_CFG_DIR="/etc/cfm/config/config-pub"
+MERGED_PUB_CFG_FILE="/tmp/pub-cfg.conf"
+SAFE_MERGED_PUB_CFG_FILE="/tmp/cluster.conf"
+MD5_TMP_FILE="/tmp/pub-cfg-md5"
+
+check_env()
+{
+	if [ ! -d $PUB_CFG_DIR ]; then
+		echo "[error] - $PUB_CFG_DIR not exist"
+		exit 1
+	fi
+
+	local files="$(ls $PUB_CFG_DIR)"
+	if [ -z "$files" ]; then
+		echo "[error] - no public configurations"
+		exit 1
+	fi
+}
+
+merge_pub_cfg_files()
+{
+	echo "" > $MERGED_PUB_CFG_FILE
+
+	for file in `ls $PUB_CFG_DIR`
+	do
+		echo [$file] >> $MERGED_PUB_CFG_FILE
+		cat $PUB_CFG_DIR/$file >> $MERGED_PUB_CFG_FILE
+	done
+}
+
+generate_merged_pub_cfg_with_md5()
+{
+	# compute md5
+	md5sum $MERGED_PUB_CFG_FILE | cut -d ' ' -f 1 >> $MD5_TMP_FILE
+
+	# merge
+	cat $MD5_TMP_FILE $MERGED_PUB_CFG_FILE > $SAFE_MERGED_PUB_CFG_FILE
+
+	rm $MD5_TMP_FILE
+	rm $MERGED_PUB_CFG_FILE
+}
+
+report_status()
+{
+	echo "done"
+}
+
+### process logic
+
+check_env
+
+# add exclusive flock
+LOCKFILE="/var/lock/cclock"
+
+(
+    flock 200
+    #==============================
+
+    merge_pub_cfg_files
+) 200<> $LOCKFILE
+
+generate_merged_pub_cfg_with_md5
+report_status

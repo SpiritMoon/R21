@@ -1,0 +1,22 @@
+#!/bin/sh
+#
+# Copyright (C) 2010 OpenWrt.org
+#
+var=`showsysinfo | grep MAC | awk -F : '{print $2$3$4}'`
+wildcard=`echo ${var:0:2}:${var:2:2}:${var:4:2}:*:*:*`
+wildcard="$(echo $wildcard |tr [A-Z] [a-z])"
+
+PUB_CFG_DIR="/etc/cfm/config/config-pub"
+NAME=rogueap
+mac_list=`uci get rogueap.RogueAP.wildcard`
+if echo $mac_list | grep -w $wildcard > /dev/null;then
+	echo "exist"
+else
+	uci add_list rogueap.RogueAP.wildcard=$wildcard
+	uci commit
+	uci -c $PUB_CFG_DIR add_list rogueap.RogueAP.wildcard=$wildcard
+	uci -c $PUB_CFG_DIR commit $NAME
+    cd $PUB_CFG_DIR; rm -f pub-cfg-md5; md5sum * > pub-cfg-md5
+fi
+
+

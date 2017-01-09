@@ -1,0 +1,11 @@
+--- a/init/halt.c
++++ b/init/halt.c
+@@ -131,6 +131,8 @@ int halt_main(int argc UNUSED_PARAM, cha
+ 	if (!(flags & 2)) /* no -n */
+ 		sync();
+ 
++	system("devmem 0x18040000 32  0xb7b5e6");
++
+ 	/* Perform action. */
+ 	rc = 1;
+ 	if (!(flags & 4)) { /* no -f */

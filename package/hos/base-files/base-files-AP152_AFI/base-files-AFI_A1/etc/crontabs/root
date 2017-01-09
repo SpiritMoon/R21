@@ -1,0 +1,5 @@
+*/15 * * * *  flock -n /tmp/ntpdate_lock -c sh -c 'for s in `uci  get system.ntp.server` pool.ntp.org; do ntpdate -s -b -u -t 2 $s && logger -p 5 "_GOLSOH_time was synced from $s" && break;done'
+# Run at 23:59 every evening.
+59  23  *  *  *  /usr/sbin/account_expire_check.sh
+* */1 * * * /usr/sbin/upload_core
+1 2 * * 6 /etc/cert/try_mkca.sh &

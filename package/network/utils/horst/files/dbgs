@@ -1,0 +1,6 @@
+#!/bin/sh
+
+ps | grep [b]g-s | awk '{print $1}' | xargs kill -16
+sleep 1
+cat /tmp/dd
+rm /tmp/dd

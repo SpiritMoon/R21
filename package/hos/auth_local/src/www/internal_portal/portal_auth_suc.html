@@ -1,0 +1,200 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wireless Login Page</title>
+    <!-- Bootstrap -->
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/css/main.css" rel="stylesheet">
+
+    <script language="javascript">
+        setInterval("dytime()", 1000);
+        var oldtime = new Date();
+        function dytime() {
+            var nowtime = new Date();
+            onlinetime = nowtime.getTime() - oldtime.getTime();
+            onlinetime = onlinetime / 1000;
+            hh = parseInt(onlinetime / 3600);
+            mm = parseInt((onlinetime - 3600 * hh) / 60);
+            ss = parseInt(onlinetime % 60);
+            if (mm < 10)
+                hh = "0" + hh;
+
+            if (mm < 10)
+                mm = "0" + mm;
+
+            if (ss < 10)
+                ss = "0" + ss;
+            document.getElementById("ptime").innerHTML = "Online Time  " + "<font color=#ff0000>" + hh + "</font>: " + "<font color=#ff0000>" + mm + "</font>: " + "<font color=#ff0000>" + ss + "</font>";
+        }
+
+
+        function ButtonSubmit(thisform) {
+            if (confirm("confirm logout")) {
+                window.opener = null;
+                window.open("", "_self");
+                window.close();
+            }
+
+            return true;
+        }
+
+
+        function onbeforeunload_ex() {
+            //return
+            var n = window.event.screenX - window.screenLeft;
+            var b = n > document.documentElement.scrollWidth - 20;
+            if (b && window.event.clientY < 0 || window.event.altKey) {
+                //alert
+                window.event.returnValue = 'This operation may cause your account to be out of the normal logout or unable to logout.';
+            } else {
+                // window.event.returnValue   =   '';
+                //alert("");
+            }
+
+
+        }
+        window.onbeforeunload = onbeforeunload_ex;
+
+
+        function KeyDown() {
+
+            if ((event.keyCode == 8) ||            //
+                    (event.keyCode == 114) ||
+                    (event.keyCode == 116) ||			//
+                    (event.keyCode == 122)) 			//
+            {
+                event.keyCode = 0;
+                event.returnValue = false;
+            }
+
+
+            if ((window.event.altKey) && ((window.event.keyCode == 37) || (window.event.keyCode == 39))) //
+            {
+                event.returnValue = false;
+            }
+
+            if (window.event.ctrlKey || (event.shiftKey) && (event.keyCode == 121)) //
+            {
+                event.returnValue = false;
+            }
+
+        }
+
+        function comfirm_leave() {
+            return confirm("are you sure to leave now?");
+        }
+
+        function logout() {
+            if (comfirm_leave()) {
+                window.location.href = "http://instant.alcatel-lucentnetworks.com:8080/cgi-bin/wp_eag_portal_login.cgi?op_auth=logout&suc_url=http://instant.alcatel-lucentnetworks.com:8080/internal_portal/portal_logout_suc.html&fail_url=http://instant.alcatel-lucentnetworks.com:8080/internal_portal/portal_auth_suc.html";
+            }
+        }
+
+
+        var xmlhttp ;
+        var xmlhttpLogo;
+        var ip = document.location.hostname;
+
+        function initImAge(){
+            getBackgrounImg();
+            getLogoImg();
+        }
+        function getBackgrounImg() {
+            var bg_img =false;
+            var url = "http://" + ip + ":8080/internal_portal/static/img/bg.png";
+            xmlhttp = null;
+            $.ajax({
+                url: url,
+                type: "GET",
+                async: false,
+                success: function () {
+                    bg_img = true;
+                }
+            });
+            if(bg_img){
+                document.getElementById("backgroud_img_auth_suc").src = "static/img/bg.png";
+            }else{
+                document.getElementById("backgroud_img_auth_suc").src = "static/img/bg.jpg";
+            }
+        }
+
+        function getLogoImg() {
+            var logo_img =false;
+            var url_logo = "http://" + ip + ":8080/internal_portal/static/img/logo.png";
+            $.ajax({
+                url: url_logo,
+                type: "GET",
+                async: false,
+                success: function () {
+                    logo_img = true;
+                }
+            });
+            if(logo_img){
+                document.getElementById("logo_img_auth_suc").src = "static/img/logo.png";
+            }else{
+                document.getElementById("logo_img_auth_suc").src = "static/img/logo.jpg";
+            }
+        }
+
+    </script>
+
+</head>
+<body onKeyDown="KeyDown()" onload="initImAge()">
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div style="width: auto; height: 75px; padding:0px; margin:0px;float:left; text-align:left; vertical-align:top;">
+                <img id="logo_img_auth_suc" src="static/img/logo.png" width="189px" height="76px" alt="Alcatel-Lucent Enterprise homepage">
+            </div>
+        </div>
+    </div>
+
+    <div class="row ">
+        <div class="col-xs-12 col-md-12">
+            <hr style="border-top: 3px solid #eee">
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div style="margin: 0 auto;text-align: center;">
+                <img id="backgroud_img_auth_suc" class="col-md-12  col-xs-12 col-lg-12" src="static/img/bg.png" alt="Resource Library"
+                     style="padding:0 10%;">
+            </div>
+            <div class="col-md-3" style="display:inline-block;"></div>
+            <div class="col-md-6 col-xs-12" style="text-align: center;">
+                <form role="form" id="signin-form">
+                    <div class="row" style="padding: 15px 15%">
+                        <div class="col-xs-12 col-md-12 col-lg-12" style="padding-left: 8px;text-align: left;">
+                            <span>Login Success</span>
+                        </div>
+                    </div>
+                 <!--   <div class="row row-split">
+                        <div class="row" style="padding: 15px 15%">
+                        <div class="col-xs-4 cl-md-3 col-lg-2 ">
+                            <button id="back" type="button" class="btn btn-info" onclick="logout();">Logout</button>
+                        </div>
+                     </div>
+                    </div>-->
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-12" >
+            <hr style="border-top: 3px solid #eee">
+            <div style="float: left;">
+                © 2016 Alcatel-Lucent
+            </div>
+        </div>
+    </div>
+<script src="static/js/jquery.js"></script>
+<script src="static/js/bootstrap.min.js"></script>
+<script src="static/js/hammer.js"></script>
+<script src="static/js/jquery.hammer.js"></script>
+<script src="static/js/jquery.storageapi.js"></script>
+
+</body>
+</html>

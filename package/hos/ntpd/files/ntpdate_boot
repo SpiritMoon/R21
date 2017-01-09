@@ -1,0 +1,12 @@
+#!/bin/sh
+
+
+while ! ifconfig br-wan|grep Mask > /dev/null || ifconfig br-wan|grep 192.168.1.254 > /dev/null;
+do
+    sleep 1
+	ping -q -w 3 pool.ntp.org>/dev/null 2>&1 && break
+	ping -q -w 3 8.8.8.8 >/dev/null 2>&1 && break
+done
+
+flock -n /tmp/ntpdate_lock -c sh -c 'for s in `uci  get system.ntp.server` \
+pool.ntp.org; do /usr/sbin/ntpdate -s -b -u -t 2 "$s" && logger -p 5 "_GOLSOH_time was synced from $s" && break; done'

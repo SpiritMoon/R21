@@ -1,0 +1,23 @@
+#!/bin/sh
+
+LOGIN_FLAG_FILE="/tmp/web-login-flag"
+FLUSH_MAX=1000000
+
+update_flush_number()
+{
+	number=$(head -n 1 $LOGIN_FLAG_FILE)
+	let "number = $number + 1"
+
+	if [ $number -ge $FLUSH_MAX ]; then
+		number=1
+	fi
+
+    echo $number > $LOGIN_FLAG_FILE
+}
+
+if [ ! -f $LOGIN_FLAG_FILE ]; then
+    echo 0 > $LOGIN_FLAG_FILE
+else
+    update_flush_number
+fi
+

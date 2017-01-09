@@ -1,0 +1,6 @@
+#!/bin/sh
+
+rm -f /etc/cfm/lock 2> /dev/null
+
+echo "unlocked"
+exit 0

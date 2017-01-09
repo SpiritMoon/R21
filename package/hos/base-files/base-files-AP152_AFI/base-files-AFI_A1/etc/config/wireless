@@ -1,0 +1,35 @@
+config wifi-device  wifi0
+        option type     qcawifi
+        option channel  auto
+        option txpower  auto
+        option bcnburst 1
+        option hwmode   11ng
+        # REMOVE THIS LINE TO ENABLE WIFI:
+        option disabled 0
+
+config wifi-device  wifi1
+        option type     qcawifi
+        option channel  auto
+        option txpower  auto
+        option bcnburst 1
+        option hwmode   11ac
+        # REMOVE THIS LINE TO ENABLE WIFI:
+        option disabled 0
+
+config wifi-iface  athscan1
+        option device   wifi1
+        option mode     ap
+    	option ifname	athscan1
+    	option ssid	athscan1
+    	option hidden	1
+        option vif_monitor 1
+
+config wifi-iface  athscan0
+        option device   wifi0
+        option mode     ap
+    	option ifname	athscan0
+    	option ssid	athscan0
+    	option hidden	1
+        option vif_monitor 1
+        option athnewind 1
+

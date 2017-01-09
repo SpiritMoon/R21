@@ -1,0 +1,22 @@
+diff -urN a/net/bridge/br_input.c b/net/bridge/br_input.c
+--- a/net/bridge/br_input.c	2016-06-22 09:20:43.029236556 +0800
++++ b/net/bridge/br_input.c	2016-06-22 09:25:14.515842009 +0800
+@@ -222,6 +222,8 @@
+ 
+ forward:
+ 	switch (p->state) {
++/* zhouke del generic patch 120 bridge_allow_receiption_on_disabled_port */
++#if 0
+ 	case BR_STATE_DISABLED:
+ 		if (ether_addr_equal(p->br->dev->dev_addr, dest))
+ 			skb->pkt_type = PACKET_HOST;
+@@ -233,7 +235,8 @@
+ 		BR_INPUT_SKB_CB(skb)->brdev = p->br->dev;
+ 		br_pass_frame_up(skb);
+ 		break;
+-
++#endif
++/* zhouke del end */
+ 	case BR_STATE_FORWARDING:
+ 		rhook = rcu_dereference(br_should_route_hook);
+ 		if (rhook) {

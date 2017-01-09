@@ -1,0 +1,82 @@
+Index: linux-3.10.49/net/bridge/br_netfilter.c
+===================================================================
+--- linux-3.10.49.orig/net/bridge/br_netfilter.c
++++ linux-3.10.49/net/bridge/br_netfilter.c
+@@ -50,6 +50,7 @@
+ #ifdef CONFIG_SYSCTL
+ static struct ctl_table_header *brnf_sysctl_header;
+ static int brnf_call_iptables __read_mostly = 1;
++static int brnf_call_iptables_ignore_fragment __read_mostly = 1;
+ static int brnf_call_ip6tables __read_mostly = 1;
+ static int brnf_call_arptables __read_mostly = 1;
+ static int brnf_filter_vlan_tagged __read_mostly = 0;
+@@ -57,6 +58,7 @@ static int brnf_filter_pppoe_tagged __re
+ static int brnf_pass_vlan_indev __read_mostly = 0;
+ #else
+ #define brnf_call_iptables 1
++#define brnf_call_iptables_ignore_fragment 1
+ #define brnf_call_ip6tables 1
+ #define brnf_call_arptables 1
+ #define brnf_filter_vlan_tagged 0
+@@ -714,6 +716,10 @@ static unsigned int br_nf_pre_routing(un
+ 	if (br_parse_ip_options(skb))
+ 		return NF_DROP;
+ 
++	if (brnf_call_iptables_ignore_fragment
++		&& ip_is_fragment(ip_hdr(skb)))
++		return NF_ACCEPT;
++
+ 	nf_bridge_put(skb->nf_bridge);
+ 	if (!nf_bridge_alloc(skb))
+ 		return NF_DROP;
+@@ -804,6 +810,13 @@ static unsigned int br_nf_forward_ip(uns
+ 
+ 	nf_bridge_pull_encap_header(skb);
+ 
++	if (pf == NFPROTO_IPV4 && !pskb_may_pull(skb, sizeof(struct iphdr)))
++		return NF_DROP;
++
++	if (pf == NFPROTO_IPV4 && brnf_call_iptables_ignore_fragment
++		&& ip_is_fragment(ip_hdr(skb)))
++		return NF_ACCEPT;
++
+ 	nf_bridge = skb->nf_bridge;
+ 	if (skb->pkt_type == PACKET_OTHERHOST) {
+ 		skb->pkt_type = PACKET_HOST;
+@@ -909,6 +922,14 @@ static unsigned int br_nf_post_routing(u
+ 	else
+ 		return NF_ACCEPT;
+ 
++	nf_bridge_pull_encap_header(skb);
++	if (pf == NFPROTO_IPV4 && !pskb_may_pull(skb, sizeof(struct iphdr)))
++		return NF_DROP;
++
++	if (pf == NFPROTO_IPV4 && brnf_call_iptables_ignore_fragment
++		&& ip_is_fragment(ip_hdr(skb)))
++		return NF_ACCEPT;
++
+ 	/* We assume any code from br_dev_queue_push_xmit onwards doesn't care
+ 	 * about the value of skb->pkt_type. */
+ 	if (skb->pkt_type == PACKET_OTHERHOST) {
+@@ -916,7 +937,6 @@ static unsigned int br_nf_post_routing(u
+ 		nf_bridge->mask |= BRNF_PKT_TYPE;
+ 	}
+ 
+-	nf_bridge_pull_encap_header(skb);
+ 	nf_bridge_save_header(skb);
+ 	if (pf == NFPROTO_IPV4)
+ 		skb->protocol = htons(ETH_P_IP);
+@@ -1027,6 +1047,13 @@ static ctl_table brnf_table[] = {
+ 		.maxlen		= sizeof(int),
+ 		.mode		= 0644,
+ 		.proc_handler	= brnf_sysctl_call_tables,
++	},
++	{
++		.procname	= "bridge-nf-call-iptables-ignore-fragment",
++		.data		= &brnf_call_iptables_ignore_fragment,
++		.maxlen		= sizeof(int),
++		.mode		= 0644,
++		.proc_handler	= brnf_sysctl_call_tables,
+ 	},
+ 	{
+ 		.procname	= "bridge-nf-call-ip6tables",

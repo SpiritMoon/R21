@@ -1,0 +1,42 @@
+#!/bin/sh
+
+CMD=$1
+
+start()
+{
+	CRONTAB_FILE=/etc/crontabs/root
+        M=`date +%M`
+        M=`expr $M + 0`
+        echo "M=$M"
+
+        H=`date +%H`
+        H=`expr $H + 0`
+        echo "H=$H"
+
+	IP=`uci get tftplog.tftp.ip_auto`
+	if [ ! -n $IP ];then
+	        echo "IP is NULL"
+	        return
+	fi
+
+	TURN_ON_OFF=`uci get tftplog.tftp.turn_on_off`
+	if [ ! -n $TURN_ON_OFF ];then
+	        echo "TURN_ON_OFF is NULL"
+	        return
+	fi
+
+	echo "IP = $IP , TIMER = $TIMER, TURN_ON_OFF = $TURN_ON_OFF"
+
+	if [ "$TURN_ON_OFF" = "off" ];then
+		echo "turn_on_off = off"
+		sed -i '/upload_manu/d' $CRONTAB_FILE
+		return
+	fi
+
+        sed -i '/upload_manu/d' $CRONTAB_FILE
+        echo "$M $H * * * /usr/sbin/upload_manu upload $IP" >> $CRONTAB_FILE
+
+        /usr/sbin/upload_manu upload $IP
+}
+
+[ "$CMD" = "start" ] && start

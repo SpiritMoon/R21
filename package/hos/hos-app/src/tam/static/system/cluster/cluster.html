@@ -1,0 +1,43 @@
+<div class="panel" ng-class="{'border_purple':skin.isPurple, 'border_blue':skin.isBlue}" ng-controller="clusterController">
+	<div display-permission='Permission_Admin' hover mnuelevel="2" tooltip="{{'clusterTip'|translate}}" tooltip-enable="{{helpTip.isEabled}}" class="panel-heading second_level_header" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}" id="function5" ng-click="showCluster()">
+		<h3 class="panel-title">{{"General"|translate}}</h3>
+	</div>
+	<div display-permission='!Permission_Admin' hover mnuelevel="2" tooltip="{{'clusterTip'|translate}}" tooltip-enable="{{helpTip.isEabled}}" class="panel-heading second_level_header" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}" id="function6" >
+		<h3 class="panel-title">{{"General"|translate}}</h3>
+	</div>
+	<div class="panel-body second_level_content" >
+		<div style="height: 100%;">
+			<table class="table-condensed" style="height: 80%;">
+				<tr>
+					<td style="width: 50%;">{{"Group ID"|translate}}:</td>
+					<td>{{clusterInfo.cluster_id}}</td>
+				</tr>
+				<tr>
+					<td>{{"Group Name"|translate}}:</td>
+					<td class="ssidbreak">{{clusterInfo.cluster_name}}</td>
+				</tr>
+				<tr>
+					<td>{{"Group Location"|translate}}:</td>
+					<td class="ssidbreak">{{clusterInfo.cluster_location}}</td>
+				</tr>
+				<tr>
+					<td>{{"Group Manage IP"|translate}}:</td>
+					<td>{{clusterInfo.cluster_vip}}</td>
+				</tr>
+				<tr>
+					<td>{{"Group Manage Netmask"|translate}}:</td>
+					<td>{{clusterInfo.cluster_netmask}}</td>
+				</tr>
+				<tr>
+					<td>{{"User"|translate}} - {{"Viewer"|translate}}:</td>
+					<td>{{clusterInfo.Viewer | userisEnable }}</td>
+				</tr>
+				<tr>
+					<td>{{"User"|translate}} - {{"GuestOperator"|translate}}:</td>
+					<td>{{clusterInfo.GuestOperator | userisEnable}}</td>
+				</tr>
+				
+			</table>
+		</div>
+	</div>
+</div>

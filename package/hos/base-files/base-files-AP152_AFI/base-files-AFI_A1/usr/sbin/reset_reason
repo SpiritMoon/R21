@@ -1,0 +1,125 @@
+#!/bin/sh
+
+TMPINFO_PATH="/.tmpinfo"
+RESET_FILE="/.tmpinfo/.resetinfo"
+MAX_COUNT=10
+CORE_MON_RESET_INFO="/etc/cfm/core-mon-reboot-info"
+RESET_REASON=""
+DISPLAY_REASON="[0]"
+
+usage()
+{
+	echo "USAGE:" 
+	echo "USAGE: $0 get				[show history reset reason]" 
+	echo "USAGE: $0 add 00			[Power off reboot]" 
+	echo "USAGE: $0 add 01			[Button-reboot]" 
+	echo "USAGE: $0 add 02			[Button-firstreboot]" 
+	echo "USAGE: $0 add 03			[Clear all configuration]" 
+	echo "USAGE: $0 add 04			[Restore all configuration]" 
+	echo "USAGE: $0 add 05			[Update firmware]" 
+	echo "USAGE: $0 add 06			[Web-reboot]" 		
+	echo "USAGE: $0 add 07			[ZTP-reboot]" 	
+	echo "USAGE: $0 add 08			[core-mon reboot]" 
+	echo "USAGE: $0 add 09			[Watchdog reboot]" 
+	exit 1
+}
+
+prase_reset_reason()
+{
+	case "$1" in
+		00) 
+			RESET_REASON="Power off reboot"
+			DISPLAY_REASON="[1]"
+			;;
+		01)	
+			RESET_REASON="Button-reboot"
+			DISPLAY_REASON="[1]"
+			;;
+		02)	
+			RESET_REASON="Button-firstreboot"
+			DISPLAY_REASON="[1]"
+			;;
+		03)	
+			RESET_REASON="Clear all configuration"
+			DISPLAY_REASON="[1]"
+			;;
+		04)	
+			RESET_REASON="Restore all configuration"
+			DISPLAY_REASON="[1]"
+			;;
+		05)	
+			RESET_REASON="Update firmware"
+			DISPLAY_REASON="[1]"
+			;;
+		06)	
+			RESET_REASON="Web-reboot"
+			DISPLAY_REASON="[1]"
+			;;
+		07)	
+			RESET_REASON="ZTP-reboot"
+			DISPLAY_REASON="[1]"
+			;;
+		08)	
+			RESET_REASON="Core-mon reboot"
+			DISPLAY_REASON="[0]"
+			;;
+		09)	
+			RESET_REASON="Watchdog reboot"
+			DISPLAY_REASON="[0]"
+			;;
+		*)	
+			RESET_REASON="Unknown reboot"
+			DISPLAY_REASON="[1]"
+			;;
+	esac
+}
+
+if [ $# -eq 1 ]; then 
+	if [ $1 = "get" ]; then
+		if [ ! -f "$RESET_FILE" ]; then
+			echo "no found reset reason"
+		else
+			cat "$RESET_FILE"
+			if [ -f "$CORE_MON_RESET_INFO" ]; then
+				core_info=`cat "$RESET_FILE" |grep "Core-mon reboot"`
+				if [ -n "$core_info" ]; then
+					echo ""
+					echo "CORE MON REBOOT INFO:"
+					cat "$CORE_MON_RESET_INFO"
+				fi
+			fi
+		fi
+		exit
+	else
+		usage
+	fi
+elif [ $# -eq 2 ]; then
+	if [ $1 = "add" ]; then
+		local indent
+		local test=`echo "$2" | grep '^[0-9]\{2,2\}$'`
+		if [ -n "$test" ]; then
+			indent=$2
+		else
+			usage
+		fi
+
+		if [ ! -f "$RESET_FILE" ]; then
+			mkdir -p "$TMPINFO_PATH"
+			touch "$RESET_FILE"
+		fi
+		
+		count=`cat "$RESET_FILE" |wc -l`
+		
+		if [ "$count" -ge "$MAX_COUNT" ]; then
+			sed -i '1d' "$RESET_FILE"
+		fi
+		
+		time=`date`
+		prase_reset_reason "$indent"
+		echo "$DISPLAY_REASON $time $RESET_REASON" >> "$RESET_FILE"
+	else
+		usage
+	fi
+else
+	usage
+fi

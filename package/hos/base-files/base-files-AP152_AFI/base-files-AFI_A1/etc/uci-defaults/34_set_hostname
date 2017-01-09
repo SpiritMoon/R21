@@ -1,0 +1,14 @@
+#!/bin/sh
+#
+# Copyright (C) 2010 OpenWrt.org
+#
+
+PRIV_CFG_DIR="/etc/cfm/config/config-priv"
+
+# config timezone when timezone is not set
+MAC_INFO=$(showsysinfo |grep MAC)
+grep -q 'hostname' /etc/config/system || \
+	(uci set system.sysinfo.hostname=AP-${MAC_INFO:29:5};\
+	uci commit;\
+	uci -c $PRIV_CFG_DIR set system.sysinfo.hostname=AP-${MAC_INFO:29:5};\
+	uci -c $PRIV_CFG_DIR commit)

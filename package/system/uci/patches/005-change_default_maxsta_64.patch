@@ -1,0 +1,38 @@
+--- a/cli.c
++++ b/cli.c
+@@ -778,33 +778,10 @@ static int _add_wlan(char **argv)
+ 		cli_perror();
+ 		return ret;
+ 	}
+-
+-	/* Add the maxsta 128 */
++	/* Add the maxsta 64 */
+ 	memset(_val, 0, BUFSIZE_CLI);
+ 	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
+-	sprintf(buf, "wireless.%s.maxsta=%s", _name, "128");
+-	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+-		cli_perror();
+-		return 1;
+-	}
+-	ret = uci_set(ctx, &ptr);
+-	if (ret != UCI_OK) {
+-		cli_perror();
+-		return ret;
+-	}
+-	_cmd[0] = "commit";
+-	_cmd[1] = "wireless";
+-	_cmd[2] = NULL;
+-	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
+-	if (ret != UCI_OK) {
+-		cli_perror();
+-		return ret;
+-	}
+-
+-	/* Add the maxsta 128 */
+-	memset(_val, 0, BUFSIZE_CLI);
+-	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
+-	sprintf(buf, "wireless.%s.maxsta=%s", _name, "128");
++	sprintf(buf, "wireless.%s.maxsta=%s", _name, "64");
+ 	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+ 		cli_perror();
+ 		return 1;

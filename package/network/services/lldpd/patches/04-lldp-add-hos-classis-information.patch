@@ -1,0 +1,321 @@
+diff -urN a/src/daemon/dmi-linux.c b/src/daemon/dmi-linux.c
+--- a/src/daemon/dmi-linux.c	2016-08-30 10:34:14.678163209 +0800
++++ b/src/daemon/dmi-linux.c	2016-08-30 10:35:26.089546730 +0800
+@@ -54,39 +54,99 @@
+ 	return NULL;
+ }
+ 
++/* zhouke add for hos classis information */
++static char*
++dmi_get_cmd(char *cmd)
++{
++	int s;
++	char *buffer = NULL;
++
++	log_debug("localchassis", "DMI request for cmd %s", cmd);
++	if ((buffer = priv_get_cmd(cmd)) == NULL) {
++		log_debug("localchassis", "cannot get DMI cmd %s", cmd);
++		return NULL;
++	}
++
++	return buffer;
++}
++
++char*
++dmi_sw()
++{
++    return dmi_get_cmd(SYS_SHOWSYSINFO HOS_SOFTWARE_REV);
++}
++/* zhouke add end */
++
+ char*
+ dmi_hw()
+ {
+-	return dmi_get(SYSFS_CLASS_DMI "product_version");
++/* zhouke add for hos classis information */
++#if 1
++    return dmi_get_cmd(SYS_SHOWSYSINFO HOS_HARDWARE_REV);
++#else
++    return dmi_get(SYSFS_CLASS_DMI "product_version");
++#endif
++/* zhouke add end */
+ }
+ 
++
+ char*
+ dmi_fw()
+ {
++/* zhouke add for hos classis information */
++#if 1
++    return dmi_get_cmd(HOS_FIRMWARE_REV);
++#else
+ 	return dmi_get(SYSFS_CLASS_DMI "bios_version");
++#endif
++/* zhouke add end */
+ }
+ 
+ char*
+ dmi_sn()
+ {
+-	return dmi_get(SYSFS_CLASS_DMI "product_serial");
++/* zhouke add for hos classis information */
++#if 1
++    return dmi_get_cmd(SYS_SHOWSYSINFO HOS_SERIAL_NUM);
++#else
++    return dmi_get(SYSFS_CLASS_DMI "product_serial");
++#endif
++/* zhouke add end */
+ }
+ 
+ char*
+ dmi_manuf()
+ {
+-	return dmi_get(SYSFS_CLASS_DMI "sys_vendor");
++/* zhouke add for hos classis information */
++#if 1
++    return dmi_get_cmd(SYS_SHOWSYSINFO HOS_COMPANY_NAME);
++#else
++    return dmi_get(SYSFS_CLASS_DMI "sys_vendor");
++#endif
++/* zhouke add end */
+ }
+ 
+ char*
+ dmi_model()
+ {
+-	return dmi_get(SYSFS_CLASS_DMI "product_name");
++/* zhouke add for hos classis information */
++#if 1
++    return dmi_get_cmd(SYS_SHOWSYSINFO HOS_MODEL_NAME);
++#else
++    return dmi_get(SYSFS_CLASS_DMI "product_name");
++#endif
++/* zhouke add end */
+ }
+ 
+ char*
+ dmi_asset()
+ {
+-	return dmi_get(SYSFS_CLASS_DMI "chassis_asset_tag");
++/* zhouke add for hos classis information */
++#if 1
++    return NULL;
++#else
++    return dmi_get(SYSFS_CLASS_DMI "chassis_asset_tag");
++#endif
++/* zhouke add end */
+ }
+ #endif
+diff -urN a/src/daemon/lldpd.c b/src/daemon/lldpd.c
+--- a/src/daemon/lldpd.c	2016-08-30 10:34:14.678163209 +0800
++++ b/src/daemon/lldpd.c	2016-08-30 10:38:10.621545469 +0800
+@@ -1109,8 +1109,14 @@
+ 	lldpd_med(LOCAL_CHASSIS(cfg));
+ 	free(LOCAL_CHASSIS(cfg)->c_med_sw);
+ 	if (cfg->g_config.c_advertise_version)
+-		LOCAL_CHASSIS(cfg)->c_med_sw = strdup(un.release);
+-	else
++/* zhouke add for hos classis information */
++#if 1
++        LOCAL_CHASSIS(cfg)->c_med_sw = dmi_sw();
++#else
++		LOCAL_CHASSIS(cfg)->c_med_sw = strdup(un.release);	
++#endif
++/* zhouke add end */
++    else
+ 		LOCAL_CHASSIS(cfg)->c_med_sw = strdup("Unknown");
+ #endif
+ 
+@@ -1629,9 +1635,17 @@
+ 		if (lldpmed == LLDP_MED_CLASS_III)
+ 			lchassis->c_cap_available |= LLDP_CAP_TELEPHONE;
+ 		lchassis->c_med_type = lldpmed;
++
++/* zhouke add for hos classis information */
++#if 1
++		lchassis->c_med_cap_available = LLDP_MED_CAP_CAP |
++		    LLDP_MED_CAP_IV | LLDP_MED_CAP_POLICY | LLDP_MED_CAP_MDI_PD;
++#else
+ 		lchassis->c_med_cap_available = LLDP_MED_CAP_CAP |
+ 		    LLDP_MED_CAP_IV | LLDP_MED_CAP_LOCATION |
+ 		    LLDP_MED_CAP_POLICY | LLDP_MED_CAP_MDI_PSE | LLDP_MED_CAP_MDI_PD;
++#endif
++/* zhouke add end */
+ 		cfg->g_config.c_noinventory = noinventory;
+ 	} else
+ 		cfg->g_config.c_noinventory = 1;
+diff -urN a/src/daemon/lldpd.h b/src/daemon/lldpd.h
+--- a/src/daemon/lldpd.h	2016-08-30 10:34:14.681711932 +0800
++++ b/src/daemon/lldpd.h	2016-08-30 10:37:35.469548408 +0800
+@@ -62,10 +62,22 @@
+ 
+ #define SYSFS_CLASS_NET "/sys/class/net/"
+ #define SYSFS_CLASS_DMI "/sys/class/dmi/id/"
++
++/* zhouke add for hos classis information */
++#define SYS_SHOWSYSINFO     "/usr/sbin/showsysinfo"
++#define HOS_HARDWARE_REV    " | awk -F \":\" '/Hardware Version/ {print $2}'"
++#define HOS_SOFTWARE_REV    " | awk -F \":\" '/Software Version/ {print $2}'"
++#define HOS_SERIAL_NUM      " | awk -F \":\" '/SN/ {print $2}'"
++#define HOS_MODEL_NAME      " | awk -F \":\" '/Device Model/ {print $2}'"
++#define HOS_COMPANY_NAME    " | awk -F \":\" '/Company Name/ {print $2}'"
++#define HOS_FIRMWARE_REV    " /usr/sbin/showver"
++/* zhouke add end */
++
+ /* zhouke add for support LLDP packet interaction */
+ #define LLDPD_TX_INTERVAL	60      //30->60
+ #define LLDPD_TX_HOLD          8    // 4->8
+ /* zhouke add end */
++
+ #define LLDPD_TTL              LLDPD_TX_INTERVAL * LLDPD_TX_HOLD
+ #define LLDPD_TX_MSGDELAY	1
+ #define LLDPD_MAX_NEIGHBORS	4
+@@ -189,7 +201,10 @@
+ #ifdef ENABLE_LLDPMED
+ char	*dmi_hw(void);
+ char	*dmi_fw(void);
++char	*dmi_sw(void);
++/* zhouke add for hos classis information */
+ char	*dmi_sn(void);
++/* zhouke add end */
+ char	*dmi_manuf(void);
+ char	*dmi_model(void);
+ char	*dmi_asset(void);
+@@ -220,6 +235,12 @@
+ #ifdef HOST_OS_LINUX
+ int    	 priv_open(char*);
+ void	 asroot_open(void);
++
++/* zhouke add for hos classis information */
++void	 asroot_cmd(void);
++char    *priv_get_cmd(char*);
++/* zhouke add end */
++
+ int    	 priv_ethtool(char*, void*, size_t);
+ void	 asroot_ethtool(void);
+ #endif
+@@ -240,6 +261,9 @@
+ 	PRIV_IFACE_MULTICAST,
+ 	PRIV_IFACE_DESCRIPTION,
+ 	PRIV_SNMP_SOCKET,
++/* zhouke add for hos classis information */
++	PRIV_CMD,
++/* zhouke add end */
+ };
+ 
+ /* priv-seccomp.c */
+diff -urN a/src/daemon/priv.c b/src/daemon/priv.c
+--- a/src/daemon/priv.c	2016-08-30 10:34:14.678163209 +0800
++++ b/src/daemon/priv.c	2016-08-30 10:37:44.841888954 +0800
+@@ -331,6 +331,9 @@
+ 	{PRIV_GET_HOSTNAME, asroot_gethostbyname},
+ #ifdef HOST_OS_LINUX
+ 	{PRIV_OPEN, asroot_open},
++/* zhouke add for hos classis information */
++	{PRIV_CMD, asroot_cmd},
++/* zhouke add end */
+ 	{PRIV_ETHTOOL, asroot_ethtool},
+ #endif
+ 	{PRIV_IFACE_INIT, asroot_iface_init},
+diff -urN a/src/daemon/priv-linux.c b/src/daemon/priv-linux.c
+--- a/src/daemon/priv-linux.c	2016-08-30 10:34:14.678163209 +0800
++++ b/src/daemon/priv-linux.c	2016-08-30 10:37:53.221740252 +0800
+@@ -120,6 +120,98 @@
+ 	close(fd);
+ }
+ 
++/* zhouke add for hos classis information */
++char *
++priv_get_cmd(char *syscmd)
++{
++	int len, rc_len;
++    char buff[100]={0};
++	enum priv_cmd cmd = PRIV_CMD;
++	must_write(&cmd, sizeof(enum priv_cmd));
++	len = strlen(syscmd);
++	must_write(&len, sizeof(int));
++	must_write(syscmd, len + 1);
++	must_read(&rc_len, sizeof(int));
++
++	if (rc_len == -1)
++		return NULL;
++    
++	must_read(&buff, rc_len);
++
++	buff[sizeof(buff) - 1] = '\0';
++	if ((rc_len > 0) && (buff[rc_len-1] == '\n'))
++		buff[rc_len - 1] = '\0';
++
++	if (strlen(buff))
++		return strdup(buff);
++    
++    return NULL;
++}
++
++
++void
++asroot_cmd()
++{
++	const char* authorized[] = {
++		SYS_SHOWSYSINFO HOS_HARDWARE_REV,
++        SYS_SHOWSYSINFO HOS_SERIAL_NUM,
++		SYS_SHOWSYSINFO HOS_COMPANY_NAME,
++        SYS_SHOWSYSINFO HOS_MODEL_NAME,
++        SYS_SHOWSYSINFO HOS_SOFTWARE_REV,
++        HOS_FIRMWARE_REV,
++        NULL
++	};
++	const char **f;
++	char *cmd;
++	int len, rc;
++    FILE *fp = NULL;
++	regex_t preg;
++    char StrLine[1024] = {0};
++    
++	must_read(&len, sizeof(len));
++	if ((cmd = (char *)malloc(len + 1)) == NULL)
++		fatal("privsep", NULL);
++	must_read(cmd, len);
++	cmd[len] = '\0';
++
++	for (f=authorized; *f != NULL; f++) {
++		if (regcomp(&preg, *f, REG_NOSUB) != 0)
++			/* Should not happen */
++			fatal("privsep", "unable to compile a regex");
++		if (regexec(&preg, cmd, 0, NULL, 0) == 0) {
++			regfree(&preg);
++			break;
++		}
++		regfree(&preg);
++	}
++	if (*f == NULL) {
++		log_warnx("privsep", "not authorized to exec %s", cmd);
++		rc = -1;
++		must_write(&rc, sizeof(int));
++		free(cmd);
++		return;
++	}
++
++    fp = popen(cmd,"r");
++    if(fp == NULL)
++    {
++        rc = -1;
++        must_write(&rc, rc);
++        free(cmd);
++		return;
++    }
++
++    fgets(StrLine,1024,fp);
++
++    len = strlen(StrLine);
++    must_write(&len, sizeof(int));
++    must_write(StrLine, strlen(StrLine));
++    pclose(fp);
++	free(cmd);
++
++}
++/* zhouke add end */
++
+ void
+ asroot_ethtool()
+ {

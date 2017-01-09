@@ -1,0 +1,193 @@
+diff -urN a/networking/udhcp/dhcpc.c b/networking/udhcp/dhcpc.c
+--- a/networking/udhcp/dhcpc.c	2016-07-14 15:41:36.232234889 +0800
++++ b/networking/udhcp/dhcpc.c	2016-07-14 15:42:50.391616538 +0800
+@@ -1251,6 +1251,15 @@
+ 	int retval;
+ 	fd_set rfds;
+ 
++/* zhouke add priority recognition option43(OXO R10 VCI) */
++    int offer_len,offer_count = 0;
++    int pri_flag = 0;   //PRIMARY DHCP OFFER VCI
++    struct in_addr addr;
++    struct offer_info_table *curr = NULL;
++    struct offer_info_table *offer_list_head = NULL;
++    struct offer_info_table *offer_info = NULL;
++/* zhouke add end */
++
+ 	/* Default options */
+ 	IF_FEATURE_UDHCP_PORT(SERVER_PORT = 67;)
+ 	IF_FEATURE_UDHCP_PORT(CLIENT_PORT = 68;)
+@@ -1459,6 +1468,19 @@
+ 
+ 			switch (state) {
+ 			case INIT_SELECTING:
++/* zhouke add priority recognition option43(OXO R10 VCI) */
++                if ( offer_count != 0)
++                {
++                    bb_info_msg("offer selecting timeout %ds",discover_timeout);
++                    bb_info_msg("enter REQUESTING state");
++    				state = REQUESTING;
++    				timeout = 0;
++    				packet_num = 0;
++    				already_waited_sec = 0;
++                    continue;
++                }
++				else
++/* zhouke add end */
+ 				if (!discover_retries || packet_num < discover_retries) {
+ 					if (packet_num == 0)
+ 						xid = random_xid();
+@@ -1490,6 +1512,11 @@
+ 			case REQUESTING:
+ 				if (!discover_retries || packet_num < discover_retries) {
+ 					/* send broadcast select packet */
++
++/* zhouke add priority recognition option43(OXO R10 VCI) */
++                    OFFER_INFO_BEST_SELECT()
++                    OFFER_INFO_RELEASE()
++/* zhouke add end */
+ 					send_select(xid, server_addr, requested_ip);
+ 					timeout = discover_timeout;
+ 					packet_num++;
+@@ -1679,13 +1706,32 @@
+ 				}
+ 				/*xid = packet.xid; - already is */
+ 				requested_ip = packet.yiaddr;
++/* zhouke add priority recognition option43(OXO R10 VCI) */
++#if 1
++                addr.s_addr = requested_ip;
++                bb_info_msg("receive offer for %s...",inet_ntoa(addr));
++                OFFER_INFO_INIT()
++                OFFER_INFO_INSERT()
++
++                if(pri_flag == 2)
++                {
++    				state = REQUESTING;
++    				timeout = 0;
++    				packet_num = 0;
++    				already_waited_sec = 0;
++                }
++                else
++                    already_waited_sec += (unsigned)monotonic_sec() - timestamp_before_wait;
++#else
+ 
+ 				/* enter requesting state */
+ 				state = REQUESTING;
+ 				timeout = 0;
+ 				packet_num = 0;
+ 				already_waited_sec = 0;
+-			}
++#endif
++/* zhouke add end */
++            }
+ 			continue;
+ 		case REQUESTING:
+ 		case RENEWING:
+diff -urN a/networking/udhcp/dhcpc.h b/networking/udhcp/dhcpc.h
+--- a/networking/udhcp/dhcpc.h	2016-07-14 15:41:36.228293332 +0800
++++ b/networking/udhcp/dhcpc.h	2016-07-14 15:42:55.499961003 +0800
+@@ -36,6 +36,104 @@
+ #define CLIENT_PORT6 546
+ #endif
+ 
++/* zhouke add priority recognition option43(OXO R10 VCI) */
++
++#define DHCP_VCI_PRIMARY            "alcatel.nms.ov2500"
++#define DHCP_VCI_SECONDARY          "alcatel.a4400.0"
++#define DHCP_OPTION43               0x2b            //option43
++#define REV_MAX_OFFER_COUNT         3
++
++#define OFFER_INFO_INIT()                                       \
++        offer_info = NULL;                                      \
++        offer_info = xmalloc(sizeof(struct offer_info_table));  \
++        memset(offer_info, 0, sizeof(struct offer_info_table)); \
++        offer_info->next = NULL;                                \
++        offer_info->requested_ip = requested_ip;                \
++        offer_info->server_addr = server_addr;                  \
++        offer_info->pri = 0;                                    \
++        temp = udhcp_get_option(&packet, DHCP_OPTION43);        \
++        if(temp)                                                \
++        {                                                       \
++            offer_len = temp[-OPT_DATA + OPT_LEN];      	    \
++			offer_info->vendor_class_id = xmalloc(offer_len+1);		\
++			memset(offer_info->vendor_class_id,0,strlen(offer_info->vendor_class_id));	\
++			memcpy(offer_info->vendor_class_id,temp,offer_len);		\
++			offer_info->vendor_class_id[offer_len]= '\0';				\
++            bb_info_msg("vendor class id = %s from %s",offer_info->vendor_class_id,inet_ntoa(addr));  \
++            if(memcmp(offer_info->vendor_class_id,DHCP_VCI_PRIMARY,strlen(offer_info->vendor_class_id)) == 0) \
++            {                                                               \
++                offer_info->pri = 2;                                        \
++                pri_flag = 2;                                               \
++            }                                                               \
++            else if(memcmp(offer_info->vendor_class_id,DHCP_VCI_SECONDARY,strlen(DHCP_VCI_SECONDARY)) == 0) \
++            {                                                                        \
++                offer_info->pri = 1;                                                 \
++                if(pri_flag < 1)                                                     \
++                    pri_flag = 1;                           \
++            }                                               \
++        }                                                   \
++        else                                                \
++        {                                                   \
++            offer_info->vendor_class_id = NULL;             \
++        }                                                   \
++
++
++#define OFFER_INFO_INSERT()                 \
++        if(offer_list_head == NULL)         \
++            offer_list_head = offer_info;   \
++        else                                \
++        {                                   \
++            curr = offer_list_head;         \
++            while(curr->next)               \
++            {                               \
++                curr = curr->next;          \
++            }                               \
++            curr->next = offer_info;        \
++        }                                   \
++        offer_count ++;                     \
++
++
++#define OFFER_INFO_BEST_SELECT()                        \
++        curr = offer_list_head;                         \
++        bb_info_msg("priority = %d offer_count = %d",pri_flag,offer_count); \
++        while(curr)                                     \
++        {                                               \
++            if(pri_flag == curr->pri)                   \
++            {                                           \
++                server_addr = curr ->server_addr;       \
++                requested_ip = curr ->requested_ip;     \
++                break;                                  \
++            }                                           \
++            curr  = curr ->next;                        \
++        }                                               \
++
++
++#define OFFER_INFO_RELEASE()                            \
++        pri_flag = 0;                                   \
++        while(offer_list_head)                          \
++        {                                               \
++            curr = offer_list_head;                     \
++            offer_list_head = offer_list_head->next;    \
++            if(curr->vendor_class_id)                   \
++            {                                           \
++                free(curr->vendor_class_id);            \
++                curr->vendor_class_id = NULL;           \
++            }                                           \
++            free(curr);                                 \
++            curr = NULL;                                \
++            offer_count --;                             \
++        }                                               \
++
++
++struct offer_info_table {
++    uint8_t pri;
++    uint8_t *vendor_class_id;
++    uint32_t requested_ip;
++    uint32_t server_addr;
++    struct offer_info_table *next;
++};
++/* zhouke add end */
++
+ POP_SAVED_FUNCTION_VISIBILITY
+ 
+ #endif

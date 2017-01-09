@@ -1,0 +1,33 @@
+<div ui-view>
+    <div class="modal-header modal_type">
+        <h3 class="modal-title">{{"User Guide"|translate}}</h3>
+    </div>
+    <div class="modal-body">
+        <div class="div_title">
+            Step {{second}}&nbsp;&nbsp;&nbsp;&nbsp;{{"Choose CountryCode"|translate}}
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <label class="control-label col-md-offset-2 col-md-3">{{"CountryCode"|translate}}:</label>
+                <div class="col-md-6">
+                    <select class="form-control" ng-model="countryCode" ng-options="obj.name   +' - '+   obj.value for obj in countryCodeArray" ></select>
+                </div>
+            </div>         
+        </div>
+        <div class="row">
+        </div>
+        <div class="row">
+            <div class="form-group">
+                <label class="control-label col-md-offset-2 col-md-3">{{"Time Zone"|translate}}:</label>
+                <div class="col-md-6">
+                    <select class="form-control" ng-model="selectTimeZone" 
+                            ng-options="v| translate  for v in timeZoneArray">
+                    </select>
+                </div>
+            </div>            
+        </div>        
+    </div>
+    <div class="modal-footer">
+        <button class="btn btn-primary" ng-click="firstStepOk()" ng-disabled="changePassForm.$invalid">{{"Save"|translate}}</button>
+    </div>
+</div>

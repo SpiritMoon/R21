@@ -1,0 +1,11 @@
+diff -Nur a/include/uapi/linux/netlink.h b/include/uapi/linux/netlink.h
+--- a/include/uapi/linux/netlink.h	2016-05-30 09:54:19.502891924 -0700
++++ b/include/uapi/linux/netlink.h	2016-05-30 09:56:04.002693939 -0700
+@@ -29,6 +29,7 @@
+ #define NETLINK_CRYPTO		21	/* Crypto layer */
+ #define NETLINK_TID         22
+ #define NETLINK_DRM         23
++#define NETLINK_HAN_WIFI    24
+ #define NETLINK_ARPPM		30	/* ARP Proxy */
+ 
+ #define NETLINK_INET_DIAG	NETLINK_SOCK_DIAG

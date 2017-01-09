@@ -1,0 +1,71 @@
+diff -ruN a//include/linux/netdevice.h b//include/linux/netdevice.h
+--- a//include/linux/netdevice.h	2016-07-12 14:22:39.000000000 +0800
++++ b//include/linux/netdevice.h	2016-07-12 14:24:35.000000000 +0800
+@@ -2219,6 +2219,7 @@
+ extern int		netif_rx(struct sk_buff *skb);
+ extern int		netif_rx_ni(struct sk_buff *skb);
+ extern int		netif_receive_skb(struct sk_buff *skb);
++extern int		__netif_receive_skb(struct sk_buff *skb);
+ extern gro_result_t	napi_gro_receive(struct napi_struct *napi,
+ 					 struct sk_buff *skb);
+ extern void		napi_gro_flush(struct napi_struct *napi, bool flush_old);
+diff -ruN a//net/core/dev.c b//net/core/dev.c
+--- a//net/core/dev.c	2016-07-12 14:22:37.000000000 +0800
++++ b//net/core/dev.c	2016-07-12 14:25:13.000000000 +0800
+@@ -3601,7 +3601,7 @@
+ 	return ret;
+ }
+ 
+-static int __netif_receive_skb(struct sk_buff *skb)
++int __netif_receive_skb(struct sk_buff *skb)
+ {
+ 	int ret;
+ 	
+@@ -3614,19 +3614,6 @@
+ 	{
+ 		kdrm_filter_packet_cb(skb);
+ 	}
+-
+-	if (NULL != arppm_filter_skb_cb) {
+-		int res = 0;
+-		arppm_filter_skb_cb(skb, &res);
+-		if (res) {
+-			kfree_skb(skb);
+-			/* Jamal, now you will not able to escape explaining
+-			 * me how you were going to use this. :-)
+-			 */
+-			ret = NET_RX_DROP;
+-			return ret;
+-		}
+-	}
+ 	
+ 	if (sk_memalloc_socks() && skb_pfmemalloc(skb)) {
+ 		unsigned long pflags = current->flags;
+@@ -3648,6 +3635,8 @@
+ 
+ 	return ret;
+ }
++EXPORT_SYMBOL(__netif_receive_skb);
++
+ 
+ /**
+  *	netif_receive_skb - process receive buffer from network
+@@ -3688,6 +3677,18 @@
+ 		rcu_read_unlock();
+ 	}
+ #endif
++	if (NULL != arppm_filter_skb_cb) {
++		int res = 0;
++		arppm_filter_skb_cb(skb, &res);
++		if (res) {
++			kfree_skb(skb);
++			/* Jamal, now you will not able to escape explaining
++			 * me how you were going to use this. :-)
++			 */
++			return NET_RX_DROP;
++		}
++	}
++	
+ 	return __netif_receive_skb(skb);
+ }
+ EXPORT_SYMBOL(netif_receive_skb);

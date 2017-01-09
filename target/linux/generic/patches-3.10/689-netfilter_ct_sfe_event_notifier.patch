@@ -1,0 +1,101 @@
+Index: linux-3.10.49/include/net/netfilter/nf_conntrack_ecache.h
+===================================================================
+--- linux-3.10.49.orig/include/net/netfilter/nf_conntrack_ecache.h
++++ linux-3.10.49/include/net/netfilter/nf_conntrack_ecache.h
+@@ -150,9 +150,37 @@ nf_conntrack_event_report(enum ip_conntr
+ 	return nf_conntrack_eventmask_report(1 << event, ct, portid, report);
+ }
+ 
++struct nf_ct_event_notifier_sfe {
++	int (*fcn)(enum ip_conntrack_events event, struct nf_conn *ct);
++};
++
++extern int nf_ct_register_notifier_sfe(struct net *net, struct nf_ct_event_notifier_sfe *nb);
++extern void nf_ct_unregister_notifier_sfe(struct net *net, struct nf_ct_event_notifier_sfe *nb);
++
++static inline void
++nf_conntrack_event_sfe(enum ip_conntrack_events event, struct nf_conn *ct)
++{
++	struct net *net = nf_ct_net(ct);
++	struct nf_ct_event_notifier_sfe *notify;
++
++	rcu_read_lock();
++	notify = rcu_dereference(net->ct.nf_conntrack_event_cb_sfe);
++	if (notify == NULL)
++		goto out_unlock;
++
++	if (nf_ct_is_confirmed(ct) && !nf_ct_is_dying(ct)) {
++		notify->fcn(event, ct);
++	}
++
++out_unlock:
++	rcu_read_unlock();
++	return;
++}
++
+ static inline int
+ nf_conntrack_event(enum ip_conntrack_events event, struct nf_conn *ct)
+ {
++	nf_conntrack_event_sfe(event, ct);
+ 	return nf_conntrack_eventmask_report(1 << event, ct, 0, 0);
+ }
+ 
+Index: linux-3.10.49/include/net/netns/conntrack.h
+===================================================================
+--- linux-3.10.49.orig/include/net/netns/conntrack.h
++++ linux-3.10.49/include/net/netns/conntrack.h
+@@ -74,6 +74,7 @@ struct netns_ct {
+ 	struct hlist_nulls_head tmpl;
+ 	struct ip_conntrack_stat __percpu *stat;
+ 	struct nf_ct_event_notifier __rcu *nf_conntrack_event_cb;
++	struct nf_ct_event_notifier_sfe __rcu *nf_conntrack_event_cb_sfe;
+ 	struct nf_exp_event_notifier __rcu *nf_expect_event_cb;
+ 	int			sysctl_events;
+ 	unsigned int		sysctl_events_retry_timeout;
+Index: linux-3.10.49/net/netfilter/nf_conntrack_ecache.c
+===================================================================
+--- linux-3.10.49.orig/net/netfilter/nf_conntrack_ecache.c
++++ linux-3.10.49/net/netfilter/nf_conntrack_ecache.c
+@@ -119,6 +119,42 @@ void nf_conntrack_unregister_notifier(st
+ }
+ EXPORT_SYMBOL_GPL(nf_conntrack_unregister_notifier);
+ 
++int nf_ct_register_notifier_sfe(struct net *net,
++				   struct nf_ct_event_notifier_sfe *new)
++{
++	int ret;
++	struct nf_ct_event_notifier_sfe *notify;
++
++	mutex_lock(&nf_ct_ecache_mutex);
++	notify = rcu_dereference_protected(net->ct.nf_conntrack_event_cb_sfe,
++					   lockdep_is_held(&nf_ct_ecache_mutex));
++	if (notify != NULL) {
++		ret = -EBUSY;
++		goto out_unlock;
++	}
++	rcu_assign_pointer(net->ct.nf_conntrack_event_cb_sfe, new);
++	ret = 0;
++
++out_unlock:
++	mutex_unlock(&nf_ct_ecache_mutex);
++	return ret;
++}
++EXPORT_SYMBOL_GPL(nf_ct_register_notifier_sfe);
++
++void nf_ct_unregister_notifier_sfe(struct net *net,
++				      struct nf_ct_event_notifier_sfe *new)
++{
++	struct nf_ct_event_notifier_sfe *notify;
++
++	mutex_lock(&nf_ct_ecache_mutex);
++	notify = rcu_dereference_protected(net->ct.nf_conntrack_event_cb_sfe,
++					   lockdep_is_held(&nf_ct_ecache_mutex));
++	BUG_ON(notify != new);
++	RCU_INIT_POINTER(net->ct.nf_conntrack_event_cb_sfe, NULL);
++	mutex_unlock(&nf_ct_ecache_mutex);
++}
++EXPORT_SYMBOL_GPL(nf_ct_unregister_notifier_sfe);
++
+ int nf_ct_expect_register_notifier(struct net *net,
+ 				   struct nf_exp_event_notifier *new)
+ {

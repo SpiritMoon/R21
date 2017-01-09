@@ -1,0 +1,50 @@
+#!/bin/sh /etc/rc.common
+
+USE_PROCD=1
+START=23
+
+
+stop_service()
+{
+    start-stop-daemon -K -x bg-s -s SIGINT > /dev/null
+    echo Background Scanning stop ...
+
+}
+
+start_service()
+{
+    config_load bg-s
+
+    local enable
+    local scan_interval
+    local duration
+    local scan_iface0 scan_iface1 scan_iface2
+	local iface_list
+
+    config_get enable bs enable
+    [ $enable -ne 1 ]&&return
+
+    config_get scan_interval bs scan_interval
+
+    config_get duration bs foreign_ch_dur        
+
+    config_get scan_iface0 bs scan_iface0                                            
+    config_get scan_iface1 bs scan_iface1                                            
+    config_get scan_iface2 bs scan_iface2                                            
+    iface_list="$scan_iface0 $scan_iface1 $scan_iface2"
+    iface_list=${iface_list// /,}
+
+    procd_open_instance                   
+    procd_set_param command bg-s -q -X
+    procd_append_param command -I $scan_interval
+    procd_append_param command -F $duration
+	procd_append_param command -i $iface_list
+    procd_set_param respawn
+    procd_close_instance                  
+    echo Background Scanning start ...
+}
+
+service_triggers()
+{
+    procd_add_reload_trigger "bg-s"
+}

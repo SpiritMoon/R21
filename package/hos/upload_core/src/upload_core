@@ -1,0 +1,28 @@
+#!/bin/sh
+
+enable=`uci get upload_core.upload_core.enable 2>/dev/null`
+[ "x${enable}x" = "x1x" ] || find /tmp/*.core -exec rm {} 2>/dev/null \; -exec echo -e $(date '+%F %T') :'  ' rm {} '\t' PMD is disabled >>/etc/cfm/delete_log \; 2>/dev/null
+[ "x${enable}x" = "x1x" ] || find /tmp/pmd-* -exec rm {} 2>/dev/null \; -exec echo -e $(date '+%F %T') :'  ' rm {} '\t' PMD is disabled >>/etc/cfm/delete_log \; 2>/dev/null
+
+delete_log="/etc/cfm/delete_log"
+tmp_log="/tmp/delete_log_tmpfile"
+[ `ls -l $delete_log |awk '{print $5}'` -gt 20280 ] && awk -v l=`wc -l $delete_log|awk '{print $1}'` '{if(NR > l-30) print $0}' $delete_log >$tmp_log ;test -f $tmp_log&& mv $tmp_log $delete_log
+
+[ "x${enable}x" = "x1x" ] || exit 0
+
+cd /tmp
+#ls *.core >/dev/null 2>&1 || exit 0;
+
+flock /tmp/upload_core_lock -c sh -c '\
+	ls *.core >/dev/null 2>&1 || ls pmd* >/dev/null 2>&1 || exit 0;\
+	tftp_server=`uci get upload_core.upload_core.server 2>/dev/null`;\
+	[ "x${tftp_server}x" = "xx" ] && find /tmp/*.core -exec rm {} 2>/dev/null \; -exec echo -e $(date +%F\ %T) :"  " rm {} "\t" no tftp_server >>/etc/cfm/delete_log \; 2>/dev/null;\
+	[ "x${tftp_server}x" = "xx" ] && find /tmp/pmd-* -exec rm {} 2>/dev/null \; -exec echo -e $(date +%F\ %T) :"  " rm {} "\t" no tftp_server >>/etc/cfm/delete_log \; 2>/dev/null;\
+	[ "x${tftp_server}x" = "xx" ] && exit 0;\
+	MAC_INFO=$(showsysinfo |grep MAC);DATE=$(date +%Y.%m.%d-%H.%M.%S);\
+	for file in `find *.core 2>/dev/null` ; \
+	do \
+		mv $file pmd-$(echo $file|sed "s/\..*\.core//")-${MAC_INFO:29:2}.${MAC_INFO:32:2}-$DATE;\
+	done; \
+	ping -q -w 3 -c 1 $tftp_server > /dev/null 2>&1 || exit 1;\
+	for c in pmd-*; do tftp -pr $c $tftp_server >/dev/null 2>&1 && rm $c && echo -e $(date +%F\ %T) :"  " upload $c "\t" upload successfully >>/etc/cfm/delete_log; done'

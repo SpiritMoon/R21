@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+# Copyright (C) 2010 OpenWrt.org
+#
+country=`showsysinfo | grep Country | awk -F : '{print $2}' | awk -F " " '{print $1}'`
+if [ "$country" = "country" ]; then
+	exit
+fi
+
+PUB_CFG_DIR="/etc/cfm/config/config-pub"
+
+if [ "$country" != "RW" ]; then
+	uci set wireless.wifi0.country=$country
+	uci set wireless.wifi1.country=$country
+	uci commit
+	uci -c $PUB_CFG_DIR set wireless.wifi0.country=$country
+	uci -c $PUB_CFG_DIR set wireless.wifi1.country=$country
+	uci -c $PUB_CFG_DIR commit wireless
+    cd $PUB_CFG_DIR; rm -f pub-cfg-md5; md5sum * > pub-cfg-md5
+fi

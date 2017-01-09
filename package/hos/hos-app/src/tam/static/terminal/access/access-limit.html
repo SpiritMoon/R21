@@ -1,0 +1,184 @@
+<div class="panel" ng-class="{'border_purple':skin.isPurple, 'border_blue':skin.isBlue}" ng-controller="TerminalAccessController">
+	<div tooltip="{{'FilterTip'|translate}}" tooltip-enable="{{helpTip.isEabled}}" class="panel-heading second_level_header" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+		<h3 class="panel-title">{{"Blacklist"|translate}} & {{"Whitelist"|translate}}</h3>
+	</div>
+    <div class="panel-body second_level_content">
+    <div class="row">
+        <div class="col-md-12 paddingL20">
+			<ul id="filterTab" class="nav nav-tabs">
+				<li class="active">
+					<a href="#Black" data-toggle="tab">{{"Black List"|translate}}</a>
+				</li>
+				<li>
+					<a href="#White" data-toggle="tab">{{"White List"|translate}}</a>
+				</li>
+				<li>
+					<a href="#MAC" data-toggle="tab">{{"Walled garden"|translate}}</a>
+				</li>
+			</ul>
+        </div>
+    </div>
+
+	<div class="row tab-content">
+	<div id="Black" class="tab-pane fade in active col-md-12">
+	    <div class="row">
+	        <div class="col-md-12" style="margin-top: 10px">
+	            <table  class="table table-striped table-hover table-condensed marginB0">
+	                <thead ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}">
+	                <tr>
+	                    <td style="width:70%" ng-click="col='MAC';desc=!desc">MAC {{"Address"|translate}}</td>
+	                    <td style="width:30%">{{"Operate"|translate}}</td>
+	                </tr>
+	                </thead>
+	            </table>
+	        </div>
+	    </div>
+	    <div class="row" >
+	        <div class="col-md-12" style="height:205px;overflow:auto;">
+	            <table class="table table-striped table-hover table-condensed">
+	                <tbody>
+	                    <tr ng-repeat="blacklist in BlackList | orderBy:col:desc">
+	                        <td style="width:80%" ng-bind="blacklist.MAC"></td>
+	                        <td style="width:20%">
+	                            <span display-permission='Permission_Admin' class="glyphicon glyphicon-remove del_color cursorPoint" ng-click="Del_Blacklist(blacklist.MAC)"></span>
+	                        </td>
+	                    </tr>
+	                </tbody>
+	            </table>
+	        </div>
+	    </div>
+        <form class="form-inline"  display-permission='Permission_Admin' role="form" name="add_black_mac" novalidate>
+            <div class="form-group">
+                <label class="control-label">MAC:</label>
+                <input type="text" class="form-control input-sm" ng-model="BlackListTemp.Begin_MAC"
+                           placeholder="MAC" tooltip="XX:XX:XX:XX:XX:XX" tooltip-trigger="mouseenter"
+                           ng-pattern="{{InterService.pattern.normalMAC}}" required name="black_MACAddr">
+                <button type="button" ng-click="Add_Blacklist()" class="btn btn-addbtn btn-sm"  ng-disabled="add_black_mac.$invalid">{{"Add"|translate}}</button>
+            </div>
+        </form>
+        <div class="row">
+            <div class="col-md-12">
+                <div ng-show="add_black_mac.black_MACAddr.$dirty && add_black_mac.black_MACAddr.$invalid">
+                    <small class="text-danger" ng-show="add_black_mac.black_MACAddr.$error.pattern" ng-bind="InterService.validMac()"></small>
+                </div>
+            </div>
+        </div>
+	</div>
+	<div class="tab-pane fade col-md-12" id="White">
+        <div class="row">
+            <div class="col-md-12" style="margin-top: 10px">
+                <table  class="table table-striped table-hover table-condensed marginB0" >
+                    <thead ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}">
+                    <tr>
+                        <td style="width:70%" ng-click="col='MAC';desc=!desc">MAC {{"Address"|translate}}</td>
+                        <td style="width:30%">{{"Operate"|translate}}</td>
+                    </tr>
+                    </thead>
+                </table>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col-md-12" style="height:150px;overflow:auto;">
+                <table class="table table-striped table-hover table-condensed">
+                    <tbody>
+                        <tr ng-repeat="white in WhiteList | orderBy:col:desc">
+                            <td style="width:80%" ng-bind="white.MAC"></td>
+                            <td style="width:20%">
+                                <span display-permission='Permission_Admin' class="glyphicon glyphicon-remove del_color cursorPoint" ng-click=" Del_Whitelist(white.MAC);"></span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div>
+            <form class="form-horizontal marginT20" display-permission='Permission_Admin' role="form" name="add_local_mac" novalidate>
+            <div class="form-group" ng-class="{'has-error': add_local_mac.startmac.$dirty && add_local_mac.startmac.$invalid}">
+                <label for="Start_NAC" class="col-sm-4 control-label paddingR0">{{"Starting"|translate}} MAC:</label>
+                <div class="col-sm-5">
+                    <input type="text" class="form-control  input-sm" id="Start_NAC" name="startmac" ng-model="WhiteListTemp.Begin_MAC"
+                           placeholder='{{"Starting MAC"|translate}}' tooltip='{{"accessWhitelist"|translate}}' tooltip-trigger="mouseenter"
+                           ng-pattern="{{InterService.pattern.AuthMAC}}" required  ng-mouseleave="CheckStartingMac()">
+                </div>
+                <div class="col-sm-12" ng-show="add_local_mac.startmac.$dirty && add_local_mac.startmac.$invalid">
+                    <small class="text-danger" ng-show="add_local_mac.startmac.$error.required" ng-bind="InterService.valueNotNull('starting mac')"></small>
+                    <small class="text-danger" ng-show="add_local_mac.startmac.$error.pattern" ng-bind="InterService.validMac()"></small>
+                </div>
+            </div>
+            <div class="form-group" ng-class="{'has-error': add_local_mac.endmac.$dirty && add_local_mac.endmac.$invalid}">
+                <label for="end_MAC" class="col-sm-4 control-label paddingR0">{{"Ending"|translate}} MAC:</label>
+                <div class="col-sm-5">
+                    <input type="text" class="form-control input-sm" id="end_MAC" name="endmac" ng-model="WhiteListTemp.End_MAC"
+                           placeholder='{{"Ending MAC"|translate}}' tooltip="XX:XX:XX:XX:XX:XX" tooltip-trigger="mouseenter" ng-pattern="{{InterService.pattern.normalMAC}}" ng-disabled="WhiteListTemp.Begin_MAC.length==8">
+                </div>
+                <div class="col-sm-2">
+                    <button type="button" ng-click="Add_Whitelist()" class="btn btn-addbtn btn-sm"  ng-disabled="add_local_mac.$invalid">{{"Add"|translate}}</button>
+                </div>
+                <div class="col-sm-12" ng-show="add_local_mac.endmac.$dirty && add_local_mac.endmac.$invalid">
+                    <small class="text-danger" ng-show="add_local_mac.endmac.$error.pattern" ng-bind="InterService.validMac()"></small>
+                </div>
+                
+            </div>
+        </form>
+        </div>
+	</div>
+	<div class="tab-pane fade col-md-12" id="MAC">
+	    <div class="row">
+	        <div class="col-md-12" style="margin-top: 10px">
+	            <table  class="table table-striped table-hover table-condensed marginB0" >
+	                <thead ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}">
+	                <tr >
+	                    <td style="width:70%" ng-click="col='Domain';desc=!desc" >IP {{"Address"|translate}}</td>
+	                    <td style="width:30%">{{"Operate"|translate}}</td>
+	                </tr>
+	                </thead>
+	            </table>
+	        </div>
+	    </div>
+	    <div class="row">
+	        <div class="col-md-12 " style="height:150px; overflow:auto;">
+	            <table class="table table-striped table-hover table-condensed">
+	                <tbody>
+	                <tr ng-repeat="wall in WallList | orderBy:col:desc">
+	                    <td style="width:80%" ng-bind="wall.Domain"></td>
+	                    <td style="width:20%">
+	                        <span display-permission='Permission_Admin' class="glyphicon glyphicon-remove del_color cursorPoint" ng-click="Del_Walllist(wall)"></span>
+	                    </td>
+	                </tr>
+	                </tbody>
+	            </table>
+	        </div>
+	    </div>
+        <div>
+            <form class="form-horizontal marginT20" display-permission='Permission_Admin'  role="form" name="add_whitelist" novalidate>
+                <div class="form-group" ng-class="{'has-error': add_whitelist.startIP.$dirty && add_whitelist.startIP.$invalid}">
+                    <label for="Start_IP" class="col-sm-4 control-label paddingR0">{{"Starting"|translate}} IP:</label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control input-sm" id="Start_IP" name="startIP"  ng-model="WallListTemp.Begin_IP"
+                               placeholder="x.x.x.x" ng-pattern="{{InterService.pattern.IP}}" required>
+                    </div>
+                    <div class="col-sm-12" ng-show="add_whitelist.startIP.$dirty && add_whitelist.startIP.$invalid">
+                        <small class="text-danger" ng-show="add_whitelist.startIP.$error.required" ng-bind="InterService.valueNotNull('starting IP')"></small>
+                        <small class="text-danger" ng-show="add_whitelist.startIP.$error.pattern" ng-bind="InterService.validIP()"></small>
+
+                    </div>
+                </div>
+
+                <div class="form-group" ng-class="{'has-error': add_whitelist.endIP.$dirty && add_whitelist.endIP.$invalid}">
+                    <label for="end_IP" class="col-sm-4 control-label paddingR0">{{"Ending"|translate}} IP:</label>
+                    <div class="col-sm-5">
+                        <input type="text" class="form-control input-sm" id="end_IP" name="endIP" ng-model="WallListTemp.End_IP" placeholder="x.x.x.x" ng-pattern="{{InterService.pattern.IP}}">
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="button" ng-click="Add_Walllist()" class="btn btn-addbtn btn-sm" ng-disabled="add_whitelist.$invalid">{{"Add"|translate}}</button>
+                    </div>
+                    <div class="col-sm-12" ng-show="add_whitelist.endIP.$dirty && add_whitelist.endIP.$invalid">
+                        <small class="text-danger" ng-show="add_whitelist.endIP.$error.pattern" ng-bind="InterService.validIP()"></small>
+                    </div>
+                </div>
+            </form>
+        </div>
+	</div>
+	</div>
+    </div>
+</div>

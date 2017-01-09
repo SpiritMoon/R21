@@ -1,0 +1,145 @@
+--- a/libfstools/mount.c
++++ b/libfstools/mount.c
+@@ -46,9 +46,9 @@ mount_move(char *oldroot, char *newroot,
+ 		return -1;
+ 
+ 	ret = mount(olddir, newdir, NULL, MS_NOATIME | MS_MOVE, NULL);
+-
+-/*	if (ret)
+-		fprintf(stderr, "failed %s %s: %s\n", olddir, newdir, strerror(errno));*/
++    if (ret) { /* if failed, try again */
++        ret = mount(olddir, newdir, NULL, MS_NOATIME | MS_MOVE, NULL);
++    }
+ 
+ 	return ret;
+ }
+--- a/libfstools/overlay.c
++++ b/libfstools/overlay.c
+@@ -166,7 +166,7 @@ jffs2_switch(int argc, char **argv)
+ 
+ 	switch (volume_identify(v)) {
+ 	case FS_NONE:
+-		fprintf(stderr, "no jffs2 marker found\n");
++		fprintf(stderr, "no jffs2 marker found, should not be here!\n");
+ 		/* fall through */
+ 
+ 	case FS_DEADCODE:
+@@ -225,20 +225,20 @@ static int overlay_mount_fs(void)
+ 		break;
+ 	}
+ 
++    volume_init(v);
++
+ 	if (mount(v->blk, "/tmp/overlay", fstype, MS_NOATIME, NULL)) {
+ 		fprintf(stderr, "failed to mount -t %s %s /tmp/overlay: %s\n",
+ 				fstype, v->blk, strerror(errno));
+ 		return -1;
+ 	}
+ 
+-	volume_init(v);
+-
+ 	return -1;
+ }
+ 
+ int mount_overlay(void)
+ {
+-	struct volume *v = volume_find("rootfs_data");;
++	struct volume *v = volume_find("rootfs_data");
+ 	char *mp;
+ 
+ 	if (!v)
+@@ -258,7 +258,7 @@ int mount_overlay(void)
+ 		return 0;
+ 	}
+ 
+-	fprintf(stderr, "switching to overlay\n");
++	fprintf(stderr, "switching to jffs2 overlay\n");
+ 	if (mount_move("/tmp", "", "/overlay") || fopivot("/overlay", "/rom")) {
+ 		fprintf(stderr, "switching to jffs2 failed - fallback to ramoverlay\n");
+ 		return ramoverlay();
+--- a/mount_root.c
++++ b/mount_root.c
+@@ -13,22 +13,56 @@
+ 
+ #include <sys/mount.h>
+ #include <stdio.h>
++#include <unistd.h>
+ #include <stdlib.h>
++#include <sys/types.h>
++#include <sys/stat.h>
++#include <fcntl.h>
+ 
+ #include "libfstools/libfstools.h"
+ #include "libfstools/volume.h"
+ 
++static void write_jffs2_mark()
++{
++    __u32 mark = __cpu_to_be32(0x19852003);
++    struct volume *v;
++    size_t sz;
++    int fd;
++
++    v = volume_find("rootfs_data");
++    if (!v) {
++        fprintf(stderr, "MTD: no rootfs_data was found\n");
++        return;
++    }
++
++    fd = open(v->blk, O_WRONLY);
++    fprintf(stderr, "%s - marking with 19852003\n", v->blk);
++    if (!fd) {
++        fprintf(stderr, "opening %s failed\n", v->blk);
++        return;
++    }
++
++    sz = write(fd, &mark, sizeof(mark));
++    close(fd);
++
++    if (sz != 4) {
++        fprintf(stderr, "writing %s failed: %s\n", v->blk, strerror(errno));
++        return;
++    }
++}
++
+ static int
+ start(int argc, char *argv[1])
+ {
+-	struct volume *v = volume_find("rootfs_data");
++    struct volume *root;
++	struct volume *data = volume_find("rootfs_data");
+ 
+ 	if (!getenv("PREINIT"))
+ 		return -1;
+ 
+-	if (!v) {
+-		v = volume_find("rootfs");
+-		volume_init(v);
++	if (!data) {
++		root = volume_find("rootfs");
++		volume_init(root);
+ 		fprintf(stderr, "mounting /dev/root\n");
+ 		mount("/dev/root", "/", NULL, MS_NOATIME | MS_REMOUNT, 0);
+ 		return 0;
+@@ -40,11 +74,12 @@ start(int argc, char *argv[1])
+ 		return 0;
+ 	}
+ 
+-	switch (volume_identify(v)) {
+-	case FS_NONE:
++	switch (volume_identify(data)) {
+ 	case FS_DEADCODE:
+ 		return ramoverlay();
+ 
++    case FS_NONE:
++        write_jffs2_mark();
+ 	case FS_JFFS2:
+ 	case FS_UBIFS:
+ 		mount_overlay();
+@@ -76,7 +111,6 @@ done(int argc, char *argv[1])
+ 		return -1;
+ 
+ 	switch (volume_identify(v)) {
+-	case FS_NONE:
+ 	case FS_DEADCODE:
+ 		return jffs2_switch(argc, argv);
+ 	}

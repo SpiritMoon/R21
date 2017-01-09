@@ -1,0 +1,12 @@
+diff -urN a/libbb/info_msg.c b/libbb/info_msg.c
+--- a/libbb/info_msg.c	2016-07-14 15:56:43.003832427 +0800
++++ b/libbb/info_msg.c	2016-07-14 15:57:26.315707562 +0800
+@@ -28,7 +28,7 @@
+ 	}
+ # if ENABLE_FEATURE_SYSLOG
+ 	if (logmode & LOGMODE_SYSLOG)
+-		vsyslog(LOG_INFO, s, p2);
++		vsyslog(LOG_NOTICE, s, p2);
+ # endif
+ 	va_end(p2);
+ 	va_end(p);

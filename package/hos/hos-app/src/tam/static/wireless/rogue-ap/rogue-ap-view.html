@@ -1,0 +1,43 @@
+<div class="panel" ng-class="{'border_purple':skin.isPurple, 'border_blue':skin.isBlue}"  ng-controller="RogueApViewController">
+	<div tooltip="{{'RoguAPTip'|translate}}" hover mnuelevel="2" tooltip-enable="{{helpTip.isEabled}}" class="panel-heading second_level_header" id="function7" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+		<h3 class="panel-title" ng-click="openConfigPage()">{{"wIDS/wIPS"|translate}}</h3>
+	</div>
+	<div class="panel-body second_level_content">
+		<div>
+			<div style="float: left; margin-left: 5%; margin-bottom: 5px">{{"Suppress"|translate}}:&nbsp;&nbsp;
+				<toggle-switch display-permission='Permission_Admin' ng-model="rogueApParams.suppressSwitch" ng-change="configSuppressSwitch()"></toggle-switch>
+				<span display-permission='!Permission_Admin'>{{ rogueApParams.suppressSwitch | switchFilter }}</span>
+			</div>
+			<div style="float: left; margin-left: 10%; margin-bottom: 5px">{{"DynamicBlacklist"|translate}}:&nbsp;&nbsp;
+				<toggle-switch display-permission='Permission_Admin' ng-model="rogueApParams.blackSwitch" ng-change="configBlackSwitch()"></toggle-switch>
+				<span display-permission='!Permission_Admin'>{{ rogueApParams.blackSwitch | switchFilter }}</span>
+			</div>
+			<br/>
+			<div style="height:280px; margin-top: 2%; margin-left: auto; margin-right: auto">
+				<!--<div align="center">-->
+					<p style="margin-top: 2%";><b style="font-size: medium; float:left;">{{"Unknown AP"|translate}}</b></p>
+					<div ng-if="noDataInfo.type == 'chart'">
+						<nvd3-multi-bar-horizontal-chart
+								data="rogueApData"
+								id="rogueApData"
+								width="390"
+								height="280"
+								margin="{top: 0, right: 30, bottom: 60, left: 80}"
+								showXAxis="true"
+								showYAxis="true"
+								yAxisTickFormat="yAxisTickFormatFunction()"
+								showLegend="true"
+								tooltips="true"
+								tooltipcontent="toolTipContentFunction()"
+								noData='{{"mainLoadingData"|translate}}'>
+						</nvd3-multi-bar-horizontal-chart>
+					</div>
+					<div ng-if="noDataInfo.type == 'error'" align="center" class="chart_error">
+						<br/>
+						<p><b style="font-size: medium">{{noDataInfo.value}}</b></p>
+					</div>
+				<!--</div>-->
+			</div>
+		</div>
+	</div>
+</div>

@@ -1,0 +1,1237 @@
+--- a/cli.c
++++ b/cli.c
+@@ -16,6 +16,7 @@
+ #include <stdlib.h>
+ #include <unistd.h>
+ #include "uci.h"
++#include "uci_internal.h"
+ 
+ #define MAX_ARGS	4 /* max command line arguments for batch mode */
+ 
+@@ -51,6 +52,18 @@ enum {
+ 	CMD_ADD,
+ 	CMD_IMPORT,
+ 	CMD_HELP,
++	/* wlan cmds */  /* Those cmd names should be modified, but ... */
++	CMD_ADD_WLAN,
++	CMD_DEL_WLAN,
++	CMD_EDIT_WIFI,
++	CMD_GET_WLAN,
++	CMD_LIST_WLAN,
++	/* wlan list cmds */
++	CMD_ADD_WLAN_LIST,
++	CMD_DEL_WLAN_LIST,
++	CMD_DEL_WLAN_OP,
++	CMD_SHOW_WLAN_OP,
++
+ };
+ 
+ struct uci_type_list {
+@@ -124,6 +137,7 @@ uci_lookup_section_ref(struct uci_sectio
+ static void uci_usage(void)
+ {
+ 	fprintf(stderr,
++		"\n"
+ 		"Usage: %s [<options>] <command> [<arguments>]\n\n"
+ 		"Commands:\n"
+ 		"\tbatch\n"
+@@ -142,6 +156,17 @@ static void uci_usage(void)
+ 		"\trevert     <config>[.<section>[.<option>]]\n"
+ 		"\treorder    <config>.<section>=<position>\n"
+ 		"\n"
++		"\tadd_wlan   wireless.<newssid>.<2G/5G>.<device>\n"
++		"\tdel_wlan   wireless.<ssid>\n"
++		"\tedit_wlan  wireless.<ssid>.<option>=<value>\n"
++		"\tget_wlan   wireless.<ssid>.<option>\n"
++		"\tlist_wlan  wireless\n"
++		"\n"
++		"\tadd_wlan_list  wireless.<ssid>.<list>=<value>\n"
++		"\tdel_wlan_list  wireless.<ssid>.<list>=<value>\n"
++		"\tdel_wlan_list_op    wireless.<ssid>.<list>\n"
++		"\tshow_wlan_list_op   wireless.<ssid>.<list>\n"
++		"\n"
+ 		"Options:\n"
+ 		"\t-c <path>  set the search path for config files (default: /etc/config)\n"
+ 		"\t-d <str>   set the delimiter for list values in uci show\n"
+@@ -493,6 +518,1130 @@ static int uci_do_section_cmd(int cmd, i
+ 	return 0;
+ }
+ 
++static int _add_wlan(char **argv)
++{
++	int ret;
++	char *_cmd[4];
++	struct uci_ptr ptr;
++	char _val[64];
++	char *_name = malloc(64);
++	int i = 0;
++	int count = 0;
++
++	/* Assert arguments */
++	while (argv[1][i] != '\0') {
++		if (argv[1][i] == '.')
++			count++;
++		i++;
++	}
++	if (count != 2) {
++		uci_usage();
++		return 1;
++	}
++
++	/* Create wifi-iface */
++	_cmd[0] = "add";
++	_cmd[1] = "wireless";
++	_cmd[2] = "wifi-iface";
++	ret = uci_do_add(3, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	int _index = 0;
++	while (1) {
++		char _buf[64];
++		sprintf(_buf, "wireless.@wifi-iface[%d]", _index);
++		if (uci_lookup_ptr(ctx, &ptr, _buf, true) != UCI_OK) {
++			cli_perror();
++			return 1;
++		}
++
++		if (!strncmp(ptr.section, "@wifi-iface[", 12)) {
++			_index--;
++			sprintf(_buf, "wireless.@wifi-iface[%d]", _index);
++			if (uci_lookup_ptr(ctx, &ptr, _buf, true) != UCI_OK) {
++				cli_perror();
++				return 1;
++			}
++
++			size_t _count = 0;
++			while (argv[1][_count++] != '.');
++			memset(_name, 0, 64);
++			strncpy(_name, argv[1], _count - 1);
++			memcpy(_val, _name, 64);
++			*(_name + _count - 1) = '_';
++			strncat(_name, &argv[1][_count], 2);
++			*(_name + _count + 2) = '_';
++			strncat(_name, &argv[1][_count + 3], 5);
++			ptr.value = _name;
++
++			break;
++		}
++
++		_index++;
++	}
++
++	uci_rename(ctx, &ptr);
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	/* Set the ssid */
++	char buf[64];
++	sprintf(buf, "wireless.%s.ssid=%s", ptr.value, _val);
++	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++		cli_perror();
++		return 1;
++	}
++
++	ret = uci_set(ctx, &ptr);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	/* Set the device */
++	memset(_val, 0, 64);
++	sprintf(_val, "%s", (argv[1] + strlen(_name) - 5));
++	sprintf(buf, "wireless.%s.device=%s", _name, _val);
++	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++		cli_perror();
++		return 1;
++	}
++	ret = uci_set(ctx, &ptr);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	/* Add the mode "ap" */
++	memset(_val, 0, 64);
++	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
++	sprintf(buf, "wireless.%s.mode=%s", _name, "ap");
++	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++		cli_perror();
++		return 1;
++	}
++	ret = uci_set(ctx, &ptr);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	/* Add the network "wan" */
++	memset(_val, 0, 64);
++	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
++	sprintf(buf, "wireless.%s.network=%s", _name, "wan");
++	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++		cli_perror();
++		return 1;
++	}
++	ret = uci_set(ctx, &ptr);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	/* Add the network_type "employee" */
++	memset(_val, 0, 64);
++	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
++	sprintf(buf, "wireless.%s.network_type=%s", _name, "employee");
++	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++		cli_perror();
++		return 1;
++	}
++	ret = uci_set(ctx, &ptr);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	/* Add the hidden "0" */
++	memset(_val, 0, 64);
++	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
++	sprintf(buf, "wireless.%s.hidden=%s", _name, "0");
++	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++		cli_perror();
++		return 1;
++	}
++	ret = uci_set(ctx, &ptr);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	/* Add the enable "1" */
++	memset(_val, 0, 64);
++	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
++	sprintf(buf, "wireless.%s.enable=%s", _name, "1");
++	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++		cli_perror();
++		return 1;
++	}
++	ret = uci_set(ctx, &ptr);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	/* Add the maxsta 128 */
++	memset(_val, 0, 64);
++	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
++	sprintf(buf, "wireless.%s.maxsta=%s", _name, "128");
++	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++		cli_perror();
++		return 1;
++	}
++	ret = uci_set(ctx, &ptr);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	/* Add the maxsta 128 */
++	memset(_val, 0, 64);
++	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
++	sprintf(buf, "wireless.%s.maxsta=%s", _name, "128");
++	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++		cli_perror();
++		return 1;
++	}
++	ret = uci_set(ctx, &ptr);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	/* Add the probe_threshold 0 */
++	memset(_val, 0, 64);
++	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
++	sprintf(buf, "wireless.%s.probe_threshold=%s", _name, "0");
++	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++		cli_perror();
++		return 1;
++	}
++	ret = uci_set(ctx, &ptr);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	return UCI_OK;
++}
++
++static int _exist_wlan(char *wifi_name, int index)
++{
++	struct uci_ptr ptr;
++	int _index = index;
++
++	while (1) {
++		char _buf[64];
++		sprintf(_buf, "wireless.@wifi-iface[%d]", _index);
++		if (uci_lookup_ptr(ctx, &ptr, _buf, true) != UCI_OK) {
++			cli_perror();
++			return 0;
++		}
++
++		if (!strncmp("@wifi-iface[", ptr.section, 12))
++			break;
++
++		if (!strncmp(wifi_name, ptr.section, strlen(wifi_name))) {
++			sprintf(_buf, "wireless.@wifi-iface[%d].device=", _index);
++			if (uci_lookup_ptr(ctx, &ptr, _buf, true) != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++			strcat(wifi_name, "_");
++			strcat(wifi_name, ptr.o->v.string);
++			return _index + 1;
++		}
++
++		_index++;
++	}
++
++	return 0;
++}
++
++static int __del_wlan(char *wifi_name)
++{
++	int ret;
++	struct uci_ptr ptr;
++	char *_cmd[4];
++	char buf[64];
++
++	sprintf(buf, "wireless.%s", wifi_name);
++	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++		cli_perror();
++		return 1;
++	}
++
++	ret = uci_delete(ctx, &ptr);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++	_cmd[0] = "commit";
++	_cmd[1] = "wireless";
++	_cmd[2] = NULL;
++	ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++	if (ret != UCI_OK) {
++		cli_perror();
++		return ret;
++	}
++
++	return UCI_OK;
++}
++
++static int _del_wlan(char **argv)
++{
++	int ret = UCI_ERR_NOTFOUND;
++	char *wifi_name = malloc(64);
++	int count = 0;
++	int i = 0;
++	int ind_5G = 0;
++	int ind_2G = 0;
++
++	/* Assert arguments */
++	while (argv[1][i] != '\0') {
++		if (argv[1][i] == '.')
++			count++;
++		i++;
++	}
++	if (count != 0) {
++		uci_usage();
++		return 1;
++	}
++
++	while (1) {
++		memset(wifi_name, 0, 64);
++		sprintf(wifi_name, "%s_2G", argv[1]);
++		ind_2G = _exist_wlan(wifi_name, 0);
++		if (ind_2G)
++			ret = __del_wlan(wifi_name);
++
++		memset(wifi_name, 0, 64);
++		sprintf(wifi_name, "%s_5G", argv[1]);
++		ind_5G = _exist_wlan(wifi_name, 0);
++		if (ind_5G)
++			ret = __del_wlan(wifi_name);
++
++		if (ret == UCI_ERR_NOTFOUND) {
++			ctx->err = UCI_ERR_NOTFOUND;
++			cli_perror();
++			break;
++		}
++
++		if ((ind_2G == 0) && (ind_5G == 0))
++			break;
++
++		ind_2G = 0;
++		ind_5G = 0;
++	}
++
++	return ret;
++}
++
++static int __edit_wlan(char **argv)
++{
++	int ret = UCI_ERR_NOTFOUND;
++	size_t _index = 0;
++	size_t _cur;
++	char wifi_name[64];
++	struct uci_ptr ptr;
++	char *_cmd[4];
++	char _ssid[64];
++	char buf[64];
++	char option[32];
++	char val[32];
++	int count_p = 0;
++	int count_e = 0;
++	int i = 0;
++	static int ind_2G = 0;
++	static int ind_5G = 0;
++
++	/* Assert arguments */
++	while (argv[1][i] != '\0') {
++		if (argv[1][i] == '.')
++			count_p++;
++		if (argv[1][i] == '=')
++			count_e++;
++		i++;
++	}
++	if ((count_p != 1) || (count_e != 1)) {
++		uci_usage();
++		return 0;
++	}
++
++	while (argv[1][_index++] != '.');
++	memset(_ssid, 0, 64);
++	memcpy(_ssid, argv[1], (_index - 1));
++
++	memset(wifi_name, 0, 64);
++	sprintf(wifi_name, "%s_2G", _ssid);
++
++	_cur = _index;
++	while (argv[1][_index++] != '=');
++	memset(option, 0, 32);
++	memcpy(option, (argv[1] + _cur), (_index - _cur - 1));
++
++	if (!strncmp("device", option, 6)) {
++		fprintf(stderr, "Can not edit device.\n");
++		return 0;
++	}
++
++	_cur = _index;
++	while (argv[1][_index++] != '\0');
++
++	memset(val, 0, 32);
++	memcpy(val, (argv[1] + _cur), (_index - _cur));
++
++	ind_2G = _exist_wlan(wifi_name, ind_2G);
++	if (ind_2G) {
++		sprintf(buf, "wireless.%s.%s=%s", wifi_name, option, val);
++		ret = uci_lookup_ptr(ctx, &ptr, buf, true);
++		if (ret == UCI_OK) {
++			ret = uci_set(ctx, &ptr);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++			_cmd[0] = "commit";
++			_cmd[1] = "wireless";
++			_cmd[2] = NULL;
++			ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++		}
++
++		if (!strncmp("ssid", option, 6)) {
++			memset(buf, 0, 64);
++			sprintf(buf, "wireless.%s=%s%s", wifi_name, val, (wifi_name + (strlen(wifi_name) - 9)));
++			ret = uci_lookup_ptr(ctx, &ptr, buf, true);
++			if (ret == UCI_OK) {
++				ret = uci_rename(ctx, &ptr);
++				if (ret != UCI_OK) {
++					cli_perror();
++					return 0;
++				}
++				_cmd[0] = "commit";
++				_cmd[1] = "wireless";
++				_cmd[2] = NULL;
++				ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++				if (ret != UCI_OK) {
++					cli_perror();
++					return 0;
++				}
++			}
++		}
++	}
++
++	memset(wifi_name, 0, 64);
++	sprintf(wifi_name, "%s_5G", _ssid);
++
++	_index = 0;
++	while (argv[1][_index++] != '.');
++	_cur = _index;
++	while (argv[1][_index++] != '=');
++	memset(option, 0, 32);
++	memcpy(option, (argv[1] + _cur), (_index - _cur - 1));
++
++	_cur = _index;
++	while (argv[1][_index++] != '\0');
++	memset(val, 0, 32);
++	memcpy(val, (argv[1] + _cur), (_index - _cur));
++	sprintf(buf, "wireless.%s.%s=%s", wifi_name, option, val);
++
++	ind_5G = _exist_wlan(wifi_name, ind_5G);
++	if (ind_5G) {
++		sprintf(buf, "wireless.%s.%s=%s", wifi_name, option, val);
++		ret = uci_lookup_ptr(ctx, &ptr, buf, true);
++		if (ret == UCI_OK) {
++			ret = uci_set(ctx, &ptr);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++			_cmd[0] = "commit";
++			_cmd[1] = "wireless";
++			_cmd[2] = NULL;
++			ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++		}
++
++		if (!strncmp("ssid", option, 6)) {
++			memset(buf, 0, 64);
++			sprintf(buf, "wireless.%s=%s%s", wifi_name, val, (wifi_name + (strlen(wifi_name) - 9)));
++			ret = uci_lookup_ptr(ctx, &ptr, buf, true);
++			if (ret == UCI_OK) {
++				ret = uci_rename(ctx, &ptr);
++				if (ret != UCI_OK) {
++					cli_perror();
++					return 0;
++				}
++				_cmd[0] = "commit";
++				_cmd[1] = "wireless";
++				_cmd[2] = NULL;
++				ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++				if (ret != UCI_OK) {
++					cli_perror();
++					return 0;
++				}
++			}
++		}
++	}
++
++	return ind_2G || ind_5G;
++}
++
++static int _edit_wlan(char **argv)
++{
++	while (__edit_wlan(argv));
++
++	return 0;
++}
++
++static int _get_wlan(char **argv)
++{
++	size_t _index = 0;
++	size_t _cur;
++	char wifi_name[64];
++	char _ssid[64];
++	struct uci_ptr ptr;
++	struct uci_element *e;
++	char buf[64];
++	char option[32];
++	char val[32];
++	int count = 0;
++	int i = 0;
++
++	/* Assert arguments */
++	while (argv[1][i] != '\0') {
++		if (argv[1][i] == '.')
++			count++;
++		i++;
++	}
++	if (count != 1) {
++		uci_usage();
++		return 1;
++	}
++	while (argv[1][_index++] != '.');
++	memset(_ssid, 0, 64);
++	memcpy(_ssid, argv[1], (_index - 1));
++	memset(wifi_name, 0, 64);
++	memcpy(wifi_name, _ssid, 64);
++	strcat(wifi_name, "_2G");
++
++	_cur = _index;
++	while (argv[1][_index++] != '=');
++	memcpy(option, (argv[1] + _cur), (_index - _cur));
++	memcpy(val, (argv[1] + _cur), (_index - _cur));
++
++	if (_exist_wlan(wifi_name, 0)) {
++		sprintf(buf, "wireless.%s.%s=%s", wifi_name, option, val);
++		if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++			cli_perror();
++			return 1;
++		}
++
++		e = ptr.last;
++		if (!(ptr.flags & UCI_LOOKUP_COMPLETE)) {
++			ctx->err = UCI_ERR_NOTFOUND;
++			cli_perror();
++			return 1;
++		}
++		switch (e->type) {
++			case UCI_TYPE_SECTION:
++				printf("%s\n", ptr.s->type);
++				break;
++			case UCI_TYPE_OPTION:
++				uci_show_value(ptr.o);
++				break;
++			default:
++				break;
++		}
++
++		return UCI_OK;
++	}
++
++	memset(wifi_name, 0, 64);
++	memcpy(wifi_name, _ssid, 64);
++	strcat(wifi_name, "_5G");
++
++	if (_exist_wlan(wifi_name, 0)) {
++		sprintf(buf, "wireless.%s.%s=%s", wifi_name, option, val);
++		if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
++			cli_perror();
++			return 1;
++		}
++
++		e = ptr.last;
++		if (!(ptr.flags & UCI_LOOKUP_COMPLETE)) {
++			ctx->err = UCI_ERR_NOTFOUND;
++			cli_perror();
++			return 1;
++		}
++
++		switch (e->type) {
++			case UCI_TYPE_SECTION:
++				printf("%s\n", ptr.s->type);
++				break;
++			case UCI_TYPE_OPTION:
++				uci_show_value(ptr.o);
++				break;
++			default:
++				break;
++		}
++
++		return UCI_OK;
++	}
++
++	ctx->err = UCI_ERR_NOTFOUND;
++	cli_perror();
++
++	return UCI_ERR_NOTFOUND;
++}
++
++static int _list_wlan(void)
++{
++	system("cat /etc/config/wireless | grep ssid | awk -F \" \" '{print$3}' | sed \"s/'//g\" | sed \"s/athscan0//g\" | sed \"s/athscan1//g\" | uniq | sed '/^$/d' ");
++
++	return UCI_OK;
++}
++
++static int uci_do_wlan(int cmd, int argc, char **argv)
++{
++	int index = 0;
++
++	if (argc < 2) {
++		uci_usage();
++		return 1;
++	}
++
++	while (argv[1][index] != '\0') {
++		if (argv[1][index++] == '.')
++			break;
++	}
++	argv[1] = argv[1] + index;
++
++	switch (cmd) {
++		case CMD_ADD_WLAN:
++			return _add_wlan(argv);  //add_wlan
++			break;
++		case CMD_DEL_WLAN:
++			return _del_wlan(argv);  //del_wlan
++			break;
++		case CMD_EDIT_WIFI:
++			return _edit_wlan(argv);  //edit_wlan
++			break;
++		case CMD_GET_WLAN:
++			return _get_wlan(argv);  //get_wlan
++			break;
++		case CMD_LIST_WLAN:
++			return _list_wlan();  //list_wlan
++			break;
++		default:
++			break;
++	}
++
++	return 0;
++}
++
++static int __add_wlan_list(char **argv)
++{
++	int ret = UCI_ERR_NOTFOUND;
++	size_t _index = 0;
++	size_t _cur;
++	char wifi_name[64];
++	struct uci_ptr ptr;
++	char *_cmd[4];
++	char _ssid[64];
++	char buf[64];
++	char option[32];
++	char val[32];
++	int count_p = 0;
++	int count_e = 0;
++	int i = 0;
++	static int ind_2G = 0;
++	static int ind_5G = 0;
++
++	/* Assert arguments */
++	while (argv[1][i] != '\0') {
++		if (argv[1][i] == '.')
++			count_p++;
++		if (argv[1][i] == '=')
++			count_e++;
++		i++;
++	}
++	if ((count_p != 1) || (count_e != 1)) {
++		uci_usage();
++		return 0;
++	}
++
++	while (argv[1][_index++] != '.');
++	memset(_ssid, 0, 64);
++	memcpy(_ssid, argv[1], (_index - 1));
++
++	memset(wifi_name, 0, 64);
++	sprintf(wifi_name, "%s_2G", _ssid);
++
++	_cur = _index;
++	while (argv[1][_index++] != '=');
++	memset(option, 0, 32);
++	memcpy(option, (argv[1] + _cur), (_index - _cur - 1));
++
++	_cur = _index;
++	while (argv[1][_index++] != '\0');
++	memset(val, 0, 32);
++	memcpy(val, (argv[1] + _cur), (_index - _cur));
++
++	ind_2G = _exist_wlan(wifi_name, ind_2G);
++	if (ind_2G) {
++		sprintf(buf, "wireless.%s.%s=%s", wifi_name, option, val);
++		ret = uci_lookup_ptr(ctx, &ptr, buf, true);
++		if (ret == UCI_OK) {
++			ret = uci_add_list(ctx, &ptr);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++			_cmd[0] = "commit";
++			_cmd[1] = "wireless";
++			_cmd[2] = NULL;
++			ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++		}
++	}
++
++	memset(wifi_name, 0, 64);
++	sprintf(wifi_name, "%s_5G", _ssid);
++
++	_index = 0;
++	while (argv[1][_index++] != '.');
++	_cur = _index;
++	while (argv[1][_index++] != '=');
++	memset(option, 0, 32);
++	memcpy(option, (argv[1] + _cur), (_index - _cur - 1));
++
++	_cur = _index;
++	while (argv[1][_index++] != '\0');
++	memset(val, 0, 32);
++	memcpy(val, (argv[1] + _cur), (_index - _cur));
++
++	ind_5G = _exist_wlan(wifi_name, ind_5G);
++	if (ind_5G) {
++		sprintf(buf, "wireless.%s.%s=%s", wifi_name, option, val);
++		ret = uci_lookup_ptr(ctx, &ptr, buf, true);
++		if (ret == UCI_OK) {
++			ret = uci_add_list(ctx, &ptr);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++			_cmd[0] = "commit";
++			_cmd[1] = "wireless";
++			_cmd[2] = NULL;
++			ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++		}
++	}
++
++	return ind_2G || ind_5G;
++}
++
++static int _add_wlan_list(char **argv)
++{
++	while (__add_wlan_list(argv));
++
++	return 0;
++}
++
++static int __del_wlan_list(char **argv)
++{
++	int ret = UCI_ERR_NOTFOUND;
++	size_t _index = 0;
++	size_t _cur;
++	char wifi_name[64];
++	struct uci_ptr ptr;
++	char *_cmd[4];
++	char _ssid[64];
++	char buf[64];
++	char option[32];
++	char val[32];
++	int count_p = 0;
++	int count_e = 0;
++	int i = 0;
++	static int ind_2G = 0;
++	static int ind_5G = 0;
++
++	/* Assert arguments */
++	while (argv[1][i] != '\0') {
++		if (argv[1][i] == '.')
++			count_p++;
++		if (argv[1][i] == '=')
++			count_e++;
++		i++;
++	}
++	if ((count_p != 1) || (count_e != 1)) {
++		uci_usage();
++		return 0;
++	}
++
++	while (argv[1][_index++] != '.');
++	memset(_ssid, 0, 64);
++	memcpy(_ssid, argv[1], (_index - 1));
++
++	memset(wifi_name, 0, 64);
++	sprintf(wifi_name, "%s_2G", _ssid);
++
++	_cur = _index;
++	while (argv[1][_index++] != '=');
++	memset(option, 0, 32);
++	memcpy(option, (argv[1] + _cur), (_index - _cur - 1));
++
++	_cur = _index;
++	while (argv[1][_index++] != '\0');
++	memset(val, 0, 32);
++	memcpy(val, (argv[1] + _cur), (_index - _cur));
++
++	ind_2G = _exist_wlan(wifi_name, ind_2G);
++	if (ind_2G) {
++		sprintf(buf, "wireless.%s.%s=%s", wifi_name, option, val);
++		ret = uci_lookup_ptr(ctx, &ptr, buf, true);
++		if (ret == UCI_OK) {
++			ret = uci_del_list(ctx, &ptr);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++			_cmd[0] = "commit";
++			_cmd[1] = "wireless";
++			_cmd[2] = NULL;
++			ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++		}
++	}
++
++	memset(wifi_name, 0, 64);
++	sprintf(wifi_name, "%s_5G", _ssid);
++
++	_index = 0;
++	while (argv[1][_index++] != '.');
++	_cur = _index;
++	while (argv[1][_index++] != '=');
++	memset(option, 0, 32);
++	memcpy(option, (argv[1] + _cur), (_index - _cur - 1));
++
++	_cur = _index;
++	while (argv[1][_index++] != '\0');
++	memset(val, 0, 32);
++	memcpy(val, (argv[1] + _cur), (_index - _cur));
++
++	ind_5G = _exist_wlan(wifi_name, ind_5G);
++	if (ind_5G) {
++		sprintf(buf, "wireless.%s.%s=%s", wifi_name, option, val);
++		ret = uci_lookup_ptr(ctx, &ptr, buf, true);
++		if (ret == UCI_OK) {
++			ret = uci_del_list(ctx, &ptr);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++			_cmd[0] = "commit";
++			_cmd[1] = "wireless";
++			_cmd[2] = NULL;
++			ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++		}
++	}
++
++	return ind_2G || ind_5G;
++}
++
++static int _del_wlan_list(char **argv)
++{
++	while (__del_wlan_list(argv));
++
++	return 0;
++}
++
++static int __del_wlan_op(char **argv)
++{
++	int ret = UCI_ERR_NOTFOUND;
++	size_t _index = 0;
++	size_t _cur;
++	char wifi_name[64];
++	struct uci_ptr ptr;
++	char *_cmd[4];
++	char _ssid[64];
++	char buf[64];
++	char option[32];
++	char val[32];
++	int count_p = 0;
++	int i = 0;
++	static int ind_2G = 0;
++	static int ind_5G = 0;
++
++	/* Assert arguments */
++	while (argv[1][i] != '\0') {
++		if (argv[1][i++] == '.')
++			count_p++;
++	}
++	if (count_p != 1) {
++		uci_usage();
++		return 0;
++	}
++
++	while (argv[1][_index++] != '.');
++	memset(_ssid, 0, 64);
++	memcpy(_ssid, argv[1], (_index - 1));
++
++	memset(wifi_name, 0, 64);
++	sprintf(wifi_name, "%s_2G", _ssid);
++
++	_cur = _index;
++	while (argv[1][_index++] != '=');
++	memset(option, 0, 32);
++	memcpy(option, (argv[1] + _cur), (_index - _cur - 1));
++
++	_cur = _index;
++	while (argv[1][_index++] != '\0');
++	memset(val, 0, 32);
++	memcpy(val, (argv[1] + _cur), (_index - _cur));
++
++	ind_2G = _exist_wlan(wifi_name, ind_2G);
++	if (ind_2G) {
++		sprintf(buf, "wireless.%s.%s", wifi_name, option);
++		ret = uci_lookup_ptr(ctx, &ptr, buf, true);
++		if (ret == UCI_OK) {
++			ret = uci_delete(ctx, &ptr);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++			_cmd[0] = "commit";
++			_cmd[1] = "wireless";
++			_cmd[2] = NULL;
++			ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++		}
++	}
++
++	memset(wifi_name, 0, 64);
++	sprintf(wifi_name, "%s_5G", _ssid);
++
++	_index = 0;
++	while (argv[1][_index++] != '.');
++	_cur = _index;
++	while (argv[1][_index++] != '=');
++	memset(option, 0, 32);
++	memcpy(option, (argv[1] + _cur), (_index - _cur - 1));
++
++	_cur = _index;
++	while (argv[1][_index++] != '\0');
++	memset(val, 0, 32);
++	memcpy(val, (argv[1] + _cur), (_index - _cur));
++
++	ind_5G = _exist_wlan(wifi_name, ind_5G);
++	if (ind_5G) {
++		sprintf(buf, "wireless.%s.%s", wifi_name, option);
++		ret = uci_lookup_ptr(ctx, &ptr, buf, true);
++		if (ret == UCI_OK) {
++			ret = uci_delete(ctx, &ptr);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++			_cmd[0] = "commit";
++			_cmd[1] = "wireless";
++			_cmd[2] = NULL;
++			ret = uci_do_package_cmd(CMD_COMMIT, 2, _cmd);
++			if (ret != UCI_OK) {
++				cli_perror();
++				return 0;
++			}
++		}
++	}
++
++	return ind_2G || ind_5G;
++}
++
++static int _del_wlan_op(char **argv)
++{
++	while (__del_wlan_op(argv));
++
++	return 0;
++}
++
++static int _show_wlan_op(char **argv)
++{
++	printf("%s=", argv[1]);
++
++	return _get_wlan(argv);
++}
++
++static int uci_do_wlan_list(int cmd, int argc, char **argv)
++{
++	int i = 0;
++	int _counter = 0;
++	int index = 0;
++
++	if (argc != 2) {
++		uci_usage();
++		return 1;
++	}
++
++	while (argv[1][index] != '\0') {
++		if (argv[1][index++] == '.')
++			break;
++	}
++	argv[1] = argv[1] + index;
++
++	while (argv[1][i] != '\0') {
++		if (argv[1][i++] == '.')
++			_counter++;
++	}
++	if (_counter != 1) {
++		uci_usage();
++		return 1;
++	}
++
++	switch (cmd) {
++		case CMD_ADD_WLAN_LIST :
++			return _add_wlan_list(argv);
++			break;
++		case CMD_DEL_WLAN_LIST:
++			return _del_wlan_list(argv);
++			break;
++		case CMD_DEL_WLAN_OP:
++			return _del_wlan_op(argv);
++			break;
++		case CMD_SHOW_WLAN_OP:
++			return _show_wlan_op(argv);
++			break;
++		default :
++			break;
++
++	}
++
++	return 0;
++}
++
+ static int uci_batch_cmd(void)
+ {
+ 	char *argv[MAX_ARGS + 2];
+@@ -597,6 +1746,24 @@ static int uci_cmd(int argc, char **argv
+ 		cmd = CMD_ADD_LIST;
+ 	else if (!strcasecmp(argv[0], "del_list"))
+ 		cmd = CMD_DEL_LIST;
++	else if (!strcasecmp(argv[0], "add_wlan"))
++		cmd = CMD_ADD_WLAN;
++	else if (!strcasecmp(argv[0], "del_wlan"))
++		cmd = CMD_DEL_WLAN;
++	else if (!strcasecmp(argv[0], "edit_wlan"))
++		cmd = CMD_EDIT_WIFI;
++	else if (!strcasecmp(argv[0], "get_wlan"))
++		cmd = CMD_GET_WLAN;
++	else if (!strcasecmp(argv[0], "list_wlan"))
++		cmd = CMD_LIST_WLAN;
++	else if (!strcasecmp(argv[0], "add_wlan_list"))
++		cmd = CMD_ADD_WLAN_LIST;
++	else if (!strcasecmp(argv[0], "del_wlan_list"))
++		cmd = CMD_DEL_WLAN_LIST;
++	else if (!strcasecmp(argv[0], "del_wlan_list_op"))
++		cmd = CMD_DEL_WLAN_OP;
++	else if (!strcasecmp(argv[0], "show_wlan_list_op"))
++		cmd = CMD_SHOW_WLAN_OP;
+ 	else
+ 		cmd = -1;
+ 
+@@ -619,6 +1786,17 @@ static int uci_cmd(int argc, char **argv
+ 			return uci_do_import(argc, argv);
+ 		case CMD_ADD:
+ 			return uci_do_add(argc, argv);
++		case CMD_EDIT_WIFI:
++		case CMD_DEL_WLAN:
++		case CMD_ADD_WLAN:
++		case CMD_GET_WLAN:
++		case CMD_LIST_WLAN:
++			return uci_do_wlan(cmd, argc, argv);
++		case CMD_ADD_WLAN_LIST:
++		case CMD_DEL_WLAN_LIST:
++		case CMD_DEL_WLAN_OP:
++		case CMD_SHOW_WLAN_OP:
++			return uci_do_wlan_list(cmd, argc, argv);
+ 		case CMD_HELP:
+ 			uci_usage();
+ 			return 0;
+@@ -707,7 +1885,6 @@ int main(int argc, char **argv)
+ 	}
+ 
+ 	ret = uci_cmd(argc - 1, argv + 1);
+-	if (input != stdin)
+ 		fclose(input);
+ 
+ 	if (ret == 255)

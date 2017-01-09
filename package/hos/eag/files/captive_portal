@@ -1,0 +1,11 @@
+
+config captive_portal eag
+	option local_database '1'
+	option switch '0'
+	option idletime '900'
+	option idleflow '10240'
+	option account_interval '900'
+	option auth_mode '0'
+	option dns_redir '0'
+	option url_switch '0'
+

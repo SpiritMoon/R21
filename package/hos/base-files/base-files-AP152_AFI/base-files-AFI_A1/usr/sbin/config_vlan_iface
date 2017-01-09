@@ -1,0 +1,99 @@
+#!/bin/sh
+
+CLUSTERCFG="/usr/bin/cluster-cfg"
+TYPE=""
+VLANID=""
+MAC=""
+
+usage()
+{
+	echo "USAGE: $0 add [mac-addr] vlan-id[1-4094]" 
+	echo "USAGE: $0 del [mac-addr] vlan-id[1-4094]" 
+	exit 1
+}
+
+config_network_interface()
+{
+	if [ "$TYPE" = "add" ]; then 
+		$CLUSTERCFG "$MAC" set network.eth$VLANID=device
+		$CLUSTERCFG "$MAC" set network.eth$VLANID.type=8021q
+		$CLUSTERCFG "$MAC" set network.eth$VLANID.name=eth$VLANID
+		$CLUSTERCFG "$MAC" set network.eth$VLANID.ifname=eth0
+		$CLUSTERCFG "$MAC" set network.eth$VLANID.vid=$VLANID
+		
+		$CLUSTERCFG "$MAC" set network.vlan$VLANID=interface
+		$CLUSTERCFG "$MAC" set network.vlan$VLANID.ifname=eth$VLANID
+		$CLUSTERCFG "$MAC" set network.vlan$VLANID.type=bridge
+		$CLUSTERCFG "$MAC" set network.vlan$VLANID.proto=static
+		$CLUSTERCFG "$MAC" set network.vlan$VLANID.ipaddr=0.0.0.0
+		
+		ubus call network reload
+		vip_cfg
+		
+	elif [ "$TYPE" = "del" ]; then 
+		$CLUSTERCFG "$MAC" delete network.eth$VLANID
+		$CLUSTERCFG "$MAC" delete network.vlan$VLANID
+
+		ubus call network reload 
+		vip_cfg
+	else
+		usage
+	fi
+}
+
+config_firewall_zone()
+{
+	#local tmp=`uci show firewall.@zone[0].network="vlan$VLANID "`
+	local tmp=`cat /etc/config/firewall | grep "'vlan"$VLANID"'"`
+	if [ "$TYPE" = "add" ]; then 
+		if [ "$tmp" = "" ]; then
+			$CLUSTERCFG "$MAC" add_list firewall.@zone[0].network=vlan$VLANID
+			/etc/init.d/firewall reload
+		fi
+	elif [ "$TYPE" = "del" ]; then 
+		if [ "$tmp" != "" ]; then
+			$CLUSTERCFG "$MAC" del_list firewall.@zone[0].network=vlan$VLANID
+			/etc/init.d/firewall reload
+		fi
+	else
+		usage
+	fi
+}
+
+TYPE=$1
+shift 1
+
+if [ $# -eq 1 ]; then 
+	vlan_id=`echo $1 | sed -e 's/[0-9]//g'`
+	if [ -z "$vlan_id" ]; then
+		VLANID=$1
+	else
+		usage
+	fi
+elif [ $# -eq 2 ]; then
+
+	# check if first parameter is valid mac-addr
+	echo $1 | grep -qiE "(^([0-9A-Fa-f]{2}[-:]){5}[0-9A-Fa-f]{2}$)"
+	if [ $? -eq 0 ]; then
+		MAC=$1
+	else
+		usage
+	fi
+	
+	vlan_id=`echo $2 | sed -e 's/[0-9]//g'`
+	if [ -z "$vlan_id" ]; then
+		VLANID=$2
+	else
+		usage
+	fi
+else
+	usage
+fi
+
+if [ "$VLANID" -gt 4094 ] || [ "$VLANID" -lt 1 ]; then
+    usage                                      
+fi
+
+config_network_interface
+config_firewall_zone
+exit 0

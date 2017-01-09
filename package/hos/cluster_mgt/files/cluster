@@ -1,0 +1,7 @@
+
+config cluster 'cluster'
+	option cluster_id '100'
+	option cluster_name 'AP-Group'
+	option cluster_priority '0'
+	option cluster_vip '10.0.0.1'
+

@@ -1,0 +1,84 @@
+Index: linux-3.10.49/net/core/dev.c
+===================================================================
+--- linux-3.10.49.orig/net/core/dev.c
++++ linux-3.10.49/net/core/dev.c
+@@ -3436,6 +3436,9 @@ static bool skb_pfmemalloc_protocol(stru
+ 	}
+ }
+ 
++int (*athrs_fast_nat_recv)(struct sk_buff *skb) __rcu __read_mostly;
++EXPORT_SYMBOL_GPL(athrs_fast_nat_recv);
++
+ static int __netif_receive_skb_core(struct sk_buff *skb, bool pfmemalloc)
+ {
+ 	struct packet_type *ptype, *pt_prev;
+@@ -3445,6 +3448,7 @@ static int __netif_receive_skb_core(stru
+ 	bool deliver_exact = false;
+ 	int ret = NET_RX_DROP;
+ 	__be16 type;
++	int (*fast_recv)(struct sk_buff *skb);
+ 
+ 	net_timestamp_check(!netdev_tstamp_prequeue, skb);
+ 
+@@ -3517,6 +3521,14 @@ ncls:
+ 			goto unlock;
+ 	}
+ 
++	fast_recv = rcu_dereference(athrs_fast_nat_recv);
++	if (fast_recv) {
++		if (fast_recv(skb)) {
++			ret = NET_RX_SUCCESS;
++			goto unlock;
++		}
++	}
++
+ 	rx_handler = rcu_dereference(skb->dev->rx_handler);
+ 	if (rx_handler) {
+ 		if (pt_prev) {
+Index: linux-3.10.49/net/bridge/br_forward.c
+===================================================================
+--- linux-3.10.49.orig/net/bridge/br_forward.c
++++ linux-3.10.49/net/bridge/br_forward.c
+@@ -131,6 +131,42 @@ void br_forward(const struct net_bridge_
+ 		kfree_skb(skb);
+ }
+ 
++bool br_forward_skb(struct sk_buff *skb)
++{
++	struct net_bridge_port *p = br_port_get_rcu(skb->dev);
++	struct net_bridge_fdb_entry *dst = NULL;	
++	struct net_bridge *br;
++	u16 vid = 0;
++
++	if (!p || p->state == BR_STATE_DISABLED)
++		return false;
++
++	if (!br_allowed_ingress(p->br, nbp_get_vlan_info(p), skb, &vid))
++		return false;
++
++	br = p->br;
++	if (br->dev->flags & IFF_PROMISC)
++		return false;
++
++	dst = __br_fdb_get(br, eth_hdr(skb)->h_dest, vid);
++	if (dst == NULL || dst->is_local) {
++		return false;
++	}
++	dst->used = jiffies;
++
++	skb = br_handle_vlan(br, nbp_get_vlan_info(dst->dst), skb);
++	if (!skb)
++		return -1;
++	skb->dev = dst->dst->dev;
++	skb_forward_csum(skb);
++	skb_push(skb, ETH_HLEN);
++	br_drop_fake_rtable(skb);
++	dev_queue_xmit(skb);
++
++	return true;
++}
++EXPORT_SYMBOL(br_forward_skb);
++
+ static int deliver_clone(const struct net_bridge_port *prev,
+ 			 struct sk_buff *skb,
+ 			 void (*__packet_hook)(const struct net_bridge_port *p,

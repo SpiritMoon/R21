@@ -1,0 +1,17 @@
+#!/bin/sh
+
+#tool
+WRCPUTOOL="/usr/bin/partool -part mtd5 -show"
+
+#product path
+PRODUCTINFO_CMD="productinfo show"
+URL_KEY="url"
+
+#url_info
+URL="${PRODUCTINFO_CMD} ${URL_KEY}"
+
+if $(${URL} >/dev/null 2>&1) ;then
+    ${URL} | awk -F "=" '{print $2}' | sed 's/.*https\{0,1\}:\/\///'
+else
+    $WRCPUTOOL url | sed 's/.*https\{0,1\}:\/\///'
+fi

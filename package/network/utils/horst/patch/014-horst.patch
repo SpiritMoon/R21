@@ -1,0 +1,28 @@
+diff -urN a/han.c b/han.c
+--- a/han.c	2016-06-16 00:51:40.790676045 -0700
++++ b/han.c	2016-07-05 00:07:33.648097961 -0700
+@@ -91,6 +91,7 @@
+ 	int hash = 0;
+ 	struct airinfo *ai = NULL;
+ 	u_int32_t ip = 0;
++	u_int32_t multicast_ip[2] = {0xe0000000, 0xefffffff}; //224.0.0.0 -- 239.255.255.255
+ 	u_int8_t invalid_mac[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
+ 	
+ 	//if ((pi->pkt_types & PKT_TYPE_DATA) && 
+@@ -113,7 +114,15 @@
+ 			if (ai) {
+ 				MAC_ADDR_COPY(ai->u.ci.associate_wlan, pi->wlan_bssid);
+ 				ai->rss = pi->phy_signal;
+-				ai->u.ci.ip = ip;
++
++				if (pi->pkt_types | PKT_TYPE_TCP) {
++					if (ip > multicast_ip[1] || ip < multicast_ip[0])
++						if (ip)
++							ai->u.ci.ip = ip;
++				} else if (pi->wlan_wep) {
++					ai->u.ci.ip = 0;
++				}
++				
+ 				if (pi->pkt_types & PKT_TYPE_QDATA)
+ 					ai->u.ci.qos = 1;
+ 				else 

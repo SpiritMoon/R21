@@ -1,0 +1,4 @@
+
+config um 'voiceaware'
+	option switch '1'
+

@@ -1,0 +1,5 @@
+#!/bin/sh
+
+PUB_REV_NUMBER_FILE="/etc/cfm/config/config-pub/revisionnumber"
+
+echo `head -n 1 $PUB_REV_NUMBER_FILE`

@@ -1,0 +1,18 @@
+.monitor_panel_height{
+    height: 420px;
+}
+.carousel_bar{
+    margin-bottom:20px ;
+}
+.carousel_title{
+    height: 30px;
+    width: 100%;
+    background-color: #e3e0e0;
+}
+#viewer_title{
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    overflow:hidden;
+    width:80%;
+    text-align: right;
+}

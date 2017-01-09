@@ -1,0 +1,95 @@
+
+.margintop20{
+    margin-top:20px;
+}
+
+.marginright40{
+    margin-right:40px;
+}
+
+#network table{
+    width:100%;
+    margin:10px;
+    margin-top:-20px;
+}
+#network table tr{
+    height:45px;
+}
+.height40{
+    height:40px;
+}
+.height475{
+    height:475px;
+}
+#rfDetail form.form-horizontal div.form-group{
+    margin-bottom:10px;
+}
+.rfDetailHead{
+    height:55px;
+    line-height:55px;
+}
+.rogueAPDetailHead{
+    height:30px;
+    line-height:30px;
+}
+.rogueAPDetailBody{
+    height:400px;
+    padding:5px;
+}
+.rogueAPDetailBody table tr{
+    height:25px;
+}
+
+@media screen and (min-width: 1366px){
+    .switchMarginLeft25{
+        margin-left:25px;
+    }
+}
+.ssidbreak{
+    word-wrap: break-word;
+    word-break: break-all;
+}
+
+#RF_list table tr td:hover{
+    cursor:pointer;
+}
+
+#RogueAP_list table tr td:hover{
+    cursor:pointer;
+}
+
+.wireless_table{
+    width:100%;
+    margin-top:-15px;
+    height:120px;
+    margin-left:10px;
+    margin-bottom:10px;
+}
+
+.delTBPadding{
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.delTBPadding .setHeight{
+    height: 40px;
+    padding-top: 10px;
+    padding-left: 0px;
+    padding-right: 0px;
+}
+
+.chart_error{
+    float: left;
+    margin-top: 20%;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+@media screen and (max-width: 992px){
+    .chart_error{
+        float: left;
+        margin-top: 10%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}

@@ -1,0 +1,15 @@
+#!/bin/sh /etc/rc.common
+# Copyright (C) 2006-2008 OpenWrt.org
+
+START=21
+
+USE_PROCD=1
+PROG=/usr/sbin/ntpdate_boot
+
+start_service()
+{
+        procd_open_instance
+        procd_set_param command "$PROG"
+        procd_close_instance
+}
+

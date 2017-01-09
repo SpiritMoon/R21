@@ -1,0 +1,14 @@
+#!/bin/sh /etc/rc.common
+
+START=98
+USE_PROCD=1
+
+#INTERNAL_PORTAL_URL=/usr/sbin/internal_portal.sh
+
+start_service()
+{
+	procd_open_instance
+	procd_set_param command /usr/sbin/internal_portal.sh
+	procd_set_param respawn
+	procd_close_instance
+}

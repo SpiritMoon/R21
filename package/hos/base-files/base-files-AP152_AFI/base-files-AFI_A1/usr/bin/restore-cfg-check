@@ -1,0 +1,37 @@
+#!/bin/sh
+
+if [ $# -ne 1 ]; then
+	echo "Usage: $0 [cluster.conf]"
+	exit 1
+fi
+
+[ -f $1 ] || exit 1
+
+LOGHEAD="logger -t [cfgrtre] -p 1 "
+TMP_CFG_FILE="/tmp/cfg_restore.tmp"
+
+# create tmp file
+cp $1 $TMP_CFG_FILE
+
+# get md5
+local md5_val=$(head -n 1 $TMP_CFG_FILE)
+if [ "$md5_val" = "" ]; then
+	echo "$ERR_PREFIX - invalid file"
+    $LOGHEAD "invalid public configuration file"
+	exit 1
+fi
+
+# compute md5
+sed -i '1d' $TMP_CFG_FILE
+local new_md5=$(md5sum $TMP_CFG_FILE | cut -d ' ' -f 1)
+if [ "$md5_val" != "$new_md5" ]; then
+	echo "$ERR_PREFIX - md5 error"
+    $LOGHEAD "public configuration file - md5 error"
+	exit 1
+fi
+
+# delete tmp file
+rm $TMP_CFG_FILE
+
+echo "ok"
+exit 0

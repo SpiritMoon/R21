@@ -1,0 +1,44 @@
+#!/bin/sh /etc/rc.common
+
+START=99
+
+USE_PROCD=1
+PROG=/sbin/igmpsnp
+
+igmpsnp_get_config()
+{
+    local var
+
+    config_get var "igmpsnp" "switch"
+    export "$1"="$var"
+    config_get var "igmpsnp" "multounicast"
+    export "$2"="$var"
+    config_get var "igmpsnp" "hostlifeinterval"
+    export "$3"="$var"
+}
+
+start_service()
+{
+    local swtich multounicast interval
+	config_load igmp
+	igmpsnp_get_config swtich multounicast interval
+        
+	local command="$PROG" 
+
+        if [ $swtich -eq 1 ]; then
+                procd_open_instance
+                procd_set_param command "$PROG" -i $interval 
+                procd_set_param respawn
+                procd_close_instance
+                
+        else
+                echo "igmpsnp disable"
+
+        fi
+
+}
+
+service_triggers()
+{
+	procd_add_reload_trigger "igmp"
+}

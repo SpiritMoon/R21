@@ -1,0 +1,17 @@
+--- a/fs/coredump.c
++++ b/fs/coredump.c
+@@ -661,6 +661,14 @@ void do_coredump(siginfo_t *siginfo)
+ 	}
+ 	if (ispipe && core_pipe_limit)
+ 		wait_for_dump_helpers(cprm.file);
++	{
++		/* HAN added for upload coredump */
++		char cmd_path[] = "/usr/sbin/upload_core";
++		char* cmd_argv[] = {cmd_path, NULL};
++		char* cmd_envp[] = {"HOME=/tmp", "SHELL=/bin/ash", "PATH=/usr/bin:/usr/sbin:/bin:/sbin", NULL};
++		(void)call_usermodehelper(cmd_path, cmd_argv, cmd_envp, UMH_WAIT_EXEC);
++		/* HAN added for upload coredump */
++	}
+ close_fail:
+ 	if (cprm.file)
+ 		filp_close(cprm.file, NULL);

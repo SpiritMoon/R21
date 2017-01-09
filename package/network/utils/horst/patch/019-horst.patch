@@ -1,0 +1,36 @@
+diff -urN a/display-filter.c b/display-filter.c
+--- a/display-filter.c	2014-11-05 00:57:51.000000000 -0800
++++ b/display-filter.c	2016-08-22 21:10:42.064869953 -0700
+@@ -121,7 +121,7 @@
+ int
+ filter_input(WINDOW *win, int c)
+ {
+-	char buf[18];
++	char buf[18] = {0};
+ 	int i;
+ 
+ 	switch (c) {
+diff -urN a/listsort.c b/listsort.c
+--- a/listsort.c	2014-11-05 00:57:51.000000000 -0800
++++ b/listsort.c	2016-08-22 21:07:31.365449749 -0700
+@@ -135,6 +135,8 @@
+ 			/* now p has stepped `insize' places along, and q has too */
+ 			p = q;
+ 		}
++		if (!(list && tail))
++			return ;
+ 		tail->next = list;
+ 		list->prev = tail;
+ 
+diff -urN a/main.c b/main.c
+--- a/main.c	2016-08-10 22:28:55.838549053 -0700
++++ b/main.c	2016-08-22 21:09:54.693471457 -0700
+@@ -439,7 +439,7 @@
+ static void
+ receive_any(void)
+ {
+-	int ret, mfd;
++	int ret, mfd = 0;
+ #if HAN_VERSION
+ 	int i = 0;
+ #endif

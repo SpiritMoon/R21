@@ -1,0 +1,177 @@
+#!/bin/sh
+
+LOGHEAD="logger -t [cfgrtre] -p 1 "
+
+if [ $# -ne 1 ]; then
+	echo "Usage $0 [cluster.conf]"
+	exit 1
+fi
+
+REV_NUM_FILE="revisionnumber"
+
+PUB_CFG_DIR="/etc/cfm/config/config-pub"
+PRIV_CFG_DIR="/etc/cfm/config/config-priv"
+SYS_CFG_DIR="/etc/config"
+
+MD5_FILE="pub-cfg-md5"
+
+RESTORE_PUB_CFG_FILE="$1"
+TMP_DISPATCH_DIR="/tmp/dispatch"
+TMP_DISPATCH_PUB_CFG_DIR="$TMP_DISPATCH_DIR/config-pub"
+TMP_DISPATCH_CFG_FILE=$TMP_DISPATCH_DIR/$(basename $RESTORE_PUB_CFG_FILE)
+
+ERR_PREFIX="[error]"
+
+check_env()
+{
+	if [ ! -f $RESTORE_PUB_CFG_FILE ]; then
+		echo "$ERR_PREFIX $RESTORE_PUB_CFG_FILE not exist"
+		exit 1
+	fi
+
+	if [ -f $TMP_DISPATCH_DIR ]; then
+		rm $TMP_DISPATCH_DIR
+	fi
+
+	if [ -d $TMP_DISPATCH_DIR ]; then
+		rm -rf $TMP_DISPATCH_DIR
+	fi
+
+	mkdir -p $TMP_DISPATCH_PUB_CFG_DIR
+}
+
+check_cluster_cfg()
+{
+	mv $RESTORE_PUB_CFG_FILE $TMP_DISPATCH_CFG_FILE
+
+	# get md5
+	local md5_val=$(head -n 1 $TMP_DISPATCH_CFG_FILE)
+	if [ "$md5_val" = "" ]; then
+		echo "$ERR_PREFIX - invalid file"
+        $LOGHEAD "invalid public configuration file"
+		exit 1
+	fi
+
+	# compute md5
+	sed -i '1d' $TMP_DISPATCH_CFG_FILE
+	local new_md5=$(md5sum $TMP_DISPATCH_CFG_FILE | cut -d ' ' -f 1)
+	if [ "$md5_val" != "$new_md5" ]; then
+		echo "$ERR_PREFIX - md5 error"
+        $LOGHEAD "public configuration file - md5 error"
+		exit 1
+	fi
+}
+
+#
+# Only md5 removed from the first line, can this work
+#
+dispatch_pub_cfg_file()
+{
+	local total_lines=$(sed -n '$=' $TMP_DISPATCH_CFG_FILE)
+	local fname=""
+
+	if [ -d $TMP_DISPATCH_PUB_CFG_DIR ]; then
+		rm -rf $TMP_DISPATCH_PUB_CFG_DIR
+	fi
+
+	mkdir -p $TMP_DISPATCH_PUB_CFG_DIR
+
+	# get each line content and process
+	for linenum in $(seq $total_lines)
+	do
+		line_content=$(sed -n ''$linenum'p' $TMP_DISPATCH_CFG_FILE)
+
+		# check if the line contains `['
+		fname_line=$(echo $line_content | sed -n '/\[/p')
+
+		if [ "$fname_line" != "" ]; then
+			# get file name
+			fname=$(echo $fname_line | sed 's/\[//g' | sed 's/\]//g')
+
+			# create file and name it as $fname
+			> $TMP_DISPATCH_PUB_CFG_DIR/"$fname"
+			continue
+		fi
+
+		if [ "$fname" != "" ]; then
+			echo "$line_content" >> $TMP_DISPATCH_PUB_CFG_DIR/"$fname"
+		fi
+	done
+}
+
+check_dispatched_cfg_integrity()
+{
+	cd $TMP_DISPATCH_PUB_CFG_DIR; md5sum -cs $MD5_FILE
+	if [ $? -ne 0 ]; then
+		echo "public configurations to be restored not valid!"
+		exit 1
+	fi
+}
+
+restore_pub_and_sys_cfg()
+{
+	# version should not be restored, exported is also needless
+	rm $TMP_DISPATCH_PUB_CFG_DIR/version
+
+	# replace config-pub
+    rm -rf $PUB_CFG_DIR/*
+	cp -rf $TMP_DISPATCH_PUB_CFG_DIR/* $PUB_CFG_DIR/
+	showver > /etc/cfm/config/config-pub/version
+	cd $PUB_CFG_DIR; rm $MD5_FILE; md5sum * > $MD5_FILE; cd - >/dev/null;
+
+
+	# replace /etc/config
+    rm -rf $SYS_CFG_DIR/*
+	cp -rf $TMP_DISPATCH_PUB_CFG_DIR/* $SYS_CFG_DIR/
+
+	[ -f $SYS_CFG_DIR/$REV_NUM_FILE ] && rm -f $SYS_CFG_DIR/$REV_NUM_FILE
+	[ -f $SYS_CFG_DIR/$MD5_FILE ] && rm -f $SYS_CFG_DIR/$MD5_FILE
+}
+
+merge_priv_cfg_to_sys_cfg()
+{
+	# check if each private cfg existed in /etc/config
+	for file in `ls $PRIV_CFG_DIR`
+	do
+		if [ -f $SYS_CFG_DIR/$file ]; then
+			# merge
+			uci import -m $SYS_CFG_DIR/$file < $PRIV_CFG_DIR/$file
+		else
+			# if priv cfg not exist in /etc/config, just copy
+			cp $PRIV_CFG_DIR/$file $SYS_CFG_DIR
+		fi
+	done
+}
+
+report_status()
+{
+	echo "done"
+	sleep 1
+}
+
+### process logic
+
+check_env
+check_cluster_cfg
+dispatch_pub_cfg_file
+check_dispatched_cfg_integrity
+
+# add exclusive flock
+LOCKFILE="/var/lock/cclock"
+
+(
+    flock 200
+    #==============================
+
+    restore_pub_and_sys_cfg
+    merge_priv_cfg_to_sys_cfg
+
+) 200<> $LOCKFILE
+
+[ -f /etc/wlan_info ] && rm /etc/wlan_info
+
+report_status
+
+$LOGHEAD "=reboot= reboot after cfg restore"
+/usr/sbin/reset_reason add 04
+reboot

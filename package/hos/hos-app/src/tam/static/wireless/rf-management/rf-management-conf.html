@@ -1,0 +1,281 @@
+<div class="modal-header modal_type" ng-class="{'foldedlv1menupurple':skin.isPurple, 'foldedlv1menublue':skin.isBlue}">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">&times;</button>
+    <div class="modal-title">{{"RFConf"|translate}}</div>
+</div>
+
+<div class="panel-body">
+    <div class="row">
+        <div class="col-md-7">
+            <div class="detailBorder detailBgColor" id="RF_list">
+                <div name="dvThead">
+                    <table class="table table-striped table-hover table-condensed" style="margin-bottom: 0px;">
+                        <thead ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}">
+                        <tr>
+                            <td style="width:30%" ng-click="col='apInfo';desc=!desc">AP</td>
+                            <td style="width:15%" ng-click="col='channel_2g';desc=!desc">2.4GHz {{"Channel"|translate}}</td>
+                            <td style="width:15%" ng-click="col='power_2g';desc=!desc">2.4GHz {{"Power"|translate}}(dBm)</td>
+                            <td style="width:15%" ng-click="col='channel_5g';desc=!desc">5GHz {{"Channel"|translate}}</td>
+                            <td style="width:15%" ng-click="col='power_5g';desc=!desc">5GHz {{"Power"|translate}}(dBm)</td>
+                            <td style="width:10%"></td>
+                        </tr>
+                        </thead>
+                    </table>
+                </div>
+                <div name="dvTbody" style="height: 476px; overflow: auto;">
+                    <table class="table table-condensed">
+                        <tbody>
+                        <tr ng-repeat='item in apListParams | orderBy:col:desc' high-light>
+                            <td style="width:30%" ng-click="showDetail(item)"><div class="self_adaptation_td" ng-bind="item.apInfo" title="{{item.mac}}"></div></td>
+                            <td ng-if="item.acsSwitch_2g == 'ON'" style="width:15%" ng-click="showDetail(item)">auto({{item.channel_2g | channelPowerFilter}})</td>
+                            <td ng-if="item.acsSwitch_2g == 'OFF'" style="width:15%" ng-click="showDetail(item)">{{item.channel_2g | channelPowerFilter}}</td>
+                            <td ng-if="item.apcSwitch_2g == 'ON'" style="width:15%" ng-click="showDetail(item)">auto({{item.power_2g | channelPowerFilter}})</td>
+                            <td ng-if="item.apcSwitch_2g == 'OFF'" style="width:15%" ng-click="showDetail(item)">{{item.power_2g | channelPowerFilter}}</td>
+                            <td ng-if="item.acsSwitch_5g == 'ON'" style="width:15%" ng-click="showDetail(item)">auto({{item.channel_5g | channelPowerFilter}})</td>
+                            <td ng-if="item.acsSwitch_5g == 'OFF'" style="width:15%" ng-click="showDetail(item)">{{item.channel_5g | channelPowerFilter}}</td>
+                            <td ng-if="item.apcSwitch_5g == 'ON'" style="width:15%" ng-click="showDetail(item)">auto({{item.power_5g | channelPowerFilter}})</td>
+                            <td ng-if="item.apcSwitch_5g == 'OFF'" style="width:15%" ng-click="showDetail(item)">{{item.power_5g | channelPowerFilter}}</td>
+                            <td style="width:10%" align="center"><a display-permission='Permission_Admin' class="glyphicon glyphicon-pencil pencil_color" ng-click="showEdit(item)"></a></td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-5 paddingL0" id="rfDetail">
+            <div class="detailBorder detailBgColor" ng-show="rfDetail">
+                <div class="row" >
+                    <div class="col-sm-12">
+                        <div class="rfDetailHead text-center font16" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+                            <span>{{"RF Information"|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 height:475px;">
+                        <form class="form-horizontal">
+                            <div style="height: 476px;overflow-y: auto;overflow-x:hidden">
+                                <div class="form-group">
+                                    <label class="col-sm-offset-2 col-sm-4 control-label">{{"HAN AP Name"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <p class="form-control-static">{{currentAP.apName}}</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-offset-2 col-sm-4 control-label">{{"HAN AP MAC"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <p class="form-control-static">{{currentAP.mac}}</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">2.4GHz</label>
+                                    <div class="col-sm-9">
+                                        <div style="height:1px;background-color:#000;margin-top:15px;"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-offset-1 col-sm-4 control-label">{{"ACS"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <p class="form-control-static">{{currentAP.acsSwitch_2g}}</p>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="countryCodeInfo.countryCode!='US'">
+                                    <label class="col-sm-offset-1 col-sm-4 control-label">{{"APC"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <p class="form-control-static">{{currentAP.apcSwitch_2g}}</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-offset-1 col-sm-4 control-label">{{"Channel"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <p ng-if="currentAP.acsSwitch_2g == 'ON'" class="form-control-static">auto({{currentAP.channel_2g | channelPowerFilter}})</p>
+                                        <p ng-if="currentAP.acsSwitch_2g == 'OFF'" class="form-control-static">{{currentAP.channel_2g | channelPowerFilter}}</p>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="countryCodeInfo.countryCode!='US'">
+                                    <label class="col-sm-offset-1 col-sm-4 control-label">{{"Power"|translate}}(dBm):</label>
+                                    <div class="col-sm-5">
+                                        <p ng-if="currentAP.apcSwitch_2g == 'ON'" class="form-control-static">auto({{currentAP.power_2g | channelPowerFilter}})</p>
+                                        <p ng-if="currentAP.apcSwitch_2g == 'OFF'" class="form-control-static">{{currentAP.power_2g | channelPowerFilter}}</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class=" col-sm-2 control-label">5GHz</label>
+                                    <div class="col-sm-9">
+                                        <div style="height:1px;background-color:#000;margin-top:15px;"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-offset-1 col-sm-4 control-label">{{"ACS"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <p class="form-control-static">{{currentAP.acsSwitch_5g}}</p>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="countryCodeInfo.countryCode!='US'">
+                                    <label class="col-sm-offset-1 col-sm-4 control-label">{{"APC"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <p class="form-control-static">{{currentAP.apcSwitch_5g}}</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-offset-1 col-sm-4 control-label">{{"Channel"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <p ng-if="currentAP.acsSwitch_5g == 'ON'" class="form-control-static">auto({{currentAP.channel_5g | channelPowerFilter}})</p>
+                                        <p ng-if="currentAP.acsSwitch_5g == 'OFF'" class="form-control-static">{{currentAP.channel_5g | channelPowerFilter}}</p>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="countryCodeInfo.countryCode!='US'">
+                                    <label class="col-sm-offset-1 col-sm-4 control-label">{{"Power"|translate}}(dBm):</label>
+                                    <div class="col-sm-5">
+                                        <p ng-if="currentAP.apcSwitch_5g == 'ON'" class="form-control-static">auto({{currentAP.power_5g | channelPowerFilter}})</p>
+                                        <p ng-if="currentAP.apcSwitch_5g == 'OFF'" class="form-control-static">{{currentAP.power_5g | channelPowerFilter}}</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="detailBorder detailBgColor" ng-show="rfEdit">
+                <div class="row" >
+                    <div class="col-sm-12">
+                        <div class="rfDetailHead text-center font16" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+                            <span>{{"Edit RF Information"|translate}}</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-sm-12 height475">
+                        <form name="editRfForm" class="form-horizontal" role="form" novalidate>
+                            <div style="height: 400px;overflow-y: auto;overflow-x:hidden">
+                                <div class="form-group">
+                                    <label class="control-label col-sm-3 col-sm-offset-2">{{"HAN AP Name"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <p class="form-control-static">{{currentAP.apName}}</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-3 col-sm-offset-2">{{"HAN AP MAC"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <p class="form-control-static">{{currentAP.mac}}</p>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label  class="control-label col-sm-2">2.4GHz</label>
+                                    <div class=" col-sm-9">
+                                        <div style="height:1px;background-color:#000;margin-top:15px;"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-3 col-sm-offset-1">{{"ACS"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <label class="checkbox-inline"><input type="radio" name="acsSwitch_2g" value="ON" ng-model="currentAP.acsSwitch_2g">{{"ON"|translate}}</label>
+                                        <label class="checkbox-inline"><input type="radio" name="acsSwitch_2g" value="OFF" ng-model="currentAP.acsSwitch_2g">{{"OFF"|translate}}</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="countryCodeInfo.countryCode!='US'">
+                                    <label class="control-label col-sm-3 col-sm-offset-1">{{"APC"|translate}}</label>
+                                    <div class="col-sm-5">
+                                        <label class="checkbox-inline">
+                                            <input type="radio" name="apcSwitch_2g" value="ON" ng-model="currentAP.apcSwitch_2g">{{"ON"|translate}}
+                                        </label>
+                                        <label class="checkbox-inline">
+                                            <input type="radio" name="apcSwitch_2g" value="OFF" ng-model="currentAP.apcSwitch_2g">{{"OFF"|translate}}
+                                        </label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-3 col-sm-offset-1">{{"Channel"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <div ng-if="currentAP.acsSwitch_2g=='ON'">
+                                            <select disabled="disabled" ng-model="currentAP.channel_2g" ng-options="option for option in ChannelScope0" class="form-control input-sm"></select>
+                                        </div>
+                                        <div ng-if="currentAP.acsSwitch_2g=='OFF'">
+                                            <select  ng-model="currentAP.channel_2g" ng-options="option for option in ChannelScope0" class="form-control input-sm"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-class="{'has-error': editRfForm.power_2g.$dirty && editRfForm.power_2g.$invalid}" ng-if="countryCodeInfo.countryCode!='US'">
+                                    <label class="control-label col-sm-3 col-sm-offset-1">{{"Power"|translate}}(dBm):</label>
+                                    <div class="col-sm-5">
+                                        <div ng-if="currentAP.apcSwitch_2g=='ON'">
+                                            <input type="number" disabled="disabled" min="3" max="20" name="power_2g" ng-model="currentAP.power_2g" class="form-control input-sm">
+                                        </div>
+                                        <div ng-if="currentAP.apcSwitch_2g=='OFF'">
+                                            <input type="number" min="3" max="20" name="power_2g" integerport ng-model="currentAP.power_2g" class="form-control input-sm" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <label class="control-label">(3-20)</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-show="editRfForm.power_2g.$dirty && editRfForm.power_2g.$invalid">
+                                    <div class="col-sm-offset-1 col-sm-10">
+                                        <span class="text-danger" ng-show="editRfForm.power_2g.$error.min || editRfForm.power_2g.$error.max" >{{InterService.numRange('2.4GHz power', 3, 20)}}</span>
+                                        <span class="text-danger" ng-show="editRfForm.power_2g.$error.required" ng-bind="InterService.valueNotNull('Power');"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-2">5GHz</label>
+                                    <div class="col-sm-9">
+                                        <div style="height:1px;background-color:#000;margin-top:15px;"></div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-3 col-sm-offset-1">{{"ACS"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <label class="checkbox-inline"><input type="radio" name="acsSwitch_5g" value="ON" ng-model="currentAP.acsSwitch_5g">{{"ON"|translate}}</label>
+                                        <label class="checkbox-inline"><input type="radio"   name="acsSwitch_5g" value="OFF" ng-model="currentAP.acsSwitch_5g">{{"OFF"|translate}}</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="countryCodeInfo.countryCode!='US'">
+                                    <label class="control-label col-sm-3 col-sm-offset-1">{{"APC"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <label class="checkbox-inline"><input type="radio" name="apcSwitch_5g" value="ON" ng-model="currentAP.apcSwitch_5g">{{"ON"|translate}}</label>
+                                        <label class="checkbox-inline"><input type="radio" name="apcSwitch_5g" value="OFF" ng-model="currentAP.apcSwitch_5g">{{"OFF"|translate}}</label>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="control-label col-sm-3 col-sm-offset-1">{{"Channel"|translate}}:</label>
+                                    <div class="col-sm-5">
+                                        <div ng-if="currentAP.acsSwitch_5g=='ON'">
+                                            <select  class="form-control input-sm" disabled="disabled" ng-model="currentAP.channel_5g" ng-options="option for option in ChannelScope1" ></select>
+                                        </div>
+                                        <div ng-if="currentAP.acsSwitch_5g=='OFF'">
+                                            <select class="form-control input-sm" ng-model="currentAP.channel_5g" ng-options="option for option in ChannelScope1"></select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-class="{'has-error': editRfForm.power_5g.$dirty && editRfForm.power_5g.$invalid}" ng-if="countryCodeInfo.countryCode!='US'">
+                                    <label class="control-label col-sm-3 col-sm-offset-1">{{"Power"|translate}}(dBm):</label>
+                                    <div class="col-sm-5">
+                                        <div ng-if="currentAP.apcSwitch_5g=='ON'">
+                                            <input type="number" class="form-control input-sm" disabled="disabled" min="3" max="23" name="power_5g" ng-model="currentAP.power_5g" >
+                                        </div>
+                                        <div ng-if="currentAP.apcSwitch_5g=='OFF'">
+                                            <input type="number" class="form-control input-sm" integerport min="3" max="23" name="power_5g" ng-model="currentAP.power_5g" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-sm-3">
+                                        <label class="control-label">(3-23)</label>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-show="editRfForm.power_5g.$dirty && editRfForm.power_5g.$invalid">
+                                    <div class="col-sm-offset-1 col-sm-10">
+                                        <span class="text-danger" ng-show="editRfForm.power_5g.$error.min || editRfForm.power_5g.$error.max" >{{InterService.numRange('5GHz power', 3, 23)}}</span>
+                                        <span class="text-danger" ng-show="editRfForm.power_5g.$error.required" ng-bind="InterService.valueNotNull('Power');"></span>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-offset-4 col-sm-5 pull-right">
+                                        <button class="btn btn-warning btn-sm" ng-click="initDivShow()">{{"Cancel"|translate}}</button>
+                                        <button type="submit" class="btn btn-primary btn-sm" ng-disabled="editRfForm.$invalid" ng-click="save()">{{"Save"|translate}}</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

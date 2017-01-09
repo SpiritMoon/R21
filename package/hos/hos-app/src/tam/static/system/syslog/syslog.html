@@ -1,0 +1,89 @@
+<div class="panel" ng-class="{'border_purple':skin.isPurple, 'border_blue':skin.isBlue}" ng-controller="syslogContronller" >
+	<div tooltip="{{'syslogTip'|translate}}" tooltip-enable="{{helpTip.isEabled}}" class="panel-heading second_level_header" ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue':skin.isBlue}">
+		<h3 class="panel-title">{{"Syslog"|translate}}</h3>
+	</div>
+	<div class="panel-body second_level_content" >
+		<div class="row">
+			<!--<div class="col-md-6">
+				<div align="center" style="height:320px; border:1px solid #C5C5C5">
+					<p><b style="font-size: small">{{"Syslog Statistics"|translate}}</b></p>
+					<nvd3-line-chart
+							data="syslogData"
+							id="syslogData"
+							width="450"
+							height="300"
+							showXAxis="true"
+							showYAxis="true"
+							showLegend="true"
+							interactive="true"
+							xAxisTickFormat="xAxisTickFormatFunction()"
+							tooltips="true"
+							useInteractiveGuideLine="true">
+					</nvd3-line-chart>
+				</div>
+			</div>
+			<div class="col-md-6">-->
+			<div class="col-md-12">
+				<div ng-class="{'lv2tblpurple':skin.isPurple, 'lv2tblblue':skin.isBlue}">
+					<table style="width: 100%">
+						<thead>
+							<tr>
+								<td style="width: 55%" ng-click="col='title';desc=!desc">{{"Titel"|translate}}</td>
+								<td style="width: 13%" ng-click="col='level';desc=!desc">{{"Level"|translate}}</td>
+								<td style="width: 32%" ng-click="col='source';desc=!desc">{{"Source"|translate}}</td>
+							</tr>
+						</thead>
+					</table>
+				</div>
+				<div  style="height:180px; overflow: auto; width: 100%">
+					<table style="width: 100%">
+						<tr ng-repeat="log in syslogs | orderBy:col:desc" title="{{log.time}}">
+							<td style="width: 57%; padding-right: 10px; word-wrap: break-word; word-break: break-all">{{log.title}}</td>
+							<td style="width: 13%">{{log.level}}</td>
+							<td style="width: 30%">{{log.source}}</td>
+						</tr>
+					</table>
+				</div>
+				<div class="row" style="padding-top: 10px;">
+					<div class="col-md-12">
+						<form class="form-inline" role="form">
+							<span class="marginR30">{{"Log Level"|translate}}:</span>
+							<select operation-permission='Permission_Admin' class="form-control input-sm" ng-model="selectedLevel" ng-options="obj.name for obj in syslogLevels"></select>
+							<button display-permission='Permission_Admin' class="btn btn-primary btn-xs" ng-click="saveServerLevel()">{{"Save"|translate}}</button>
+						</form>
+					</div>
+				</div>
+				<div class="row">
+					<div class="col-sm-12 marginT10">
+						<form name="syslogServerForm" class="form-inline" role="form" novalidate>
+							<div class="form-group" ng-class="{'has-error': syslogServerForm.syslog_server.$dirty &&syslogServerForm.syslog_server.$invalid}">
+								<label for="syslog_server">{{"Log Remote"|translate}}:</label>
+								<toggle-switch display-permission='Permission_Admin' class="marginL10" ng-model="syslogParmas.logRemoteSwitch" ng-change="configLogRemote()"></toggle-switch>
+								<span display-permission='!Permission_Admin' class="marginL10">{{ syslogParmas.logRemoteSwitch | switchFilter }}</span>
+								<input ng-if="syslogParmas.logRemoteSwitch" operation-permission='Permission_Admin' type="text" class="form-control input-sm inputWidth"  name="syslog_server" ng-model="syslogParmas.ip"
+									   placeholder="x.x.x.x"  ng-pattern="{{InterService.pattern.IP}}" required tooltip="" title="{{syslogParmas.ip}}"
+										onKeypress="javascript:if(event.keyCode == 32) event.returnValue = false;">
+								<input ng-if="!syslogParmas.logRemoteSwitch" type="text" class="form-control input-sm inputWidth marginL10" id="syslog_server" name="syslog_server" ng-model="syslogParmas.ip"
+									   placeholder="x.x.x.x"  ng-disabled="!syslogParmas.logRemoteSwitch" ng-pattern="{{InterService.pattern.IP}}" required tooltip="" title="{{syslogParmas.ip}}"
+									   onKeypress="javascript:if(event.keyCode == 32) event.returnValue = false;">
+								<button display-permission='Permission_Admin' class="btn btn-primary btn-xs" ng-click="saveServerIp()" ng-disabled="syslogServerForm.$invalid || !syslogParmas.logRemoteSwitch">{{"Run"|translate}}</button>
+							</div>
+							<div class="form-group" ng-show="syslogServerForm.syslog_server.$dirty &&syslogServerForm.syslog_server.$invalid ">
+								<small class="text-danger" ng-show="syslogServerForm.syslog_server.$error.pattern" ng-bind="InterService.validIP()"></small>
+							</div>
+						</form>
+					</div>
+				</div>
+				<div class="row" display-permission='Permission_Admin'>
+					<div class="col-md-12 marginT10">
+						<form class="form-inline" role="form">
+							<span class="marginR40">{{"Log File"|translate}}:</span>
+							<select class="form-control input-sm" ng-model="selectedAp" ng-options="obj.apname for obj in apInfo"></select>
+							<button class="btn btn-primary btn-xs" ng-click="downloadSyslog()">{{"Download"|translate}}</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>

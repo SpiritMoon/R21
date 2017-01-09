@@ -1,0 +1,119 @@
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Wireless Login Page</title>
+    <!-- Bootstrap -->
+    <link href="static/css/bootstrap.min.css" rel="stylesheet">
+    <link href="static/css/main.css" rel="stylesheet">
+    <script type="text/javascript">
+
+        function backtoLogin() {
+            window.location.href = "http://instant.alcatel-lucentnetworks.com:8080/internal_portal/portal_account_login.html";
+        }
+
+        var xmlhttp ;
+        var xmlhttpLogo;
+        var ip = document.location.hostname;
+
+        function initImAge(){
+            getBackgrounImg();
+            getLogoImg();
+        }
+        function getBackgrounImg() {
+            var bg_img =false;
+            var url = "http://" + ip + ":8080/internal_portal/static/img/bg.png";
+            xmlhttp = null;
+            $.ajax({
+                url: url,
+                type: "GET",
+                async: false,
+                success: function () {
+                    bg_img = true;
+                }
+            });
+            if(bg_img){
+                document.getElementById("backgroud_img_account_auth_fail").src = "static/img/bg.png";
+            }else{
+                document.getElementById("backgroud_img_account_auth_fail").src = "static/img/bg.jpg";
+            }
+        }
+
+        function getLogoImg() {
+            var logo_img =false;
+            var url_logo = "http://" + ip + ":8080/internal_portal/static/img/logo.png";
+            $.ajax({
+                url: url_logo,
+                type: "GET",
+                async: false,
+                success: function () {
+                    logo_img = true;
+                }
+            });
+            if(logo_img){
+                document.getElementById("logo_img_account_auth_fail").src = "static/img/logo.png";
+            }else{
+                document.getElementById("logo_img_account_auth_fail").src = "static/img/logo.jpg";
+            }
+        }
+    </script>
+</head>
+<body onload="initImAge()">
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div style="width: auto; height: 75px; padding:0px; margin:0px;float:left; text-align:left; vertical-align:top;">
+                <img id="logo_img_account_auth_fail" src="static/img/logo.png" width="189px" height="76px" alt="Alcatel-Lucent Enterprise homepage">
+            </div>
+        </div>
+    </div>
+
+    <div class="row ">
+        <div class="col-xs-12 col-md-12">
+            <hr style="border-top: 3px solid #eee">
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-12">
+            <div style="margin: 0 auto;text-align: center;">
+                <img id="backgroud_img_account_auth_fail" class="col-md-12  col-xs-12 col-lg-12" src="static/img/bg.png" alt="Resource Library"
+                     style="padding:0 10%;">
+            </div>
+            <div class="col-md-3" style="display:inline-block"></div>
+            <div class="col-md-6 col-xs-12" style="text-align: center;">
+                <form role="form" id="signin-form">
+                    <div class="row" style="padding: 15px 15%;">
+                        <div class="col-xs-12 col-md-12 col-lg-12" style="padding-left: 0px;text-align: left;">
+                            <span>Login failed! UserName or password error</span>
+                        </div>
+                    </div>
+                    <div class="row row-split">
+                        <div class="row" style="padding: 15px 15%">
+                            <div class="col-xs-4 cl-md-3 col-lg-2 ">
+                                <button id="back" type="button" style="float: left;" class="btn btn-info"
+                                        onclick="backtoLogin();">Back
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-xs-12 col-md-12" >
+            <hr style="border-top: 3px solid #eee">
+            <div style="float: left;">
+                © 2016 Alcatel-Lucent
+            </div>
+        </div>
+    </div>
+</div>
+<script src="static/js/jquery.js"></script>
+<script src="static/js/bootstrap.min.js"></script>
+<script src="static/js/hammer.js"></script>
+<script src="static/js/jquery.hammer.js"></script>
+<script src="static/js/jquery.storageapi.js"></script>
+</body>
+</html>

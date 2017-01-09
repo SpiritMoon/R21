@@ -1,0 +1,1090 @@
+<div ui-view>
+    <div class="modal-header modal_type" ng-class="{'foldedlv1menupurple':skin.isPurple, 'foldedlv1menublue':skin.isBlue}">
+        <button type="button" class="close" data-dismiss="modal" aria-hidden="true" ng-click="cancel()">&times;</button>
+        <div class="modal-title">{{"WLANConf"|translate}}</div>
+    </div>
+    <div class="modal-body">
+        <div class="row">
+            <div class="col-md-6">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div name="dvThead" style="width: 100%;">
+                            <table class="table table-striped table-hover table-condensed tableLayoutFixed" style="margin-bottom: 0px;">
+                                <thead ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}">
+                                    <tr>
+                                        <td class="col-md-3" ng-click="col='ssid';desc=!desc">{{"WlAN Name"|translate}}</td>
+                                        <td class="col-md-2" ng-click="col='enable';desc=!desc">{{"Status"|translate}}</td>
+                                        <td class="col-md-2" ng-click="col='securityType';desc=!desc">{{"Security Type"|translate}}</td>
+                                        <td class="col-md-3" ng-click="col='captivePortal';desc=!desc">{{"Captive Portal"|translate}}</td>
+                                        <td class="col-md-2">{{"Operate"|translate}}</td>
+                                    </tr>
+                                </thead>
+                            </table>
+                        </div>
+                        <div name="dvTbody" style="height: 400px;overflow: auto;">
+                            <table id="wlan_list" class="table table-condensed detailBorder detailBgColor tableLayoutFixed" >
+                                <tbody>
+                                    <tr ng-repeat="item in wlanList | orderBy:col:desc" high-light>
+                                        <td class="col-md-3" ng-click="showDetail(item)">
+                                            <div class="self_adaptation_td" title="{{item.ssid}}">{{item.ssid}}</div>
+                                        </td>
+                                        <td class="col-md-2" ng-click="showDetail(item)">{{item.enable | wlanStatusFilter}}</td>
+                                        <td class="col-md-2" ng-click="showDetail(item)">{{item.securityType}}</td>
+                                        <td class="col-md-3" ng-click="showDetail(item)">{{item.captivePortal}}</td>
+                                        <td class="col-md-2">
+	                                        <a display-permission='Permission_Admin' class="glyphicon glyphicon-pencil pencil_color" ng-click="showEdit(item)"></a>
+	                                        &nbsp;&nbsp;
+	                                        <a display-permission='Permission_Admin' class="glyphicon glyphicon-remove del_color" ng-click="deleteWlan(item.ssid)"></a>
+	                                        &nbsp;&nbsp;
+                                            <a display-permission='Permission_Admin' ng-click="showWmm(item.ssid)">{{"wlanWMM"|translate}}</a>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <br>
+                <input display-permission='Permission_Admin' type="button" class="btn btn-addbtn" value="{{'Create'|translate}}" ng-click="showCreate()"/>
+            </div>
+            <div class="col-md-6">
+                <div id = "wlan_info_detail" ng-show="isDetail" class="row col-md-12 ">
+                    <div class="panel detailBorder">
+                        <div  ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}" class="panel-heading" >
+                            <div class="panel-title">
+                                {{"WLAN Detail"|translate}}
+                            </div>
+                        </div>
+                        <div class="panel-body  detailBgColor">
+                            <form  class="form-horizontal" role="form" >
+                                <div style="height: 400px;overflow-y: auto;overflow-x:hidden">
+                                    <div class="form-group">
+                                        <div
+                                                class="col-sm-4 ">{{"WlAN Name"|translate}}:</div>
+                                        <div class="col-sm-8 ">
+                                            <div class="ssidbreak" title="{{viewWlan.ssid}}">
+                                                {{viewWlan.ssid}}
+                                            </div>
+
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div
+                                                class="col-sm-4">{{"Band"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.frequence}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isCaptivePortal">
+                                        <div
+                                                class="col-sm-4 ">{{"Captive Portal"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.captivePortal}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div
+                                                class="col-sm-4 ">{{"Security Type"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.securityType}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isPersonInfo">
+                                        <div
+                                                class="col-sm-4 ">{{"Key Management"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.encryption}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isPersonInfo">
+                                        <div
+                                                class="col-sm-4 ">{{"Passphrase"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            <p class="ssidbreak" >
+                                                {{viewWlan.key}}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isEnterpriseInfo">
+                                        <div
+                                                class="col-sm-4 ">{{"Encryption"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.encryption}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isEnterpriseInfo">
+                                        <div
+                                                class="col-sm-4 ">{{"AuthServer"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.authServer}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isEnterpriseInfo">
+                                        <div
+                                                class="col-sm-4 ">{{"AuthPort"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.authPort}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isEnterpriseInfo">
+                                        <div
+                                                class="col-sm-4 ">{{"AuthSecret"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.authSecret}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isEnterpriseInfo && isDetailRedius">
+                                        <div
+                                                class="col-sm-4 ">{{"AcctServer"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.acctServer}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isEnterpriseInfo && isDetailRedius">
+                                        <div
+                                                class="col-sm-4 ">{{"AcctPort"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.acctPort}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isEnterpriseInfo && isDetailRedius">
+                                        <div
+                                                class="col-sm-4 ">{{"AcctSecret"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.acctSecret}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div
+                                                class="col-sm-4 ">{{"Hidden"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.hidden}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div
+                                                class="col-sm-4 ">{{"Enable"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.enable | enableFilter}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div
+                                                class="col-sm-4">{{"MaxClients"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.maxClients}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div
+                                                class="col-sm-4 ">{{"ProbeThreshold"|translate}}:</div>
+                                        <div class="col-sm-8">{{viewWlan.probeThreshold}}db
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div
+                                                class="col-sm-4 ">{{"VLAN ID"|translate}}:</div>
+                                        <div class="col-sm-8">
+                                            {{viewWlan.vlanId}}
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div
+                                                class="col-sm-4 ">{{"UpstreamLimit"|translate}}:</div>
+                                        <div class="col-sm-8">{{viewWlan.upstreamLimit}}kbps
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div
+                                                class="col-sm-4 ">{{"DownstreamLimit"|translate}}:</div>
+                                        <div class="col-sm-8">{{viewWlan.downstreamLimit}}kbps
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isEnterpriseInfo||isPersonInfo">
+                                        <div class="col-md-4">{{"EightFast"|translate}}:</div>
+                                        <div class="col-md-8">
+                                            {{viewWlan.fast}}
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group" ng-show="isEnterpriseInfo">
+                                        <div class="col-md-4">{{"okc"|translate}}:</div>
+                                        <div class="col-md-8">
+                                            {{viewWlan.okc}}
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div  ng-show="isEdit" oncut="return false;" oncopy="return false;" onpaste="return false;">
+                    <div class="panel detailBorder ">
+                        <div  ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}" class="panel-heading" >
+                            <div class="panel-title">
+                                {{"Edit WLANInfo"|translate}}
+                            </div>
+                        </div>
+                        <div class="panel-body detailBgColor">
+                            <form class="form-horizontal" role="form" novalidate name="wlaneditform">
+                                <div style="height: 400px;overflow-y: auto;overflow-x:hidden">
+                                    <div class="form-group" ng-class="{'has-error': wlaneditform.wlan_ssid.$dirty && wlaneditform.wlan_ssid.$invalid}">
+                                        <div class="col-md-4">{{"WlAN Name"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input style="width: 150px;" name="wlan_ssid" type="text" class="form-control" ng-model="currentWlan.ssid" disable-space
+                                             ng-change="changeEditSSID(currentWlan.ssid)"      ng-pattern="{{InterService.pattern.exceptBlank1To32}}"  tooltip={{'enter1-32Chars'|translate}} tooltip-trigger="mouseenter" tooltip-placement="bottom" required>
+                                        </div>
+                                        <div class="col-md-3">({{"1-32chars"|translate}})</div>
+                                    </div>
+                                    <div class="form-group" ng-show="wlaneditform.wlan_ssid.$dirty && wlaneditform.wlan_ssid.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-8">
+                                            <small class="text-danger" ng-show="wlaneditform.wlan_ssid.$error.pattern" ng-bind="InterService.wlanNameTip()"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isEditFormat">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-8">
+                                            <small class="text-danger" ng-show="isEditFormat" ng-bind="codeEditEnd"></small>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <div class="col-md-4">{{"Security Type"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <select style="width: 150px;" ng-disabled="disabledSecurity" ng-model="ST.editSecurity" ng-change="changeSecurity()" ng-options="obj.name for obj in securityTypeArray" ></select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isDetailPersonal||isDetailEnterprise">
+                                        <div class="col-md-4">{{"Key Management"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <select style="width: 150px;" ng-disabled="disabledEncryption" ng-model="Encryption.editEncryption"  ng-options="unit.name for unit in ST.editSecurity.units"></select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailPersonal">
+                                        <div class="col-md-4">{{"Passphrase Format"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <select style="width:150px;;" ng-model="FORMAT.formatSelected" ng-change="selecFormat();" ng-options="obj.name for obj in passphraseFormatArray">
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailPersonal" ng-class="{'has-error': wlaneditform.personal_pass.$dirty && wlaneditform.personal_pass.$invalid}">
+                                        <div class="col-md-4">{{"Passphrase"|translate}}:</div>
+                                        <div class="col-md-5">
+											<input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                                            <input ng-if="FORMAT.formatSelected.id=='1'" style="width: 150px;" type="password" name="personal_pass" class="form-control" ng-model="currentWlan.key" ng-pattern="{{InterService.pattern.ldu8to63Demo}}"  required disable-space tooltip={{"wlan_password_tip"|translate}} tooltip-trigger="mouseenter" tooltip-placement="bottom">
+                                            <input ng-if="FORMAT.formatSelected.id=='2'" style="width: 150px;" type="password" name="personal_pass" class="form-control" ng-model="currentWlan.key" ng-pattern="{{InterService.pattern.Hex64charDemo}}"   required disable-space>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailPersonal && wlaneditform.personal_pass.$dirty && wlaneditform.personal_pass.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-5">
+                                            <small ng-if="FORMAT.formatSelected.id=='1'" class="text-danger" ng-show="wlaneditform.personal_pass.$error.required" ng-bind="InterService.valueNotNull('passphrase');"></small>
+                                            <small ng-if="FORMAT.formatSelected.id=='1'" class="text-danger" ng-show="wlaneditform.personal_pass.$error.pattern" ng-bind="InterService.lduLengthRangeTipDemo(8,63)"></small>
+                                            <small ng-if="FORMAT.formatSelected.id=='2'" class="text-danger" ng-show="wlaneditform.personal_pass.$error.required"  ng-bind="IInterService.valueNotNull('passphrase');"></small>
+                                            <small ng-if="FORMAT.formatSelected.id=='2'" class="text-danger" ng-show="wlaneditform.personal_pass.$error.pattern"  ng-bind="InterService.Hexchar64Demo()"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailPersonal" ng-class="{'has-error':wlaneditform.person_pass_confirm.$dirty && wlaneditform.person_pass_confirm.$invalid}">
+                                        <div class="col-md-4">{{"Confirm"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                                            <input ng-if="FORMAT.formatSelected.id=='1'" style="width: 150px;" type="password" name="person_pass_confirm" class="form-control" ng-model="currentWlan.keyConfirm" repeat="personal_pass" disable-space>
+                                            <input ng-if="FORMAT.formatSelected.id=='2'" style="width: 150px;" type="password" name="person_pass_confirm" class="form-control" ng-model="currentWlan.keyConfirm" repeat="personal_pass" disable-space>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailPersonal && wlaneditform.person_pass_confirm.$dirty && wlaneditform.person_pass_confirm.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-5">
+                                            <small class="text-danger" ng-show="wlaneditform.person_pass_confirm.$error.repeat" ng-bind="InterService.passNotSame()"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailEnterprise" ng-class="{'has-error': wlaneditform.authserver.$dirty && wlaneditform.authserver.$invalid}">
+                                        <div class="col-md-4">{{"AuthServer"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input style="width: 150px;" type="text" name="authserver" class="form-control" ng-model="currentWlan.authServer" placeholder="x.x.x.x"
+                                                   ng-pattern="{{InterService.pattern.IP}}" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailEnterprise && wlaneditform.authserver.$dirty && wlaneditform.authserver.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-5">
+                                            <small class="text-danger" ng-show="wlaneditform.authserver.$error.required" ng-bind="InterService.valueNotNull('AuthServer')"></small>
+                                            <small class="text-danger" ng-show="wlaneditform.authserver.$error.pattern" ng-bind="InterService.validIP()"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailEnterprise" ng-class="{'has-error': wlaneditform.authport.$dirty && wlaneditform.authport.$invalid}">
+                                        <div class="col-md-4">{{"AuthPort"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input style="width: 150px;" type="number" integerport  name="authport" class="form-control" ng-model="currentWlan.authPort" placeholder="1812" ng-pattern="{{InterService.pattern.AuthPort}}" tooltip="1-65535" tooltip-trigger="mouseenter" tooltip-placement="top" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailEnterprise && wlaneditform.authport.$dirty && wlaneditform.authport.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-5">
+                                            <small class="text-danger" ng-show="wlaneditform.authport.$error.required" ng-bind="InterService.valueNotNull('AuthPort')"></small>
+                                            <small class="text-danger" ng-show="wlaneditform.authport.$error.pattern" ng-bind="InterService.numRange('AuthPort', 1, 65535)"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailEnterprise" ng-class="{'has-error': wlaneditform.authsecret.$dirty && wlaneditform.authsecret.$invalid}">
+                                        <div class="col-md-4">{{"AuthSecret"|translate}}:</div>
+                                        <div class="col-md-5">
+											<input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                                            <input style="width: 150px;" type="password" name="authsecret" class="form-control" ng-model="currentWlan.authSecret" ng-pattern="{{InterService.pattern.ldu1to32Demo}}" tooltip={{"auth_acct_secret_tip"|translate}} tooltip-trigger="mouseenter" tooltip-placement="top" required disable-space>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailEnterprise && wlaneditform.authsecret.$dirty && wlaneditform.authsecret.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-5">
+                                            <small class="text-danger" ng-show="wlaneditform.authsecret.$error.required" ng-bind="InterService.valueNotNull('AuthSecret');"></small>
+                                            <small class="text-danger" ng-show="wlaneditform.authsecret.$error.pattern" ng-bind="InterService.lduLengthRangeTipDemo(1, 32);"></small>
+                                        </div>
+                                    </div>
+
+
+
+                                    <div class="form-group" ng-if="isDetailEnterprise">
+                                        <div class="col-md-4">{{"Need Account"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input type="checkbox" ng-model="redisSwitch.isSwitch" value ="redisSwitch.isSwitch"  ng-change="redisChange(redisSwitch.isSwitch)"/>
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailEnterprise  && isRedisShow" ng-class="{'has-error': wlaneditform.acctserver.$dirty && wlaneditform.acctserver.$invalid}">
+                                        <div class="col-md-4">{{"AcctServer"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input style="width: 150px;" type="text" name="acctserver" class="form-control" ng-model="currentWlan.acctServer" placeholder="x.x.x.x" ng-pattern="{{InterService.pattern.IP}}" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailEnterprise && isRedisShow && wlaneditform.acctserver.$dirty && wlaneditform.acctserver.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-5">
+                                            <small class="text-danger" ng-show="wlaneditform.acctserver.$error.required" ng-bind="InterService.valueNotNull('AcctServer')"></small>
+                                            <small class="text-danger" ng-show="wlaneditform.acctserver.$error.pattern" ng-bind="InterService.validIP()"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailEnterprise && isRedisShow" ng-class="{'has-error': wlaneditform.acctport.$dirty && wlaneditform.acctport.$invalid}">
+                                        <div class="col-md-4">{{"AcctPort"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input style="width: 150px;" integerport type="number" name="acctport" class="form-control" ng-model="currentWlan.acctPort" placeholder="1813" ng-pattern="{{InterService.pattern.AuthPort}}" tooltip="1-65535" tooltip-trigger="mouseenter" tooltip-placement="top" required>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailEnterprise && isRedisShow && wlaneditform.acctport.$dirty && wlaneditform.acctport.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-5">
+                                            <small class="text-danger" ng-show="wlaneditform.acctport.$error.required" ng-bind="InterService.valueNotNull('AcctPort')"></small>
+                                            <small class="text-danger" ng-show="wlaneditform.acctport.$error.pattern" ng-bind="InterService.numRange('AcctPort', 1, 65535)"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailEnterprise && isRedisShow" ng-class="{'has-error': wlaneditform.acctsecret.$dirty && wlaneditform.acctsecret.$invalid}">
+                                        <div class="col-md-4">{{"AcctSecret"|translate}}:</div>
+                                        <div class="col-md-5">
+											<input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                                            <input style="width: 150px;" type="password" name="acctsecret" class="form-control" ng-model="currentWlan.acctSecret" ng-pattern="{{InterService.pattern.ldu1to32Demo}}" tooltip={{"auth_acct_secret_tip"|translate}} tooltip-tigger="mouseenter" tooltip-placement="top" required disable-space>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-if="isDetailEnterprise && isRedisShow && wlaneditform.acctsecret.$dirty && wlaneditform.acctsecret.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-5">
+                                            <small class="text-danger" ng-show="wlaneditform.acctsecret.$error.required" ng-bind="InterService.valueNotNull('AcctSecret');"></small>
+                                            <small class="text-danger" ng-show="wlaneditform.acctsecret.$error.pattern" ng-bind="InterService.lduLengthRangeTipDemo(1, 32);"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isCapital">
+                                        <div class="col-md-4">{{"Captive Portal"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input type="radio" name="captivePortal" ng-model="currentWlan.captivePortal" value="Yes">
+                                            Yes
+                                            <input type="radio" name="captivePortal" ng-model="currentWlan.captivePortal" value="No">No</td>
+                                        </div>
+                                    </div>
+                                    <div class="form-group">
+                                        <div class="col-md-4">{{"Enable"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input type="radio" name="enable" ng-model="currentWlan.enable" value="1">Yes
+                                            <input type="radio" name="enable" ng-model="currentWlan.enable" value="0">No
+                                        </div>
+                                    </div>
+                                    <div class="form-group" >
+                                        <div class="col-md-4">{{"Hidden"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input type="radio" name="hidden" ng-model="currentWlan.hidden" value="Yes">
+                                            Yes
+                                            <input type="radio" name="hidden" ng-model="currentWlan.hidden" value="No">No
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group"  ng-class="{'has-error': wlaneditform.max_clients.$dirty && wlaneditform.max_clients.$invalid}">
+                                        <div class="col-md-4">{{"MaxClients"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input type="number" integerport style="width: 150px;" name="max_clients" class="form-control" min="1" max="120" ng-model="currentWlan.maxClients" ng-pattern="{{InterService.pattern.maxClients}}" placeholder="64" required>
+                                        </div>
+                                        <div class="col-md-3">(1-120)</div>
+                                    </div>
+                                    <div class="form-group" ng-show="wlaneditform.max_clients.$dirty && wlaneditform.max_clients.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-8">
+                                            <small class="text-danger" ng-show="wlaneditform.max_clients.$error.required" ng-bind="InterService.valueNotNull('maximum clients')"></small>
+                                            <small class="text-danger" ng-show="wlaneditform.max_clients.$error.pattern" ng-bind="InterService.numRange('maximum clients', 1, 120)"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group"  ng-class="{'has-error': wlaneditform.probe_threshold.$dirty && wlaneditform.probe_threshold.$invalid}">
+                                        <div class="col-md-4">{{"ProbeThreshold"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input type="number" integerport style="width: 150px;" name="probe_threshold" class="form-control" min="0" max="100" ng-model="currentWlan.probeThreshold" ng-pattern="{{InterService.pattern.RSSIThreshold}}" placeholder="0" required>
+                                        </div>
+                                        <div class="col-md-3">(0-100)db</div>
+                                    </div>
+                                    <div class="form-group" ng-show="wlaneditform.probe_threshold.$dirty && wlaneditform.probe_threshold.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-8">
+                                            <small class="text-danger" ng-show="wlaneditform.probe_threshold.$error.required" ng-bind="InterService.valueNotNull('RSSIThreshold')"></small>
+                                            <small class="text-danger" ng-show="wlaneditform.probe_threshold.$error.pattern" ng-bind="InterService.numRange('RSSIThreshold', 0, 100)"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group"  ng-class="{'has-error': wlaneditform.vlan_id.$dirty && wlaneditform.vlan_id.$invalid}">
+                                        <div class="col-md-4">{{"VLAN ID"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input type="number" integerport style="width: 150px;" name="vlan_id" class="form-control" min="0" max="4094" ng-model="currentWlan.vlanId" ng-pattern="{{InterService.pattern.VLANID}}" placeholder="0" required>
+                                        </div>
+                                        <div class="col-md-3">(0-4094)</div>
+                                    </div>
+                                    <div class="form-group" ng-show="wlaneditform.vlan_id.$dirty && wlaneditform.vlan_id.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-8">
+                                            <small class="text-danger" ng-show="wlaneditform.vlan_id.$error.required" ng-bind="InterService.valueNotNull('VLAN ID')"></small>
+                                            <small class="text-danger" ng-show="wlaneditform.vlan_id.$error.pattern" ng-bind="InterService.numRange('VLAN ID', 0, 4094)"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group"  ng-class="{'has-error': wlaneditform.upstream_limit.$dirty && wlaneditform.upstream_limit.$invalid}">
+                                        <div class="col-md-4">{{"UpstreamLimit"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input type="number" integerport style="width: 150px;" name="upstream_limit" class="form-control" min="0" max="65536" ng-model="currentWlan.upstreamLimit" ng-pattern="{{InterService.pattern.Stream}}" placeholder="0" required>
+                                        </div>
+                                        <div class="col-md-3">(0-65536)kbps</div>
+                                    </div>
+                                    <div class="form-group" ng-show="wlaneditform.upstream_limit.$dirty && wlaneditform.upstream_limit.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-8">
+                                            <small class="text-danger" ng-show="wlaneditform.upstream_limit.$error.required" ng-bind="InterService.valueNotNull('UpstreamLimit')"></small>
+                                            <small class="text-danger" ng-show="wlaneditform.upstream_limit.$error.pattern" ng-bind="InterService.numRange('UpstreamLimit', 0, 65536)"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group"  ng-class="{'has-error': wlaneditform.downstream_limit.$dirty && wlaneditform.downstream_limit.$invalid}">
+                                        <div class="col-md-4">{{"DownstreamLimit"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input type="number" integerport style="width: 150px;" name="downstream_limit" class="form-control" min="0" max="65536" ng-model="currentWlan.downstreamLimit" ng-pattern="{{InterService.pattern.Stream}}" placeholder="0" required>
+                                        </div>
+                                        <div class="col-md-3">(0-65536)kbps</div>
+                                    </div>
+                                    <div class="form-group" ng-show="wlaneditform.downstream_limit.$dirty && wlaneditform.downstream_limit.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-8">
+                                            <small class="text-danger" ng-show="wlaneditform.downstream_limit.$error.required" ng-bind="InterService.valueNotNull('DownstreamLimit')"></small>
+                                            <small class="text-danger" ng-show="wlaneditform.downstream_limit.$error.pattern" ng-bind="InterService.numRange('DownstreamLimit', 0, 65536)"></small>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group" ng-if="isDetailEnterprise||isDetailPersonal">
+                                        <div class="col-md-4">{{"EightFast"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <toggle-switch  ng-model="currentWlan.fast"></toggle-switch>
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group" ng-show="isDetailEnterprise">
+                                        <div class="col-md-4">{{"okc"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <toggle-switch  ng-model="currentWlan.okc"></toggle-switch>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form_div_css">
+                                        <div class="col-lg-offset-6">
+                                            <button class="btn btn-warning" ng-click="initDivShow()">{{"Cancel"|translate}}</button>
+                                            <button class="btn btn-primary" ng-click="editWlan()" ng-disabled="wlaneditform.$invalid||isEditTrue">{{"Save"|translate}}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div id = "wlan_info_add" ng-show="isCreate" oncut="return false;" oncopy="return false;" onpaste="return false;">
+                    <div class="panel detailBorder">
+                        <div  ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}" class="panel-heading" >
+                            <div class="panel-title">
+                                {{"Create WlanInfo"|translate}}
+                            </div>
+                        </div>
+                        <div class="panel-body  detailBgColor">
+                            <form name="wlanAddForm" class="form-horizontal" role="form" novalidate>
+                                <div style="height: 400px;overflow-y: auto;overflow-x:hidden">
+                                    <div class="form-group" ng-class="{'has-error': wlanAddForm.wlanssid.$dirty && wlanAddForm.wlanssid.$invalid}">
+                                        <div class="col-md-4">{{"WlAN Name"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input style="width: 150px;"  type="text" name="wlanssid" class="form-control" ng-change="changeWlanName(newWlan.ssid)" ng-model="newWlan.ssid" required ng-pattern="{{InterService.pattern.exceptBlank1To32}}" tooltip={{'enter1-32Chars'|translate}} tooltip-trigger="mouseenter" tooltip-placement="bottom" required disable-space>
+                                        </div>
+                                        <div class="col-md-3">({{"1-32chars"|translate}})</div>
+                                    </div>
+                                    <div class="form-group" ng-show="wlanAddForm.wlanssid.$dirty && wlanAddForm.wlanssid.$invalid">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-8">
+                                            <small class="text-danger" ng-show="wlanAddForm.wlanssid.$error.required" ng-bind="InterService.valueNotNull('wlan name')"></small>
+                                            <small  class="text-danger" ng-show="wlanAddForm.wlanssid.$error.pattern" ng-bind="InterService.wlanNameTip()"></small>
+                                        </div>
+                                    </div>
+                                    <div class="form-group" ng-show="isDetailFormat">
+                                        <div class="col-md-4"></div>
+                                        <div class="col-md-8">
+                                            <small class="text-danger" ng-show="isDetailFormat" ng-bind="codeDetailEnd"></small>
+                                        </div>
+                                    </div>
+
+                                <div class="form-group">
+                                    <div class="col-md-4">{{"Security Type"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <select style="width:150px" ng-disabled="disabledSecurity" ng-model="createSecurity" ng-change="changeSecurityType()" ng-options="obj.name for obj in securityTypeArray" ></select>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-show="isPersonal||isEnterprise">
+                                    <div class="col-md-4">{{"Key Management"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <select style="width:150px"  ng-disabled="disabledEncryption" ng-model="createEncryption" ng-change="selectedPosition=''" ng-options="unit.name for unit in createSecurity.units"></select>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isPersonal">
+                                    <div class="col-md-4">{{"Passphrase Format"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <select style="width:150px"  ng-model="formatSelected" ng-change="selecFormat()" ng-options="obj.name for obj in passphraseFormatArray">
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isPersonal" ng-class="{'has-error': wlanAddForm.personalPass.$dirty && wlanAddForm.personalPass.$invalid}">
+                                    <div class="col-md-4">{{"Passphrase"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                                        <input ng-if="formatSelected.id=='1'" style="width:150px" type="password" name="personalPass" class="form-control" ng-model="newWlan.key" ng-pattern="{{InterService.pattern.ldu8to63Demo}}"  required disable-space tooltip={{"wlan_password_tip"|translate}} tooltip-trigger="mouseenter" tooltip-placement="bottom">
+                                        <input ng-if="formatSelected.id=='2'" style="width:150px" type="password" name="personalPass" class="form-control" ng-model="newWlan.key" ng-pattern="{{InterService.pattern.Hex64charDemo}}"  required disable-space>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isPersonal && wlanAddForm.personalPass.$dirty && wlanAddForm.personalPass.$invalid" ng-class="{'has-error': wlanAdvanceInfoForm.wlan_key.$dirty && wlanAdvanceInfoForm.wlan_key.$invalid }">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small ng-if="formatSelected.id=='1'" class="text-danger" ng-show="wlanAddForm.personalPass.$error.pattern" ng-bind="InterService.lduLengthRangeTipDemo(8,63)"></small>
+                                        <small ng-if="formatSelected.id=='1'" class="text-danger" ng-show="wlanAddForm.personalPass.$error.required" ng-bind="InterService.valueNotNull('passphrase')"></small>
+                                        <small ng-if="formatSelected.id=='2'" class="text-danger" ng-show="wlanAddForm.personalPass.$error.pattern"  ng-bind="InterService.Hexchar64Demo()"></small>
+                                        <small ng-if="formatSelected.id=='2'" class="text-danger" ng-show="wlanAddForm.personalPass.$error.required"  ng-bind="InterService.valueNotNull('passphrase');"></small>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isPersonal" ng-class="{'has-error': wlanAddForm.personPass_confirm.$dirty &&wlanAddForm.personPass_confirm.$invalid}">
+                                    <div class="col-md-4">{{"Confirm"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                                        <input ng-if="formatSelected.id=='1'" style="width:150px"  type="password"  name="personPass_confirm" class="form-control" ng-model="newWlan.keyConfirm" repeat="personalPass" disable-space>
+                                        <input ng-if="formatSelected.id=='2'"  style="width:150px" type="password"  name="personPass_confirm" class="form-control" ng-model="newWlan.keyConfirm" repeat="personalPass" disable-space>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isPersonal && wlanAddForm.personPass_confirm.$dirty && wlanAddForm.personPass_confirm.$invalid">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small class="text-danger" ng-show="wlanAddForm.personPass_confirm.$error.repeat" ng-bind="InterService.passNotSame()"></small>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise" ng-class="{'has-error': wlanAddForm.authServer.$dirty && wlanAddForm.authServer.$invalid}">
+                                    <div class="col-md-4">{{"AuthServer"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="text" style="width:150px" name="authServer" class="form-control" ng-model="newWlan.authServer" placeholder="x.x.x.x" ng-pattern="{{InterService.pattern.IP}}" required>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise && wlanAddForm.authServer.$dirty && wlanAddForm.authServer.$invalid">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small class="text-danger" ng-show="wlanAddForm.authServer.$error.required" ng-bind="InterService.valueNotNull('AuthServer')"></small>
+                                        <small class="text-danger" ng-show="wlanAddForm.authServer.$error.pattern" ng-bind="InterService.validIP()"></small>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise" ng-class="{'has-error': wlanAddForm.authport.$dirty && wlanAddForm.authport.$invalid}">
+                                    <div class="col-md-4">{{"AuthPort"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input  type="number" integerport style="width:150px" name="authport" class="form-control" ng-model="newWlan.authPort" placeholder="1812"  ng-pattern="{{InterService.pattern.AuthPort}}" tooltip="1-65535" tooltip-trigger="mouseenter" required>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise && wlanAddForm.authport.$dirty && wlanAddForm.authport.$invalid">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small class="text-danger" ng-show="wlanAddForm.authport.$error.required" ng-bind="InterService.valueNotNull('AuthPort')"></small>
+                                        <small class="text-danger" ng-show="wlanAddForm.authport.$error.pattern" ng-bind="InterService.numRange('AuthPort', 1, 65535)"></small>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise">
+                                    <div class="col-md-4">{{"AuthSecret"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                                        <input type="password" style="width:150px" name="authsecret" class="form-control" ng-model="newWlan.authSecret" ng-pattern="{{InterService.pattern.ldu1to32Demo}}" tooltip={{"auth_acct_secret_tip"|translate}} tooltip-trigger="mouseenter" tooltip-placement="top" required disable-space>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise && wlanAddForm.authsecret.$dirty && wlanAddForm.authsecret.$invalid">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small class="text-danger" ng-show="wlanAddForm.authsecret.$error.required" ng-bind="InterService.valueNotNull('AuthSecret')"></small>
+                                        <small class="text-danger" ng-show="wlanAddForm.authsecret.$error.pattern" ng-bind="InterService.lduLengthRangeTipDemo(1,32)"></small>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise">
+                                    <div class="col-md-4">{{"Need Account"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="checkbox" ng-model="redisSwitch.isSwitch" value ="redisSwitch.isSwitch"  ng-change="redisChange(redisSwitch.isSwitch)"/>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise && isRedisShow">
+                                    <div class="col-md-4">{{"AcctServer"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="text" style="width:150px" class="form-control" ng-model="newWlan.acctServer" name="acctserver" placeholder="x.x.x.x" ng-pattern="{{InterService.pattern.IP}}" required>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise && isRedisShow && wlanAddForm.acctserver.$dirty && wlanAddForm.acctserver.$invalid">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small class="text-danger" ng-show="wlanAddForm.acctserver.$error.required" ng-bind="InterService.valueNotNull('AcctServer')"></small>
+                                        <small class="text-danger" ng-show="wlanAddForm.acctserver.$error.pattern" ng-bind="InterService.validIP()"></small>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise && isRedisShow" ng-class="{'has-error': wlanAddForm.acctport.$dirty && wlanAddForm.acctport.$invalid}">
+                                    <div class="col-md-4">{{"AcctPort"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="number" style="width:150px" integerport class="form-control" ng-model="newWlan.acctPort"  placeholder="1813" name="acctport" ng-pattern="{{InterService.pattern.AuthPort}}" tooltip="1-65535" tooltip-trigger="mouseenter" required>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise && isRedisShow && wlanAddForm.acctport.$dirty && wlanAddForm.acctport.$invalid">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small class="text-danger" ng-show="wlanAddForm.acctport.$error.required " ng-bind="InterService.valueNotNull('AcctPort')"></small>
+                                        <small class="text-danger" ng-show="wlanAddForm.acctport.$error.pattern" ng-bind="InterService.numRange('AcctPort', 1, 65535)"></small>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise && isRedisShow" >
+                                    <div class="col-md-4">{{"AcctSecret"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="password" style="width:0px;height:0px;float:right;visibility:hidden"/>
+                                        <input  type="password" style="width:150px" class="form-control" ng-model="newWlan.acctSecret" name="acctsecret"  ng-pattern="{{InterService.pattern.ldu1to32Demo}}" tooltip={{"auth_acct_secret_tip"|translate}} tooltip-trigger="mouseenter" tooltip-placement="top" required disable-space>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-if="isEnterprise && isRedisShow && wlanAddForm.acctsecret.$dirty && wlanAddForm.acctsecret.$invalid">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small class="text-danger" ng-show="wlanAddForm.acctsecret.$error.required" ng-bind="InterService.valueNotNull('AcctSecret')"></small>
+                                        <small class="text-danger" ng-show="wlanAddForm.acctsecret.$error.pattern" ng-bind="InterService.lduLengthRangeTipDemo(1,32)"></small>
+                                    </div>
+                                </div>
+                                    <div class="form-group" ng-show="isCapital">
+                                        <div class="col-md-4">{{"Captive Portal"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input type="radio" name="captivePortal" ng-model="newWlan.captivePortal" value="Yes">Yes
+                                            <input type="radio" name="captivePortal" ng-model="newWlan.captivePortal" value="No">No
+                                        </div>
+                                    </div>
+                                    <div class="form-group" >
+                                        <div class="col-md-4">{{"Enable"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <input type="radio" name="enable" ng-model="newWlan.enable" value="Yes">Yes
+                                            <input type="radio" name="enable" ng-model="newWlan.enable" value="No">No
+                                        </div>
+                                    </div>
+                                <div class="form-group" >
+                                    <div class="col-md-4">{{"Hidden"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="radio" name="hidden" ng-model="newWlan.hidden" value="Yes">Yes
+                                        <input type="radio" name="hidden" ng-model="newWlan.hidden" value="No">No
+                                    </div>
+                                </div>
+
+                                <div class="form-group" >
+                                    <div class="col-md-4">{{"Band"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <span ng-show="isTwoG"><input  type="checkbox" name="wlanBand" ng-model="band.twoG">2.4GHz</span>
+                                        <span><input  type="checkbox" name="wlanBand" ng-model="band.fiveG">5GHz</span>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" ng-class="{'has-error': wlanAddForm.maxclients.$dirty && wlanAddForm.maxclients.$invalid}">
+                                    <div class="col-md-4">{{"MaxClients"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="number" integerport style="width:150px"  name="maxclients" class="form-control" min="1" max="120" ng-model="newWlan.maxClients" ng-pattern="{{InterService.pattern.maxClients}}" placeholder="64" required>
+                                    </div>
+                                    <div class="col-md-3">(1-120)</div>
+                                </div>
+                                <div class="form-group" ng-show="wlanAddForm.maxclients.$dirty && wlanAddForm.maxclients.$invalid">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small class="text-danger" ng-show="wlanAddForm.maxclients.$error.required" ng-bind="InterService.valueNotNull('maxClients')"></small>
+                                        <small class="text-danger" ng-show="wlanAddForm.maxclients.$error.pattern" ng-bind="InterService.numRange('maxClients', 1, 120)"></small>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" ng-class="{'has-error': wlanAddForm.probethreshold.$dirty && wlanAddForm.probethreshold.$invalid}">
+                                    <div class="col-md-4">{{"ProbeThreshold"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="number" integerport style="width:150px" name="probethreshold" class="form-control" min="0" max="100" ng-model="newWlan.probeThreshold" ng-pattern="{{InterService.pattern.RSSIThreshold}}" placeholder="0" required>
+                                    </div>
+                                    <div class="col-md-3">(0-100)db</div>
+                                </div>
+                                <div class="form-group" ng-show="wlanAddForm.probethreshold.$dirty && wlanAddForm.probethreshold.$invalid">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small class="text-danger" ng-show="wlanAddForm.probethreshold.$error.required" ng-bind="InterService.valueNotNull('RSSIThreshold')"></small>
+                                        <small class="text-danger" ng-show="wlanAddForm.probethreshold.$error.pattern" ng-bind="InterService.numRange('RSSIThreshold', 0, 100)"></small>
+                                    </div>
+                                </div>
+
+                                <div class="form-group" ng-class="{'has-error': wlanAddForm.vlan_id.$dirty && wlanAddForm.vlan_id.$invalid}">
+                                    <div class="col-md-4">{{"VLAN ID"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="number" integerport style="width:150px"  name="vlan_id" class="form-control" min="0" max="4094" ng-model="newWlan.vlanId" placeholder="0" ng-pattern="{{InterService.pattern.VLANID}}" required>
+                                    </div>
+                                    <div class="col-md-3">(0-4094)</div>
+                                </div>
+                                <div class="form-group" ng-show="wlanAddForm.vlan_id.$dirty && wlanAddForm.vlan_id.$invalid">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small class="text-danger" ng-show="wlanAddForm.vlan_id.$error.required" ng-bind="InterService.valueNotNull('VLAN ID');"></small>
+                                        <small class="text-danger" ng-show="wlanAddForm.vlan_id.$error.pattern" ng-bind="InterService.numRange('VLAN ID', 0,4094);"></small>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-class="{'has-error': wlanAddForm.upstream_limit.$dirty && wlanAddForm.upstream_limit.$invalid}">
+                                    <div class="col-md-4">{{"UpstreamLimit"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="number"  integerport style="width:150px" name="upstream_limit" class="form-control" min="0" max="65536" ng-model="newWlan.upstreamLimit" ng-pattern="{{InterService.pattern.Stream}}" placeholder="0" required>
+                                    </div>
+                                    <div class="col-md-3">(0-65536)kbps</div>
+                                </div>
+                                <div class="form-group" ng-show="wlanAddForm.upstream_limit.$dirty && wlanAddForm.upstream_limit.$invalid">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small class="text-danger" ng-show="wlanAddForm.upstream_limit.$error.required" ng-bind="InterService.valueNotNull('UpstreamLimit')"></small>
+                                        <small class="text-danger" ng-show="wlanAddForm.upstream_limit.$error.pattern" ng-bind="InterService.numRange('UpstreamLimit', 0, 65536)"></small>
+                                    </div>
+                                </div>
+                                <div class="form-group" ng-class="{'has-error': wlanAddForm.downstream_limit.$dirty && wlanAddForm.downstream_limit.$invalid}">
+                                    <div class="col-md-4">{{"DownstreamLimit"|translate}}:</div>
+                                    <div class="col-md-5">
+                                        <input type="number" integerport style="width:150px"  name="downstream_limit" class="form-control" min="0" max="65536" ng-model="newWlan.downstreamLimit" ng-pattern="{{InterService.pattern.Stream}}" placeholder="0" required>
+                                    </div>
+                                    <div class="col-md-3">(0-65536)kbps</div>
+                                </div>
+                                <div class="form-group" ng-show="wlanAddForm.downstream_limit.$dirty && wlanAddForm.downstream_limit.$invalid">
+                                    <div class="col-md-4"></div>
+                                    <div class="col-md-8">
+                                        <small class="text-danger" ng-show="wlanAddForm.downstream_limit.$error.required" ng-bind="InterService.valueNotNull('DownstreamLimit')"></small>
+                                        <small class="text-danger" ng-show="wlanAddForm.downstream_limit.$error.pattern" ng-bind="InterService.numRange('DownstreamLimit', 0, 65536)"></small>
+                                    </div>
+                                </div>
+                                    <div class="form-group" ng-if="isEnterprise||isPersonal">
+                                        <div class="col-md-4">{{"EightFast"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <toggle-switch  ng-model="newWlan.fast"></toggle-switch>
+                                        </div>
+
+                                    </div>
+                                    <div class="form-group" ng-show="isEnterprise">
+                                        <div class="col-md-4">{{"okc"|translate}}:</div>
+                                        <div class="col-md-5">
+                                            <toggle-switch  ng-model="newWlan.okc"></toggle-switch>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form_div_css">
+                                        <div class="col-lg-offset-6">
+                                            <button class="btn btn-warning" ng-click="initDivShow()">{{"Cancel"|translate}}</button>
+                                            <button class="btn btn-primary" ng-click="createWlan()" ng-disabled="wlanAddForm.$invalid||isDetailTrue">{{"Save"|translate}}</button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div id = "wlan_wmm" ng-show="isWmm">
+                    <div class="panel detailBorder">
+                        <div  ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}" class="panel-heading" >
+                            <div class="panel-title">
+                                {{"WMM Info"|translate}}
+                            </div>
+                        </div>
+                        <div class="panel-body  detailBgColor">
+                            <div class="row">
+                                <!--<div class="col-md-5">-->
+                                    <!--DSCP/WMM:-->
+                                    <!--<toggle-switch display-permission='Permission_Admin' ng-model="wmmd.dscpSwitch" ng-change="wmmswitchchange('dscp_enable');"></toggle-switch>-->
+                                    <!--<span display-permission='!Permission_Admin'>{{ wmmd.dscpSwitch | switchFilter }}</span>-->
+                                <!--</div>-->
+                                <!--<div class="col-md-5">-->
+                                    <!--802.1P/WMM:-->
+                                    <!--<toggle-switch display-permission='Permission_Admin' ng-model="wmmd.dot1pSwitch" ng-change="wmmswitchchange('dot1p_enable');"></toggle-switch>-->
+                                    <!--<span display-permission='!Permission_Admin'>{{ wmmd.dot1pSwitch | switchFilter }}</span>-->
+                                <!--</div>-->
+                                <div class="col-md-2 col-md-offset-10">
+                                    <a  display-permission='Permission_Admin' href="#" ng-click="showEditWmm()">{{"Edit"|translate}}</a>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <fieldset>
+                                        <legend>{{"Uplink"|translate}} DSCP</legend>
+                                        <table class="table-condensed">
+                                            <tr>
+                                                <td>{{"Background"|translate}}:</td>
+                                                <td>{{uplink.dscpBg}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{"Best Effort"|translate}}:</td>
+                                                <td>{{uplink.dscpBe}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{"Video"|translate}}:</td>
+                                                <td>{{uplink.dscpVideo}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{"Voice"|translate}}:</td>
+                                                <td>{{uplink.dscpVoice}}</td>
+                                            </tr>
+                                        </table>
+                                    </fieldset>
+                                </div>
+                                <div class="col-md-6">
+                                    <fieldset>
+                                        <legend>{{"Downlink"|translate}} DSCP</legend>
+                                        <table class="table-condensed">
+                                            <tr>
+                                                <td>{{"Background"|translate}}:</td>
+                                                <td>{{downlink.dscpBg}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{"Best Effort"|translate}}:</td>
+                                                <td>{{downlink.dscpBe}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{"Video"|translate}}:</td>
+                                                <td>{{downlink.dscpVideo}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{"Voice"|translate}}:</td>
+                                                <td>{{downlink.dscpVoice}}</td>
+                                            </tr>
+                                        </table>
+                                    </fieldset>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <fieldset>
+                                        <legend>{{"UPlink"|translate}} 802.1P</legend>
+                                        <table class="table-condensed">
+                                            <tr>
+                                                <td>{{"Background"|translate}}:</td>
+                                                <td>{{uplink.eightBg}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{"Best Effort"|translate}}:</td>
+                                                <td>{{uplink.eightBe}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{"Video"|translate}}:</td>
+                                                <td>{{uplink.eightVideo}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{"Voice"|translate}}:</td>
+                                                <td>{{uplink.eightVoice}}</td>
+                                            </tr>
+                                        </table>
+                                    </fieldset>
+                                </div>
+                                <div class="col-md-6">
+                                    <fieldset>
+                                        <legend>{{"Downlink"|translate}} 802.1P</legend>
+                                        <table class="table-condensed">
+                                            <tr>
+                                                <td>{{"Background"|translate}}:</td>
+                                                <td>{{downlink.eightBg}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{"Best Effort"|translate}}:</td>
+                                                <td>{{downlink.eightBe}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{"Video"|translate}}:</td>
+                                                <td>{{downlink.eightVideo}}</td>
+                                            </tr>
+                                            <tr>
+                                                <td>{{"Voice"|translate}}:</td>
+                                                <td>{{downlink.eightVoice}}</td>
+                                            </tr>
+                                        </table>
+                                    </fieldset>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div id = "wmm_edit" ng-show="isWmmEdit">
+                    <div class="panel detailBorder">
+                        <div  ng-class="{'lv2menuheaderpurple':skin.isPurple, 'lv2menuheaderblue': skin.isBlue}" class="panel-heading" >
+                            <div class="panel-title">
+                                {{"WMM Edit"|translate}}
+                            </div>
+                        </div>
+                        <div class="panel-body  detailBgColor">
+                            <form name="wmmform" class="form-horizontal">
+                                <ul id="myTab" class="nav nav-tabs">
+                                    <li class="active" style="width:50%; font-size: 12px;">
+                                        <a href="#home" data-toggle="tab" style="padding-left:5px;padding-right:5px;">{{"Uplink"|translate}}:WMM->DSCP/802.1P</a>
+                                    </li>
+                                    <li style="width:50%; font-size: 12px;">
+                                        <a href="#ios" data-toggle="tab" style="padding-left:5px;padding-right:5px;">{{"Downlink"|translate}}:DSCP/802.1P->WMM</a>
+                                    </li>
+                                </ul>
+                                <div id="myTabContent" class="tab-content">
+                                    <div class="tab-pane fade in active" id="home">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                    <tr>
+                                                        <td></td>
+                                                        <td>{{"DSCP"|translate}}</td>
+                                                        <td>802.1P</td>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <tr>
+                                                        <td>{{"Background"|translate}}</td>
+                                                        <td>
+                                                            <input ng-change="uplinkdscp(uplink.dscpBg,1)" type="text" ng-model="uplink.dscpBg" required>
+                                                            <p ng-show="isFormat_1" style="font-family:verdana;color:red;font-size:10px;">{{uplinkdscp_info}}</p>
+                                                        </td>
+                                                        <td>
+                                                            <input ng-change="uplinkEight(uplink.eightBg,1)" type="text" ng-model="uplink.eightBg" required>
+                                                            <p ng-show="isEightFormat_1" style="font-family:verdana;color:red;font-size:10px;">{{enterMustBe7}}</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>{{"Best effort"|translate}}</td>
+                                                        <td>
+                                                            <input ng-change="uplinkdscp(uplink.dscpBe,2)" type="text" ng-model="uplink.dscpBe" required>
+                                                            <p ng-show="isFormat_2" style="font-family:verdana;color:red;font-size:10px;">{{uplinkdscp_info}}</p>
+                                                        </td>
+                                                        <td>
+                                                            <input ng-change="uplinkEight(uplink.eightBe,2)" type="text" ng-model="uplink.eightBe" required>
+                                                            <p ng-show="isEightFormat_2" style="font-family:verdana;color:red;font-size:10px;">{{uplinkeight_info}}</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>{{"Video"|translate}}</td>
+                                                        <td>
+                                                            <input ng-change="uplinkdscp(uplink.dscpVideo,3)" type="text" ng-model="uplink.dscpVideo" required>
+                                                            <p ng-show="isFormat_3" style="font-family:verdana;color:red;font-size:10px;">{{uplinkdscp_info}}</p>
+                                                        </td>
+                                                        <td>
+                                                            <input ng-change="uplinkEight(uplink.eightVideo,3)" type="text" ng-model="uplink.eightVideo" required>
+                                                            <p ng-show="isEightFormat_3" style="font-family:verdana;color:red;font-size:10px;">{{uplinkeight_info}}</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>{{"Voice"|translate}}</td>
+                                                        <td>
+                                                            <input ng-change="uplinkdscp(uplink.dscpVoice,4)" type="text" ng-model="uplink.dscpVoice" required>
+                                                            <p ng-show="isFormat_4" style="font-family:verdana;color:red;font-size:10px;">{{uplinkdscp_info}}</p>
+                                                        </td>
+                                                        <td>
+                                                            <input ng-change="uplinkEight(uplink.eightVoice,4)" type="text" ng-model="uplink.eightVoice" required>
+                                                            <p ng-show="isEightFormat_4" style="font-family:verdana;color:red;font-size:10px;">{{uplinkeight_info}}</p>
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                                <div style="font-size: 10px;">
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;{{"Uplink info"|translate}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="tab-pane fade" id="ios">
+                                        <div class="row">
+                                            <div class="col-md-12">
+                                                <table class="table table-bordered">
+                                                    <thead>
+                                                    <tr>
+                                                        <td></td>
+                                                        <td>{{"DSCP"|translate}}</td>
+                                                        <td>802.1P</td>
+                                                    </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                    <tr>
+                                                        <td>{{"Background"|translate}}</td>
+                                                        <td>
+                                                            <input ng-change="downlinkdscp(downlink.dscpBg,1)" type="text" ng-model="downlink.dscpBg" required>
+                                                            <p ng-show="isDownFormat_1" style="font-family:verdana;color:red;font-size:10px;">{{downlink_msgInfo}}</p>
+                                                        </td>
+                                                        <td>
+                                                            <input ng-change="downlinkEight(downlink.eightBg,1)"  type="text" ng-model="downlink.eightBg" required>
+                                                            <p ng-show="isDownEightFormat_1" style="font-family:verdana;color:red;font-size:10px;">{{downlink_eight_msgInfo}}</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>{{"Best Effort"|translate}}</td>
+                                                        <td>
+                                                            <input ng-blur="downlinkdscp(downlink.dscpBe,2)"  type="text" ng-model="downlink.dscpBe" required>
+                                                            <p ng-show="isDownFormat_2" style="font-family:verdana;color:red;font-size:10px;">{{downlink_msgInfo}}</p>
+                                                        </td>
+                                                        <td>
+                                                            <input ng-change="downlinkEight(downlink.eightBe,2)" type="text" ng-model="downlink.eightBe" required>
+                                                            <p ng-show="isDownEightFormat_2" style="font-family:verdana;color:red;font-size:10px;">{{downlink_eight_msgInfo}}</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>{{"Video"|translate}}</td>
+                                                        <td>
+                                                            <input ng-blur="downlinkdscp(downlink.dscpVideo,3)" type="text" ng-model="downlink.dscpVideo" required>
+                                                            <p ng-show="isDownFormat_3" style="font-family:verdana;color:red;font-size:10px;">{{downlink_msgInfo}}</p>
+                                                        </td>
+                                                        <td>
+                                                            <input ng-change="downlinkEight(downlink.eightVideo,3)" type="text" ng-model="downlink.eightVideo" required>
+                                                            <p ng-show="isDownEightFormat_3" style="font-family:verdana;color:red;font-size:10px;">{{downlink_eight_msgInfo}}</p>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>{{"Voice"|translate}}</td>
+                                                        <td>
+                                                            <input ng-blur="downlinkdscp(downlink.dscpVoice,4)" type="text" ng-model="downlink.dscpVoice" required>
+                                                            <p ng-show="isDownFormat_4" style="font-family:verdana;color:red;font-size:10px;">{{downlink_msgInfo}}</p>
+                                                        </td>
+                                                        <td>
+                                                            <input ng-change="downlinkEight(downlink.eightVoice,4)" type="text" ng-model="downlink.eightVoice" required>
+                                                            <p ng-show="isDownEightFormat_4" style="font-family:verdana;color:red;font-size:10px;">{{downlink_eight_msgInfo}}</p>
+                                                        </td>
+                                                    </tr>
+                                                    </tbody>
+                                                </table>
+                                                <div style="font-size: 10px;">
+                                                    &nbsp;&nbsp;&nbsp;&nbsp;{{"Downlink info"|translate}}
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <br>
+                                    <br>
+
+                                </div>
+                                <div class="col-lg-offset-6">
+                                    <button class="btn btn-warning" ng-click="cancelWmm()">{{"Cancel"|translate}}</button>
+                                    <button class="btn btn-warning" ng-click="wmmReset()">{{"Reset"|translate}}</button>
+                                    <button class="btn btn-primary" ng-click="saveWmmInfo()" ng-disabled="wmmform.$invalid ||validFlag">{{"Save"|translate}}</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

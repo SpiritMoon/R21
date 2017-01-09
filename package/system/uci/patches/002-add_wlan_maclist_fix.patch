@@ -1,0 +1,413 @@
+--- a/cli.c
++++ b/cli.c
+@@ -518,13 +518,15 @@ static int uci_do_section_cmd(int cmd, i
+ 	return 0;
+ }
+ 
++#define BUFSIZE_CLI 1024
++
+ static int _add_wlan(char **argv)
+ {
+ 	int ret;
+ 	char *_cmd[4];
+ 	struct uci_ptr ptr;
+-	char _val[64];
+-	char *_name = malloc(64);
++	char _val[BUFSIZE_CLI];
++	char *_name = malloc(BUFSIZE_CLI);
+ 	int i = 0;
+ 	int count = 0;
+ 
+@@ -560,7 +562,7 @@ static int _add_wlan(char **argv)
+ 
+ 	int _index = 0;
+ 	while (1) {
+-		char _buf[64];
++		char _buf[BUFSIZE_CLI];
+ 		sprintf(_buf, "wireless.@wifi-iface[%d]", _index);
+ 		if (uci_lookup_ptr(ctx, &ptr, _buf, true) != UCI_OK) {
+ 			cli_perror();
+@@ -577,9 +579,9 @@ static int _add_wlan(char **argv)
+ 
+ 			size_t _count = 0;
+ 			while (argv[1][_count++] != '.');
+-			memset(_name, 0, 64);
++			memset(_name, 0, BUFSIZE_CLI);
+ 			strncpy(_name, argv[1], _count - 1);
+-			memcpy(_val, _name, 64);
++			memcpy(_val, _name, BUFSIZE_CLI);
+ 			*(_name + _count - 1) = '_';
+ 			strncat(_name, &argv[1][_count], 2);
+ 			*(_name + _count + 2) = '_';
+@@ -603,7 +605,7 @@ static int _add_wlan(char **argv)
+ 	}
+ 
+ 	/* Set the ssid */
+-	char buf[64];
++	char buf[BUFSIZE_CLI];
+ 	sprintf(buf, "wireless.%s.ssid=%s", ptr.value, _val);
+ 	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+ 		cli_perror();
+@@ -625,7 +627,7 @@ static int _add_wlan(char **argv)
+ 	}
+ 
+ 	/* Set the device */
+-	memset(_val, 0, 64);
++	memset(_val, 0, BUFSIZE_CLI);
+ 	sprintf(_val, "%s", (argv[1] + strlen(_name) - 5));
+ 	sprintf(buf, "wireless.%s.device=%s", _name, _val);
+ 	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+@@ -647,7 +649,7 @@ static int _add_wlan(char **argv)
+ 	}
+ 
+ 	/* Add the mode "ap" */
+-	memset(_val, 0, 64);
++	memset(_val, 0, BUFSIZE_CLI);
+ 	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
+ 	sprintf(buf, "wireless.%s.mode=%s", _name, "ap");
+ 	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+@@ -669,7 +671,7 @@ static int _add_wlan(char **argv)
+ 	}
+ 
+ 	/* Add the network "wan" */
+-	memset(_val, 0, 64);
++	memset(_val, 0, BUFSIZE_CLI);
+ 	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
+ 	sprintf(buf, "wireless.%s.network=%s", _name, "wan");
+ 	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+@@ -691,7 +693,7 @@ static int _add_wlan(char **argv)
+ 	}
+ 
+ 	/* Add the network_type "employee" */
+-	memset(_val, 0, 64);
++	memset(_val, 0, BUFSIZE_CLI);
+ 	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
+ 	sprintf(buf, "wireless.%s.network_type=%s", _name, "employee");
+ 	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+@@ -713,7 +715,7 @@ static int _add_wlan(char **argv)
+ 	}
+ 
+ 	/* Add the hidden "0" */
+-	memset(_val, 0, 64);
++	memset(_val, 0, BUFSIZE_CLI);
+ 	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
+ 	sprintf(buf, "wireless.%s.hidden=%s", _name, "0");
+ 	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+@@ -735,7 +737,7 @@ static int _add_wlan(char **argv)
+ 	}
+ 
+ 	/* Add the enable "1" */
+-	memset(_val, 0, 64);
++	memset(_val, 0, BUFSIZE_CLI);
+ 	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
+ 	sprintf(buf, "wireless.%s.enable=%s", _name, "1");
+ 	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+@@ -757,7 +759,7 @@ static int _add_wlan(char **argv)
+ 	}
+ 
+ 	/* Add the maxsta 128 */
+-	memset(_val, 0, 64);
++	memset(_val, 0, BUFSIZE_CLI);
+ 	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
+ 	sprintf(buf, "wireless.%s.maxsta=%s", _name, "128");
+ 	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+@@ -779,7 +781,7 @@ static int _add_wlan(char **argv)
+ 	}
+ 
+ 	/* Add the maxsta 128 */
+-	memset(_val, 0, 64);
++	memset(_val, 0, BUFSIZE_CLI);
+ 	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
+ 	sprintf(buf, "wireless.%s.maxsta=%s", _name, "128");
+ 	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+@@ -801,7 +803,7 @@ static int _add_wlan(char **argv)
+ 	}
+ 
+ 	/* Add the probe_threshold 0 */
+-	memset(_val, 0, 64);
++	memset(_val, 0, BUFSIZE_CLI);
+ 	sprintf(_val, "%s", (argv[1] + strlen(_name) + 1));
+ 	sprintf(buf, "wireless.%s.probe_threshold=%s", _name, "0");
+ 	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+@@ -831,7 +833,7 @@ static int _exist_wlan(char *wifi_name,
+ 	int _index = index;
+ 
+ 	while (1) {
+-		char _buf[64];
++		char _buf[BUFSIZE_CLI];
+ 		sprintf(_buf, "wireless.@wifi-iface[%d]", _index);
+ 		if (uci_lookup_ptr(ctx, &ptr, _buf, true) != UCI_OK) {
+ 			cli_perror();
+@@ -863,7 +865,7 @@ static int __del_wlan(char *wifi_name)
+ 	int ret;
+ 	struct uci_ptr ptr;
+ 	char *_cmd[4];
+-	char buf[64];
++	char buf[BUFSIZE_CLI];
+ 
+ 	sprintf(buf, "wireless.%s", wifi_name);
+ 	if (uci_lookup_ptr(ctx, &ptr, buf, true) != UCI_OK) {
+@@ -891,7 +893,7 @@ static int __del_wlan(char *wifi_name)
+ static int _del_wlan(char **argv)
+ {
+ 	int ret = UCI_ERR_NOTFOUND;
+-	char *wifi_name = malloc(64);
++	char *wifi_name = malloc(BUFSIZE_CLI);
+ 	int count = 0;
+ 	int i = 0;
+ 	int ind_5G = 0;
+@@ -909,13 +911,13 @@ static int _del_wlan(char **argv)
+ 	}
+ 
+ 	while (1) {
+-		memset(wifi_name, 0, 64);
++		memset(wifi_name, 0, BUFSIZE_CLI);
+ 		sprintf(wifi_name, "%s_2G", argv[1]);
+ 		ind_2G = _exist_wlan(wifi_name, 0);
+ 		if (ind_2G)
+ 			ret = __del_wlan(wifi_name);
+ 
+-		memset(wifi_name, 0, 64);
++		memset(wifi_name, 0, BUFSIZE_CLI);
+ 		sprintf(wifi_name, "%s_5G", argv[1]);
+ 		ind_5G = _exist_wlan(wifi_name, 0);
+ 		if (ind_5G)
+@@ -942,13 +944,13 @@ static int __edit_wlan(char **argv)
+ 	int ret = UCI_ERR_NOTFOUND;
+ 	size_t _index = 0;
+ 	size_t _cur;
+-	char wifi_name[64];
++	char wifi_name[BUFSIZE_CLI];
+ 	struct uci_ptr ptr;
+ 	char *_cmd[4];
+-	char _ssid[64];
+-	char buf[64];
+-	char option[32];
+-	char val[32];
++	char _ssid[BUFSIZE_CLI];
++	char buf[BUFSIZE_CLI];
++	char option[BUFSIZE_CLI];
++	char val[BUFSIZE_CLI];
+ 	int count_p = 0;
+ 	int count_e = 0;
+ 	int i = 0;
+@@ -969,15 +971,15 @@ static int __edit_wlan(char **argv)
+ 	}
+ 
+ 	while (argv[1][_index++] != '.');
+-	memset(_ssid, 0, 64);
++	memset(_ssid, 0, BUFSIZE_CLI);
+ 	memcpy(_ssid, argv[1], (_index - 1));
+ 
+-	memset(wifi_name, 0, 64);
++	memset(wifi_name, 0, BUFSIZE_CLI);
+ 	sprintf(wifi_name, "%s_2G", _ssid);
+ 
+ 	_cur = _index;
+ 	while (argv[1][_index++] != '=');
+-	memset(option, 0, 32);
++	memset(option, 0, BUFSIZE_CLI);
+ 	memcpy(option, (argv[1] + _cur), (_index - _cur - 1));
+ 
+ 	if (!strncmp("device", option, 6)) {
+@@ -988,7 +990,7 @@ static int __edit_wlan(char **argv)
+ 	_cur = _index;
+ 	while (argv[1][_index++] != '\0');
+ 
+-	memset(val, 0, 32);
++	memset(val, 0, BUFSIZE_CLI);
+ 	memcpy(val, (argv[1] + _cur), (_index - _cur));
+ 
+ 	ind_2G = _exist_wlan(wifi_name, ind_2G);
+@@ -1012,7 +1014,7 @@ static int __edit_wlan(char **argv)
+ 		}
+ 
+ 		if (!strncmp("ssid", option, 6)) {
+-			memset(buf, 0, 64);
++			memset(buf, 0, BUFSIZE_CLI);
+ 			sprintf(buf, "wireless.%s=%s%s", wifi_name, val, (wifi_name + (strlen(wifi_name) - 9)));
+ 			ret = uci_lookup_ptr(ctx, &ptr, buf, true);
+ 			if (ret == UCI_OK) {
+@@ -1033,19 +1035,19 @@ static int __edit_wlan(char **argv)
+ 		}
+ 	}
+ 
+-	memset(wifi_name, 0, 64);
++	memset(wifi_name, 0, BUFSIZE_CLI);
+ 	sprintf(wifi_name, "%s_5G", _ssid);
+ 
+ 	_index = 0;
+ 	while (argv[1][_index++] != '.');
+ 	_cur = _index;
+ 	while (argv[1][_index++] != '=');
+-	memset(option, 0, 32);
++	memset(option, 0, BUFSIZE_CLI);
+ 	memcpy(option, (argv[1] + _cur), (_index - _cur - 1));
+ 
+ 	_cur = _index;
+ 	while (argv[1][_index++] != '\0');
+-	memset(val, 0, 32);
++	memset(val, 0, BUFSIZE_CLI);
+ 	memcpy(val, (argv[1] + _cur), (_index - _cur));
+ 	sprintf(buf, "wireless.%s.%s=%s", wifi_name, option, val);
+ 
+@@ -1070,7 +1072,7 @@ static int __edit_wlan(char **argv)
+ 		}
+ 
+ 		if (!strncmp("ssid", option, 6)) {
+-			memset(buf, 0, 64);
++			memset(buf, 0, BUFSIZE_CLI);
+ 			sprintf(buf, "wireless.%s=%s%s", wifi_name, val, (wifi_name + (strlen(wifi_name) - 9)));
+ 			ret = uci_lookup_ptr(ctx, &ptr, buf, true);
+ 			if (ret == UCI_OK) {
+@@ -1105,11 +1107,11 @@ static int _get_wlan(char **argv)
+ {
+ 	size_t _index = 0;
+ 	size_t _cur;
+-	char wifi_name[64];
+-	char _ssid[64];
++	char wifi_name[BUFSIZE_CLI];
++	char _ssid[BUFSIZE_CLI];
+ 	struct uci_ptr ptr;
+ 	struct uci_element *e;
+-	char buf[64];
++	char buf[BUFSIZE_CLI];
+ 	char option[32];
+ 	char val[32];
+ 	int count = 0;
+@@ -1126,10 +1128,10 @@ static int _get_wlan(char **argv)
+ 		return 1;
+ 	}
+ 	while (argv[1][_index++] != '.');
+-	memset(_ssid, 0, 64);
++	memset(_ssid, 0, BUFSIZE_CLI);
+ 	memcpy(_ssid, argv[1], (_index - 1));
+-	memset(wifi_name, 0, 64);
+-	memcpy(wifi_name, _ssid, 64);
++	memset(wifi_name, 0, BUFSIZE_CLI);
++	memcpy(wifi_name, _ssid, BUFSIZE_CLI);
+ 	strcat(wifi_name, "_2G");
+ 
+ 	_cur = _index;
+@@ -1164,8 +1166,8 @@ static int _get_wlan(char **argv)
+ 		return UCI_OK;
+ 	}
+ 
+-	memset(wifi_name, 0, 64);
+-	memcpy(wifi_name, _ssid, 64);
++	memset(wifi_name, 0, BUFSIZE_CLI);
++	memcpy(wifi_name, _ssid, BUFSIZE_CLI);
+ 	strcat(wifi_name, "_5G");
+ 
+ 	if (_exist_wlan(wifi_name, 0)) {
+@@ -1252,11 +1254,11 @@ static int __add_wlan_list(char **argv)
+ 	int ret = UCI_ERR_NOTFOUND;
+ 	size_t _index = 0;
+ 	size_t _cur;
+-	char wifi_name[64];
++	char wifi_name[BUFSIZE_CLI];
+ 	struct uci_ptr ptr;
+ 	char *_cmd[4];
+-	char _ssid[64];
+-	char buf[64];
++	char _ssid[BUFSIZE_CLI];
++	char buf[BUFSIZE_CLI];
+ 	char option[32];
+ 	char val[32];
+ 	int count_p = 0;
+@@ -1279,10 +1281,10 @@ static int __add_wlan_list(char **argv)
+ 	}
+ 
+ 	while (argv[1][_index++] != '.');
+-	memset(_ssid, 0, 64);
++	memset(_ssid, 0, BUFSIZE_CLI);
+ 	memcpy(_ssid, argv[1], (_index - 1));
+ 
+-	memset(wifi_name, 0, 64);
++	memset(wifi_name, 0, BUFSIZE_CLI);
+ 	sprintf(wifi_name, "%s_2G", _ssid);
+ 
+ 	_cur = _index;
+@@ -1316,7 +1318,7 @@ static int __add_wlan_list(char **argv)
+ 		}
+ 	}
+ 
+-	memset(wifi_name, 0, 64);
++	memset(wifi_name, 0, BUFSIZE_CLI);
+ 	sprintf(wifi_name, "%s_5G", _ssid);
+ 
+ 	_index = 0;
+@@ -1367,11 +1369,11 @@ static int __del_wlan_list(char **argv)
+ 	int ret = UCI_ERR_NOTFOUND;
+ 	size_t _index = 0;
+ 	size_t _cur;
+-	char wifi_name[64];
++	char wifi_name[BUFSIZE_CLI];
+ 	struct uci_ptr ptr;
+ 	char *_cmd[4];
+-	char _ssid[64];
+-	char buf[64];
++	char _ssid[BUFSIZE_CLI];
++	char buf[BUFSIZE_CLI];
+ 	char option[32];
+ 	char val[32];
+ 	int count_p = 0;
+@@ -1394,10 +1396,10 @@ static int __del_wlan_list(char **argv)
+ 	}
+ 
+ 	while (argv[1][_index++] != '.');
+-	memset(_ssid, 0, 64);
++	memset(_ssid, 0, BUFSIZE_CLI);
+ 	memcpy(_ssid, argv[1], (_index - 1));
+ 
+-	memset(wifi_name, 0, 64);
++	memset(wifi_name, 0, BUFSIZE_CLI);
+ 	sprintf(wifi_name, "%s_2G", _ssid);
+ 
+ 	_cur = _index;
+@@ -1431,7 +1433,7 @@ static int __del_wlan_list(char **argv)
+ 		}
+ 	}
+ 
+-	memset(wifi_name, 0, 64);
++	memset(wifi_name, 0, BUFSIZE_CLI);
+ 	sprintf(wifi_name, "%s_5G", _ssid);
+ 
+ 	_index = 0;
+@@ -1482,11 +1484,11 @@ static int __del_wlan_op(char **argv)
+ 	int ret = UCI_ERR_NOTFOUND;
+ 	size_t _index = 0;
+ 	size_t _cur;
+-	char wifi_name[64];
++	char wifi_name[BUFSIZE_CLI];
+ 	struct uci_ptr ptr;
+ 	char *_cmd[4];
+-	char _ssid[64];
+-	char buf[64];
++	char _ssid[BUFSIZE_CLI];
++	char buf[BUFSIZE_CLI];
+ 	char option[32];
+ 	char val[32];
+ 	int count_p = 0;
+@@ -1505,10 +1507,10 @@ static int __del_wlan_op(char **argv)
+ 	}
+ 
+ 	while (argv[1][_index++] != '.');
+-	memset(_ssid, 0, 64);
++	memset(_ssid, 0, BUFSIZE_CLI);
+ 	memcpy(_ssid, argv[1], (_index - 1));
+ 
+-	memset(wifi_name, 0, 64);
++	memset(wifi_name, 0, BUFSIZE_CLI);
+ 	sprintf(wifi_name, "%s_2G", _ssid);
+ 
+ 	_cur = _index;
+@@ -1542,7 +1544,7 @@ static int __del_wlan_op(char **argv)
+ 		}
+ 	}
+ 
+-	memset(wifi_name, 0, 64);
++	memset(wifi_name, 0, BUFSIZE_CLI);
+ 	sprintf(wifi_name, "%s_5G", _ssid);
+ 
+ 	_index = 0;

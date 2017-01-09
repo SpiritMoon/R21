@@ -1,0 +1,15 @@
+diff -urN a/capture.c b/capture.c
+--- a/capture.c	2016-05-26 03:57:57.243784754 -0700
++++ b/capture.c	2016-05-26 03:58:49.106490361 -0700
+@@ -46,8 +46,10 @@
+ 
+ 
+ 	if ((ioctl(fd, SIOCGIFINDEX, &req)) < 0) {
+-		if (ENODEV == errno)
++		if (ENODEV == errno) {
++			usleep(50000);
+ 			goto retry;
++		}
+ 		else
+ 			err(1, "Interface %s not found", devname);
+ 	}

@@ -1,0 +1,372 @@
+#!/bin/sh
+
+###
+### output info to STDOUT for cluster capture usage
+### if all success output "done" to STDOUT
+### else output error info started with "[error]"
+###
+
+### global variables declarations
+
+PVC_IP=""
+PVC_PWD="sync-cfg"
+PVC_INFO_FILE="/tmp/pvc-info"
+
+TMP_LOG_FILE="/tmp/get_pvc_cfg.log"
+REV_NUM_FILE="revisionnumber"
+
+TMP_DIR="/tmp"
+TMP_CFG_PUB_DIR="/tmp/config-pub"
+VERSION_FILE="version"
+PVC_VERSION_FILE="$TMP_CFG_PUB_DIR/$VERSION_FILE"
+VERSION_LOW_FLAG_FILE="/tmp/version-low-flag"
+
+PUB_CFG_DIR="/etc/cfm/config/config-pub"
+PRIV_CFG_DIR="/etc/cfm/config/config-priv"
+SYS_CFG_DIR="/etc/config"
+
+MD5_FILE="pub-cfg-md5"
+PUB_CFG_MD5_FILE="$PUB_CFG_DIR/pub-cfg-md5"
+SYNC_FLAG_FILE="/etc/cfm/sync-flag"
+
+ERR_HEADER="[error]"
+LOGHEAD="logger -t [cfgsync] -p 3 "
+CHANGELIST=""
+
+WIFI_RELOAD_FLAG_FILE="/tmp/wifi-reload-flag"
+
+### function declarations
+
+check_run_env()
+{
+	if [ -d $TMP_CFG_PUB_DIR ]; then
+		rm -rf $TMP_CFG_PUB_DIR
+	fi
+
+	# if private config dir not exist
+	if [ ! -d $PRIV_CFG_DIR ]; then
+		mkdir -p $PRIV_CFG_DIR
+	fi
+
+	# if public config dir not exist
+	if [ ! -d $PUB_CFG_DIR ]; then
+		echo "[`date`] - public configurations directory not exist" >> $TMP_LOG_FILE
+		mkdir -p $PUB_CFG_DIR
+        echo "$ERR_HEADER public configurations directory not exist"
+		exit 0
+	fi
+
+	if [ -f $TMP_DIR/$MD5_FILE ]; then
+		rm -f $TMP_DIR/$MD5_FILE
+	fi
+
+	# prepare for scp
+	export HOME=/root
+	rm -rf /root/.ssh/* 2>/dev/null
+	rm -rf /.ssh/* 2>/dev/null
+}
+
+success_info()
+{
+    echo "done"
+    echo "[`date`] - done" >> $TMP_LOG_FILE
+    logger -t [cfgsync] "### config sync job done ###"
+}
+
+check_is_pvc()
+{
+    local state=`cat $PVC_INFO_FILE | awk -F ':' '{print $3}'`
+    if [ "x1" = "x$state" ]; then
+        exit 1
+    fi
+
+    local role=`cat $PVC_INFO_FILE | awk -F ':' '{print $1}'`
+    if [ -z "$role" ]; then
+        echo "$ERR_HEADER No ROLE found!"
+        $LOGHEAD "No ROLE found"
+        exit 1
+    fi
+
+    logger -t [cfgsync] "ap role [$role]"
+    if [ "$role" -eq 1 ]; then
+        echo "[`date`] - I'm $role - PVC" >> $TMP_LOG_FILE
+        success_info
+        exit
+    elif [ "$role" -eq 2 ]; then
+        echo "[`date`] - I'm $role - SVC" >> $TMP_LOG_FILE
+    elif [ "$role" -eq 3 ]; then
+        echo "[`date`] - I'm $role - VC" >> $TMP_LOG_FILE
+    fi
+}
+
+get_pvc_ip()
+{
+    PVC_IP=`cat $PVC_INFO_FILE | awk -F ':' '{print $2}'`
+    if [ -z "$PVC_IP" ]; then
+        echo "[`date`] - No PVC found!" >> $TMP_LOG_FILE
+        echo "$ERR_HEADER No PVC found!"
+        $LOGHEAD "No PVC Found!"
+        exit
+    fi
+
+    logger -t [cfgsync] "pvc ip [$PVC_IP]"
+    echo "[`date`] - pvc ip = $PVC_IP" >> $TMP_LOG_FILE
+}
+
+# download and check if download ok
+atom_download_pvc_pub_cfg()
+{
+	if [ "$1" = "" ]; then
+		echo "$ERR_HEADER $FUNCNAME parameter error"
+		exit 1
+	fi
+
+    echo "[`date`] - download $1 now ###" >> $TMP_LOG_FILE
+    logger -t [cfgsync] "download $1 now"
+
+	local ret_str=`expect -c "
+    spawn scp -r scp@$PVC_IP:$1 $TMP_DIR
+    set timeout 30
+    expect {
+        \"(y/n)\" {
+            set timeout 30
+            send \"y\r\"; exp_continue }
+        \"password:\" {
+            set timeout 30
+            send \"$PVC_PWD\r\"}
+    }
+    expect eof"`
+
+	echo "[`date`] - $ret_str" >> $TMP_LOG_FILE
+
+	# check if the last line contain 100%
+	tail -n 1 $TMP_LOG_FILE | grep -q "100%"
+	if [ $? -eq 0 ]; then
+		return 0
+	else
+		return 1
+	fi
+}
+
+# if download fails, try 3 times, all fail, generate error log, quit
+download_pvc_pub_cfg()
+{
+	if [ "$1" = "" ]; then
+		echo "$ERR_HEADER $FUNCNAME parameter error"
+		exit 1
+	fi
+
+    echo "[`date`] - download pub - in" >> $TMP_LOG_FILE
+
+	local ret=1
+	atom_download_pvc_pub_cfg $1
+	if [ $? -eq 0 ]; then
+		ret=0
+	fi
+
+	if [ $ret = 1 ]; then
+		echo "[`date`] - download failed!" >> $TMP_LOG_FILE
+		echo "$ERR_HEADER download failed!"
+        logger -t [cfgsync] "download $1 failed"
+		exit 1
+	fi
+}
+
+check_pvc_version()
+{
+    [ -f $TMP_DIR/$MD5_FILE ] || return 0
+
+    grep "$VERSION_FILE" $TMP_DIR/$MD5_FILE > /dev/null
+
+    # no version file if pvc version < 2.1.0.68
+    if [ $? -ne 0 ]; then
+        # output critical log
+        logger -t [cfgsync] -p 2 "_GOLSOH_Some APs in the network are running incompatible software. To avoid network interruptions, an upgrade to the latest software is strongly recommended."
+
+        touch $VERSION_LOW_FLAG_FILE
+    fi
+}
+
+check_local_pub_cfg_with_pvc_md5()
+{
+	download_pvc_pub_cfg $PUB_CFG_MD5_FILE
+
+    check_pvc_version
+    [ -f $VERSION_LOW_FLAG_FILE ] && return 1
+
+	# del dirty lines
+	sed -i "/$MD5_FILE/d" $TMP_DIR/$MD5_FILE
+	sed -i "/$REV_NUM_FILE/d" $TMP_DIR/$MD5_FILE
+    sed -i "/$VERSION_FILE/d" $TMP_DIR/$MD5_FILE
+
+    # add exclusive flock
+    LOCKFILE="/var/lock/cclock"
+
+    (
+        flock 200
+        #==============================
+
+        # move to local pub config dir
+	    mv $TMP_DIR/$MD5_FILE $PUB_CFG_DIR/pvc_$MD5_FILE
+
+	    # check
+	    cd $PUB_CFG_DIR && md5sum -cs $PUB_CFG_DIR/pvc_$MD5_FILE
+
+	    # 0 for success
+	    if [ $? -eq 0 ]; then
+		    rm -f $PUB_CFG_DIR/pvc_$MD5_FILE
+		    return 0
+	    fi
+
+	    rm -f $PUB_CFG_DIR/pvc_$MD5_FILE
+	    return 1
+
+    ) 200<> $LOCKFILE
+}
+
+check_pvc_pub_cfg_integrity()
+{
+	if [ ! -f $TMP_CFG_PUB_DIR/$MD5_FILE ]; then
+		echo "[`date`] - pvc config integrity invalid(1)" >> $TMP_LOG_FILE
+		echo "$ERR_HEADER downloaded pvc config integrity invalid(1)"
+        $LOGHEAD "pvc config integrity invalid(1)"
+		exit 1
+	fi
+
+    # del md5 file's md5
+	cd $TMP_CFG_PUB_DIR; sed -i '/pub-cfg-md5/d' $MD5_FILE
+
+	cd $TMP_CFG_PUB_DIR; md5sum -cs $MD5_FILE
+	if [ $? -ne 0 ]; then
+		echo "[`date`] - pvc config integrity invalid(2)" >> $TMP_LOG_FILE
+		echo "$ERR_HEADER downloaded pvc config integrity invalid(2)"
+        $LOGHEAD "pvc config integrity invalid(2)"
+		exit 1
+	fi
+
+	echo "[`date`] - pvc config integrity ok." >> $TMP_LOG_FILE
+}
+
+update_pub_and_sys_cfg()
+{
+    if [ -f $VERSION_LOW_FLAG_FILE ]; then
+        enc-plain sync
+
+        # keep `encflag' from being erased by low version PVC
+        uci -c $TMP_CFG_PUB_DIR set system.sysinfo.encflag=1
+        uci -c $TMP_CFG_PUB_DIR commit system
+
+        cd $TMP_CFG_PUB_DIR; rm $MD5_FILE; md5sum * > $MD5_FILE
+        rm $VERSION_LOW_FLAG_FILE
+    fi
+
+    # keep local `version' file
+    sed -i "/$VERSION_FILE/d" $TMP_CFG_PUB_DIR/$MD5_FILE
+    cp -f $TMP_CFG_PUB_DIR/$MD5_FILE $PUB_CFG_DIR/pvc_$MD5_FILE
+
+    CHANGELIST=`cd $PUB_CFG_DIR; md5sum -c pvc_$MD5_FILE 2>/dev/null| grep FAILED | cut -d: -f1`
+    for c in $CHANGELIST
+    do
+        echo "[M] $c" >> $TMP_LOG_FILE
+        cp -f $TMP_CFG_PUB_DIR/$c $PUB_CFG_DIR/
+
+        if [ "$c" != "$REV_NUM_FILE" ]; then
+            cp -f $TMP_CFG_PUB_DIR/$c $SYS_CFG_DIR/
+        fi
+
+        [ "$c" = "wireless" ] && touch $WIFI_RELOAD_FLAG_FILE
+    done
+
+    rm -f $PUB_CFG_DIR/pvc_$MD5_FILE
+    if [ -n "$CHANGELIST" ]; then
+        [ -f $PUB_CFG_MD5_FILE ] && rm -f $PUB_CFG_MD5_FILE
+	    cd $PUB_CFG_DIR; md5sum * > $PUB_CFG_MD5_FILE
+    fi
+
+    echo "[`date`] - replace modified config ok" >> $TMP_LOG_FILE
+
+	# del tmp
+	rm -rf $TMP_CFG_PUB_DIR
+	sync
+}
+
+merge_priv_cfg_to_sys_cfg()
+{
+	# check if each private cfg existed in /etc/config
+	for file in `ls $PRIV_CFG_DIR`
+	do
+        echo "$CHANGELIST" | grep -q "$file"
+	    if [ $? -ne 0 ]; then
+		    continue
+	    fi
+
+		if [ -f $SYS_CFG_DIR/$file ]; then
+			# merge
+			uci import -m $SYS_CFG_DIR/$file < $PRIV_CFG_DIR/$file
+		else
+			# if priv cfg not exist in /etc/config, just copy
+			cp $PRIV_CFG_DIR/$file $SYS_CFG_DIR
+		fi
+	done
+}
+
+# once pub configurations not same with PVC, do this job
+do_sync_check_reload()
+{
+	download_pvc_pub_cfg $PUB_CFG_DIR
+    check_pvc_pub_cfg_integrity
+
+    # add exclusive flock
+    LOCKFILE="/var/lock/cclock"
+
+    (
+        flock 200
+        #==============================
+
+        update_pub_and_sys_cfg
+	    merge_priv_cfg_to_sys_cfg
+    ) 200<> $LOCKFILE
+
+    # use openwrt defalut reload app
+    reload_config
+
+    [ -f /etc/wlan_info ] && rm /etc/wlan_info
+
+    [ -f $WIFI_RELOAD_FLAG_FILE ] && {
+        rm $WIFI_RELOAD_FLAG_FILE
+        wifi reload
+    }
+
+    success_info
+}
+
+### process logic zone
+
+# in case log file too large
+log_size=`du $TMP_LOG_FILE | awk '{print $1}'`
+if [ $log_size -gt "100" ]; then
+    echo "delete last 100k log" > $TMP_LOG_FILE
+fi
+
+# if cluster invoke me, the log msg must be existed
+echo "[`date`] - ### start ### " >> $TMP_LOG_FILE
+logger -t [cfgsync] "### config sync job start ###"
+echo 0 > $SYNC_FLAG_FILE
+
+check_run_env
+
+check_is_pvc
+get_pvc_ip
+
+check_local_pub_cfg_with_pvc_md5
+if [ $? -eq 0 ]; then
+	echo "[`date`] - pub config files same" >> $TMP_LOG_FILE
+    success_info
+else
+	echo "[`date`] - pub config files n-o-t same" >> $TMP_LOG_FILE
+    do_sync_check_reload
+fi
+
+echo 1 > $SYNC_FLAG_FILE
+
+exit 0

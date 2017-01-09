@@ -1,0 +1,57 @@
+<div id="appanel" class="panel"  ng-class="{'border_purple': skin.isPurple, 'border_blue': skin.isBlue}" ng-controller="APController">
+	<div tooltip="{{'apTip'|translate}}" hover mnuelevel="1" tooltip-enable="{{helpTip.isEabled}}" tooltip-placement="bottom" class="panel-heading dashboard_header" ng-class="{'unfoldedlv1menupurple': skin.isPurple, 'unfoldedlv1menublue':skin.isBlue}" id="function2">
+		<h3 class="first_level_title"  ng-click="openApinfo()">
+			<div style="display: inline;">{{"AP"|translate}}</div>
+			<div class="statistic_style self_adaptation_td " style="width: 80%;text-align: right;padding: 1px;"  title="{{'Working'|translate}}:{{apInfo.working}}&nbsp;&nbsp;{{'Losted'|translate}}:{{apInfo.lost}}&nbsp;&nbsp;{{'Joining'|translate}}:{{apInfo.joining}}">
+                {{"Working"|translate}}:{{apInfo.working}}&nbsp;&nbsp;{{"Losted"|translate}}:{{apInfo.lost}}&nbsp;&nbsp;{{"Joining"|translate}}:{{apInfo.joining}}
+			</div>
+		</h3>
+
+	</div>
+	<div  class="panel-body" >
+		<div class="dashboard_title" ng-class="{'lv1tblheaderpurple':skin.isPurple, 'lv1tblheaderblue':skin.isBlue}" style="{{apsWidth}}">
+			<table id="wlan_data" class="table-condensed" style="width: 97%;table-layout:fixed;">
+				<thead>
+				<tr>
+					<td style="width: 6%"></td>
+					<td style="width: 44%" ng-click="col='apname';desc=!desc" ><div class="self_adaptation_td" style="width: 75%" title=" {{'Primary Name'|translate}}">{{"Primary Name"|translate}}</div></td>
+					<td class="large" ng-click="col='state';desc=!desc" style="padding-left: 0px;"><div class="self_adaptation_td" style="width: 75%; padding-left: 2%;"  title=" {{'Status'|translate}} " >{{"Status"|translate}}<div></td>
+					<td class="large-one" ng-click="col='ssid';desc=!desc">{{"Clients"|translate}}</td>
+				</tr>
+				</thead>
+			</table>
+		</div>
+		<div style="height:145px;overflow: auto">
+			<table style="width: 97%;table-layout:fixed;" id="ap_view_table">
+				<tbody ng-repeat="item in aps | orderBy:col:desc">
+					<tr ng-init="item.ledshow=false;" monitor-high-light="ap">
+						<td class="largef">
+							<a display-permission='Permission_Admin' ng-show="item.state==3" ng-click="ShowLedOperate(item)"><img style="width: 15px;height: 15px;" src="assets/images/led_open.png"/></a>
+							<span display-permission='!Permission_Admin' ng-show="item.state==3" ><img style="width: 15px;height: 15px;" src="assets/images/led_open.png"/></span>
+							<span ng-show="item.state!=3"><img style="width: 15px;height: 15px;" src="assets/images/led_off.png"/></span>
+						</td>
+						<td style="width:44%" ng-click="showApMonitorData(item)"><div class="self_adaptation_td" style="width:99%; padding-left: 5px;" title="{{item.mac}}" data-toggle="tooltip">{{item.apname}}</div></td>
+						<td display-permission='!Permission_Admin' ng-if="item.state==1" class="large-two" ng-click="showApMonitorData(item)"><a  class="{{item.state|apStatusFilter}}" >{{item.state|apStatusFilter}}</a></td>
+						<td display-permission='Permission_Admin' ng-if="item.state==1"  class="large-two" ng-click="showApMonitorData(item)"><a data-toggle="tooltip"  class="{{item.state|apStatusFilter}}" title="Click to accept" ng-click="acceptAp(item)">{{item.state|apStatusFilter}}</a></td>
+						<td ng-if="item.state!=1" class="{{item.state|apStatusFilter}} large-two" ng-click="showApMonitorData(item)">{{item.state|apStatusFilter}}</td>
+						<td class="large-three" ng-click="showApMonitorData(item)">{{item.clients}}</td>
+					</tr>
+					<tr ng-show="item.ledshow">
+						<td style="width:6%">
+							&nbsp;
+						</td>
+						<td ng-show="item.operate.off">
+							<a ng-click="LedOperate(item,102)">{{"LED-On"|translate}}</a>&nbsp;/&nbsp;<a ng-click="LedOperate(item,100)">{{"Locate"|translate}}</a>
+						</td>
+						<td ng-show="item.operate.open">
+							<a ng-click="LedOperate(item,103)">{{"LED-Off"|translate}}</a>&nbsp;/&nbsp;<a ng-click="LedOperate(item,100)">{{"Locate"|translate}}</a>
+						</td>
+						<td ng-show="item.operate.blink">
+							<a ng-click="LedOperate(item,101)">{{"Restore"|translate}}</a>
+						</td>
+					</tr>
+				</tbody>
+			</table>
+		</div>
+	</div>
+</div>

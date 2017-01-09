@@ -1,0 +1,7 @@
+
+config log 'tftp'
+	option ip_manu '192.168.0.1'
+	option ip_auto '192.168.0.1'
+	option timer '1'
+	option turn_on_off 'off'
+

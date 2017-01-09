@@ -1,0 +1,33 @@
+#!/bin/sh /etc/rc.common
+
+START=55
+USE_PROCD=1
+QUIET=""
+
+CRONTAB_PATH=/etc/crontabs/root
+
+pub_config_md5sum_renew() {
+	cd /etc/cfm/config/config-pub/
+	rm -f pub-cfg-md5
+	md5sum * > pub-cfg-md5
+}
+
+start_service() {
+	#<auth_local> config update v2.1.0.45
+	/usr/sbin/al_config_update.sh
+
+	pub_config_md5sum_renew
+
+	#add WAM log size check v2.1.0.50
+	crontab -l | grep "logcheck.sh"
+	if [ ! $? -eq 0 ];then
+		echo "* * * * *  /usr/sbin/logcheck.sh" >> $CRONTAB_PATH
+	fi
+	#add WAM process check V2.1.0.60
+
+	crontab -l | grep "wam_check.sh"
+	if [ ! $? -eq 0 ];then
+		echo "* * * * *  /usr/sbin/wam_check.sh" >> $CRONTAB_PATH
+		echo "* * * * * sleep 30; /usr/sbin/wam_check.sh" >> $CRONTAB_PATH
+	fi
+}

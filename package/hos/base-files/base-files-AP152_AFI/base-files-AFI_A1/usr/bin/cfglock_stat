@@ -1,0 +1,9 @@
+#!/bin/sh
+
+SN_NAME="/etc/cfm/lock"
+
+if [ -L "$SN_NAME" ]; then
+	echo "locked"
+else
+	echo "unlocked"
+fi

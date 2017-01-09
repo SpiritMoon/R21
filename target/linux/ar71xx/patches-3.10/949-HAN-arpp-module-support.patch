@@ -1,0 +1,50 @@
+diff -ruN a//include/uapi/linux/netlink.h b//include/uapi/linux/netlink.h
+--- a//include/uapi/linux/netlink.h	2016-05-25 20:46:26.000000000 +0800
++++ b//include/uapi/linux/netlink.h	2016-05-25 20:46:11.000000000 +0800
+@@ -29,6 +29,7 @@
+ #define NETLINK_CRYPTO		21	/* Crypto layer */
+ #define NETLINK_TID         22
+ #define NETLINK_DRM         23
++#define NETLINK_ARPPM		30	/* ARP Proxy */
+ 
+ #define NETLINK_INET_DIAG	NETLINK_SOCK_DIAG
+ 
+diff -ruN a//net/core/dev.c b//net/core/dev.c
+--- a//net/core/dev.c	2016-05-25 20:46:25.000000000 +0800
++++ b//net/core/dev.c	2016-05-25 20:46:10.000000000 +0800
+@@ -145,6 +145,7 @@
+ static struct list_head offload_base __read_mostly;
+ void (*ktid_filter_packet_cb)(struct sk_buff *skb);
+ void (*kdrm_filter_packet_cb)(struct sk_buff *skb);
++void (*arppm_filter_skb_cb)(struct sk_buff *skb, int *ret);
+ /*
+  * The @dev_base_head list is protected by @dev_base_lock and the rtnl
+  * semaphore.
+@@ -168,6 +169,7 @@
+ EXPORT_SYMBOL(dev_base_lock);
+ EXPORT_SYMBOL(ktid_filter_packet_cb);
+ EXPORT_SYMBOL(kdrm_filter_packet_cb);
++EXPORT_SYMBOL(arppm_filter_skb_cb);
+ 
+ seqcount_t devnet_rename_seq;
+ 
+@@ -3600,6 +3602,19 @@
+ 	{
+ 		kdrm_filter_packet_cb(skb);
+ 	}
++
++	if (NULL != arppm_filter_skb_cb) {
++		int res = 0;
++		arppm_filter_skb_cb(skb, &res);
++		if (res) {
++			kfree_skb(skb);
++			/* Jamal, now you will not able to escape explaining
++			 * me how you were going to use this. :-)
++			 */
++			ret = NET_RX_DROP;
++			return ret;
++		}
++	}
+ 	
+ 	if (sk_memalloc_socks() && skb_pfmemalloc(skb)) {
+ 		unsigned long pflags = current->flags;

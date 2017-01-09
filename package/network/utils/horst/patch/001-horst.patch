@@ -1,0 +1,1185 @@
+diff -urN a/channel.c b/channel.c
+--- a/channel.c	2014-11-05 16:57:51.000000000 +0800
++++ b/channel.c	2016-04-01 20:07:33.000000000 +0800
+@@ -23,6 +23,11 @@
+ #include "util.h"
+ #include "wext.h"
+ #include "channel.h"
++#if HAN_VERSION
++#include "han.h"
++#include <unistd.h>
++#include <sys/ioctl.h>
++#endif
+ 
+ 
+ #if defined(__APPLE__)
+@@ -56,7 +61,14 @@
+ 
+ static struct timeval last_channelchange;
+ extern int mon; /* monitoring socket */
++extern int mon_2g;
++extern int mon_5g;
+ static struct chan_freq channels[MAX_CHANNELS];
++#if HAN_VERSION
++struct chan_freq channels_2g[MAX_CHANNELS];
++struct chan_freq channels_5g[MAX_CHANNELS];
++#endif
++
+ 
+ 
+ int
+@@ -161,10 +173,107 @@
+ void
+ channel_init(void) {
+ 	/* get available channels */
++#if !HAN_VERSION
+ 	conf.num_channels = wext_get_channels(mon, conf.ifname, channels);
+ 	conf.channel_idx = get_current_wext_channel_idx(mon);
++#else
++	conf.num_channels_2g = wext_get_channels(mon_2g, conf.ifname_2g, channels_2g);
++	conf.num_channels_5g = wext_get_channels(mon_5g, conf.ifname_5g, channels_5g);
++#endif
+ }
+ 
++#if HAN_VERSION
++int whole_channels_scanning = 0;
++char stuffix[64] = {0};
++int pause_scanning = 0;
++
++void *
++do_2g_scan(void *arg)
++{
++	struct iw_scan_req scanopt;
++	struct iwreq wrq;
++	static u_int8_t i = 0;
++
++	while (true) {
++		if (!pause_scanning) {
++			bzero(&scanopt, sizeof(scanopt));
++			scanopt.max_channel_time = conf.duration_on_foreign * 3 / 2;
++			scanopt.min_channel_time = conf.duration_on_foreign;
++			scanopt.scan_type = IW_SCAN_TYPE_PASSIVE;
++			if (!whole_channels_scanning) {
++				scanopt.num_channels = 1;
++				scanopt.channel_list[0].e = 1;
++				scanopt.channel_list[0].m = channels_2g[i].freq * 100000;
++				i++;
++				i = i % conf.num_channels_2g;
++			}
++			wrq.u.data.pointer = (caddr_t) &scanopt;
++			wrq.u.data.length = sizeof(scanopt);
++			wrq.u.data.flags |= IW_SCAN_THIS_FREQ;
++			strncpy(wrq.ifr_name, conf.ifname_2g, IFNAMSIZ);
++
++			ioctl(mon_2g, SIOCSIWSCAN, &wrq);
++		}
++		if (whole_channels_scanning) 
++			sleep(conf.scanning_intval * conf.num_channels_2g);
++		else
++			sleep(conf.scanning_intval);
++	}
++}
++
++void *
++do_5g_scan(void *arg)
++{
++	struct iw_scan_req scanopt;
++	struct iwreq wrq;
++	static u_int8_t i = 0;
++
++	while (true) {
++		if (!pause_scanning) {
++			bzero(&scanopt, sizeof(scanopt));
++			scanopt.max_channel_time = conf.duration_on_foreign * 3 / 2;
++			scanopt.min_channel_time = conf.duration_on_foreign;
++			scanopt.scan_type = IW_SCAN_TYPE_PASSIVE;
++			if (!whole_channels_scanning) {
++				scanopt.num_channels = 2;
++				scanopt.channel_list[0].e = 1;
++				scanopt.channel_list[0].m = channels_5g[i%conf.num_channels_5g].freq * 100000;
++				scanopt.channel_list[1].e = 1;
++				scanopt.channel_list[1].m = channels_5g[(i+1)%conf.num_channels_5g].freq * 100000;
++				i += 2;
++				i %= conf.num_channels_5g;
++			}
++			wrq.u.data.pointer = (caddr_t) &scanopt;
++			wrq.u.data.length = sizeof(scanopt);
++			wrq.u.data.flags |= IW_SCAN_THIS_FREQ;
++			strncpy(wrq.ifr_name, conf.ifname_5g, IFNAMSIZ);
++				
++			ioctl(mon_5g, SIOCSIWSCAN, &wrq);
++		}
++		if (whole_channels_scanning) 
++			sleep(conf.scanning_intval * conf.num_channels_5g / 2);
++		else
++			sleep(conf.scanning_intval);
++	}
++}
++
++void
++fast_scanning(char *ifname)
++{
++	struct iwreq wrq;
++	int socket_fd = -1;
++
++	socket_fd = socket(PF_PACKET, SOCK_RAW, 0);
++	wrq.u.data.pointer = NULL;
++	wrq.u.data.length = 0;
++	wrq.u.data.flags = 0;
++	strncpy(wrq.ifr_name, ifname, IFNAMSIZ);
++	ioctl(socket_fd, SIOCSIWSCAN, &wrq);
++	close(socket_fd);
++}
++
++
++#endif
+ 
+ struct chan_freq*
+ channel_get_struct(int i) {
+diff -urN a/channel.h b/channel.h
+--- a/channel.h	2014-11-05 16:57:51.000000000 +0800
++++ b/channel.h	2016-03-30 00:06:00.000000000 +0800
+@@ -58,4 +58,15 @@
+ void
+ channel_set(int idx, int chan, int freq);
+ 
++#if HAN_VERSION
++void *
++do_5g_scan(void *);
++void *
++do_2g_scan(void *);
++void
++fast_scanning(char *);
++#endif
++
++
++
+ #endif
+diff -urN a/control.c b/control.c
+--- a/control.c	2014-11-05 16:57:51.000000000 +0800
++++ b/control.c	2016-03-30 00:06:31.000000000 +0800
+@@ -27,6 +27,9 @@
+ #include "main.h"
+ #include "channel.h"
+ #include "control.h"
++#if HAN_VERSION
++#include "han.h"
++#endif
+ 
+ #define MAX_CMD 255
+ 
+@@ -74,6 +77,9 @@
+ 	close(ctlpipe);
+ }
+ 
++extern int whole_channels_scanning;
++extern char stuffix[64];
++extern int pause_scanning;
+ 
+ static void
+ parse_command(char* in) {
+@@ -93,7 +99,6 @@
+ 	else if (strcmp(cmd, "resume") == 0) {
+ 		main_pause(0);
+ 	}
+-
+ 	/* all other commands require a value */
+ 
+ 	if (val == NULL)
+@@ -123,6 +128,38 @@
+ 	else if (strcmp(cmd, "outfile") == 0) {
+ 		dumpfile_open(val);
+ 	}
++#if HAN_VERSION
++	else if (strcmp(cmd, "debug") == 0) {
++		conf.debug = atoi(val);
++	}
++	else if (strcmp(cmd, "pause_scanning") == 0) {
++		pause_scanning = atoi(val);
++	}
++	else if (strcmp(cmd, "whole") == 0) {
++		char tmp[64] = {0};
++		bzero(stuffix, sizeof(stuffix));
++		memcpy(stuffix, val, strlen(val));
++		snprintf(tmp, sizeof(tmp), "touch /tmp/whole_%s", stuffix);
++		system(tmp);
++		whole_channels_scanning = 1;
++	}
++	else if (strcmp(cmd, "single") == 0) {
++		char tmp[64] = {0};
++		snprintf(tmp, sizeof(tmp), "rm /tmp/whole_%s", stuffix);
++		system(tmp);
++		whole_channels_scanning = 0;
++	} else if (strcmp(cmd, "display") == 0) {
++		if (strcmp(val, "status") == 0)
++			dump_status();
++		else if (strcmp(val, "wlan") == 0)
++			dump_wlan_table();
++		else if (strcmp(val, "client") == 0)
++			dump_client_table();
++	} else if (strcmp(cmd, "fastscan") == 0) {
++		pause_scanning = 1;
++		fast_scanning(val);
++	}
++#endif
+ }
+ 
+ 
+diff -urN a/han.c b/han.c
+--- a/han.c	1970-01-01 08:00:00.000000000 +0800
++++ b/han.c	2016-03-30 17:59:01.000000000 +0800
+@@ -0,0 +1,475 @@
++
++#include <stdio.h>
++#include <unistd.h>
++#include <signal.h>
++#include <stdlib.h>
++#include <ccan/list/list.h>
++#include <main.h>
++#include <han.h>
++#include <pthread.h>
++#include <arpa/inet.h>
++#include <linux/un.h>
++
++
++#define dec_and_check_inact(info) \
++	((info)->inact--, (info)->inact == 0)
++
++#define MAC_ADDR_MATCH(addr1, addr2) \
++	(!memcmp((addr1), (addr2), MAC_LEN))
++
++#define MAC_ADDR_COPY(d_addr, s_addr) \
++	(memcpy((d_addr), (s_addr), MAC_LEN))
++
++#define TX_BUFSIZE		8192
++int deliver_fd = -1;
++FILE *DUMP_FILE = NULL;
++struct airinfo_head wlan_head[HASH_SIZE];
++struct airinfo_head client_head[HASH_SIZE];
++
++
++
++void
++init_list(void) 
++{
++	u_int8_t i = 0;
++
++	for (i=0; i<HASH_SIZE; i++) {
++		list_head_init(&wlan_head[i].head);
++		pthread_mutex_init(&wlan_head[i].lock, NULL);
++	}
++	for (i=0; i<HASH_SIZE; i++) {
++		list_head_init(&client_head[i].head);
++		pthread_mutex_init(&client_head[i].lock, NULL);
++	}
++	
++}
++
++static const char*
++ether_sprintf(const unsigned char *mac)
++{
++	static char etherbuf[18];
++	snprintf(etherbuf, sizeof(etherbuf), "%02x:%02x:%02x:%02x:%02x:%02x",
++		mac[0], mac[1], mac[2], mac[3], mac[4], mac[5]);
++	return etherbuf;
++}
++
++
++static struct airinfo *
++find_airinfo_item(struct list_head *head, u_int8_t *mac)
++{
++	struct airinfo *ai = NULL;
++	list_for_each(head, ai, list)
++		if (MAC_ADDR_MATCH(mac, ai->mac))
++			return ai;
++	
++	ai = (struct airinfo *)malloc(sizeof(struct airinfo));
++	if (ai) {
++		bzero(ai, sizeof(*ai));
++		MAC_ADDR_COPY(ai->mac, mac);
++	}
++	list_add_tail(head, &ai->list);
++	return ai;
++}
++
++void
++dump_airinfo(struct packet_info *pi)
++{
++	u_int8_t *mac = NULL;
++	int hash = 0;
++	struct airinfo *ai = NULL;
++	u_int32_t ip = 0;
++	u_int8_t invalid_mac[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
++	
++	//if ((pi->pkt_types & PKT_TYPE_DATA) && 
++		//(pi->pkt_types & PKT_TYPE_IP)) {
++	if ((pi->pkt_types & PKT_TYPE_DATA)) {
++		if (WLAN_MODE_AP == pi->wlan_mode) {
++			mac = pi->wlan_dst;
++			ip = ntohl(pi->ip_dst);
++		}
++		else if (WLAN_MODE_STA == pi->wlan_mode) {
++			mac = pi->wlan_src;
++			ip = ntohl(pi->ip_src);
++		}
++		if (mac) {
++			if (mac[0] & 0x01) //multicast, drop
++				return;
++			hash = HASH(mac);
++			pthread_mutex_lock(&client_head[hash].lock);
++			ai = find_airinfo_item(&client_head[hash].head, mac);
++			if (ai) {
++				MAC_ADDR_COPY(ai->u.ci.associate_wlan, pi->wlan_bssid);
++				ai->rss = pi->phy_signal;
++				if (ip)
++					ai->u.ci.ip = ip;
++				ai->inact = conf.reload_inact;
++			}
++			pthread_mutex_unlock(&client_head[hash].lock);
++		}		
++	} else if ((pi->pkt_types & (PKT_TYPE_BEACON | PKT_TYPE_PROBE))) {
++		mac = pi->wlan_bssid;
++		if (mac) {
++			if (MAC_ADDR_MATCH(mac, invalid_mac))
++				return ;
++			hash = HASH(mac);
++			pthread_mutex_lock(&wlan_head[hash].lock);
++			ai = find_airinfo_item(&wlan_head[hash].head, mac);
++			if (ai) {
++				ai->rss = pi->phy_signal;
++				ai->u.wi.channel = pi->wlan_channel;
++				memcpy(ai->u.wi.essid, pi->wlan_essid, strlen(pi->wlan_essid));
++				ai->u.wi.essid[strlen(pi->wlan_essid)] = '\0';
++				if (pi->wlan_wpa)
++					ai->u.wi.encryption_type = ENCRYPTION_WPA;
++				else if (pi->wlan_rsn)
++					ai->u.wi.encryption_type = ENCRYPTION_WPA2;
++				//else if (pi->wapi)
++					//ai->u.wi.encryption_type = ENCRYPTION_WAPI;
++				else if (pi->wlan_wep)
++					ai->u.wi.encryption_type = ENCRYPTION_WEP;
++				else 
++					ai->u.wi.encryption_type = ENCRYPTION_OPEN;
++				ai->inact = conf.reload_inact;
++			}
++			pthread_mutex_unlock(&wlan_head[hash].lock);
++		}
++	}
++}
++
++void
++sigalrm_handler(__attribute__((unused)) int sig)
++{
++	u_int8_t i = 0;
++	struct airinfo *ai = NULL, *n = NULL;
++	
++	for (i=0; i<HASH_SIZE; i++) {
++		pthread_mutex_lock(&wlan_head[i].lock);
++		list_for_each_safe(&wlan_head[i].head, ai, n, list) {
++			if (dec_and_check_inact(ai)) { // aging
++				list_del(&ai->list);
++				free(ai);
++				ai = NULL;
++			}
++		}
++		pthread_mutex_unlock(&wlan_head[i].lock);
++
++		pthread_mutex_lock(&client_head[i].lock);
++		list_for_each_safe(&client_head[i].head, ai, n, list) {
++			if (dec_and_check_inact(ai)) { // aging
++				list_del(&ai->list);
++				free(ai);
++				ai = NULL;
++			}
++		}
++		pthread_mutex_unlock(&client_head[i].lock);
++	}
++	alarm(10);
++}
++
++void 
++init_deliver_fd(void)
++{
++	struct sockaddr_un s_addr;
++
++	unlink(conf.sun_path);
++	deliver_fd = socket(PF_UNIX, SOCK_DGRAM, 0);
++	if (deliver_fd > 0) {
++		bzero(&s_addr, sizeof(s_addr));
++		s_addr.sun_family = AF_UNIX;
++		memcpy(s_addr.sun_path, conf.sun_path, sizeof(s_addr.sun_path)-1);
++		if (bind(deliver_fd, (struct sockaddr *) &s_addr, sizeof(s_addr)) < 0) {
++			perror("Bind deliver_fd failed");
++			exit(0);
++		}
++		return ;
++	}
++	perror("Socket deliver_fd failed");
++	exit(0);
++}
++
++
++void
++dump_file_open(char *mode)
++{
++	DUMP_FILE = fopen(conf.dump_file, mode);
++}
++
++void
++dump_file_close(void)
++{
++	if (DUMP_FILE) {
++		fclose(DUMP_FILE);
++		DUMP_FILE = NULL;
++	}
++}
++
++void print_running_time(void)
++{
++	struct timeval current;
++	u_int32_t delta_sec = 0;
++	u_int16_t day = 0;
++	u_int8_t hour = 0, minute = 0;
++	
++	gettimeofday(&current, NULL);
++	delta_sec = current.tv_sec - the_time.tv_sec;
++	day = delta_sec / (3600 * 24);
++	delta_sec %= (3600 * 24);
++	hour = delta_sec / 3600;
++	delta_sec %= 3600;
++	minute = delta_sec / 60;
++	delta_sec %= 60;
++	fprintf(DUMP_FILE, "Running Time: %d day %d h %d min %d sec\n", 
++			day, hour, minute, delta_sec);
++	
++}
++void
++dump_status(void)
++{
++	int i = 0;
++	
++	dump_file_open("w+");
++	fprintf(DUMP_FILE, "\n");
++	print_running_time();
++	fprintf(DUMP_FILE, "Whole Scanning: %d\n", whole_channels_scanning);
++	fprintf(DUMP_FILE, "Pause Scanning: %d\n", pause_scanning);
++	fprintf(DUMP_FILE, "\nChannel List\t\t\n");
++	fprintf(DUMP_FILE, "Radio 0:\n");
++	for (; i<conf.num_channels_2g; i++)
++		fprintf(DUMP_FILE, "%d ", channels_2g[i].chan);
++	fprintf(DUMP_FILE, "\n");
++
++	fprintf(DUMP_FILE, "Radio 1:\n");
++	for (i=0; i<conf.num_channels_5g; i++)
++		fprintf(DUMP_FILE, "%d ", channels_5g[i].chan);
++	fprintf(DUMP_FILE, "\n");
++	fprintf(DUMP_FILE, "\n");
++	dump_file_close();
++}
++
++static const char *
++entryption_type_to_string(u_int8_t encryption_type)
++{
++
++	switch(encryption_type) {
++		case ENCRYPTION_OPEN:
++			return "none";
++		case ENCRYPTION_WEP:
++			return "wep";
++		case ENCRYPTION_WPA:
++			return "wpa";
++		case ENCRYPTION_WPA2:
++			return "wap2";
++		case ENCRYPTION_WAPI:
++			return "wapi";
++		default:
++			return "unkonw";
++	}
++}
++
++
++void
++dump_wlan_table(void)
++{
++	int i = 0;
++	struct airinfo *ai = NULL;
++	
++	dump_file_open("w+");
++	fprintf(DUMP_FILE, "Wlan Table\t\t\n");
++	for (i=0; i<HASH_SIZE; i++) {
++        pthread_mutex_lock(&wlan_head[i].lock);
++		list_for_each(&wlan_head[i].head, ai, list) {
++			fprintf(DUMP_FILE, "Mac: %s\t", ether_sprintf(ai->mac));
++			fprintf(DUMP_FILE, "Signal: %d\t", ai->rss);
++			fprintf(DUMP_FILE, "Channel: %d\t", ai->u.wi.channel);
++			fprintf(DUMP_FILE, "Encryption Type: %s\t", 
++				entryption_type_to_string(ai->u.wi.encryption_type));
++			fprintf(DUMP_FILE, "Essid: %s\n", ai->u.wi.essid);
++		}
++		pthread_mutex_unlock(&wlan_head[i].lock);
++	}
++	dump_file_close();
++}
++
++void
++dump_client_table(void)
++{
++	int i = 0;
++	struct airinfo *ai = NULL;
++	
++	dump_file_open("w+");
++	fprintf(DUMP_FILE, "Client Table\t\t\n");
++	for (i=0; i<HASH_SIZE; i++) {
++        pthread_mutex_lock(&client_head[i].lock);
++		list_for_each(&client_head[i].head, ai, list) {
++			fprintf(DUMP_FILE, "Mac: %s\t", ether_sprintf(ai->mac));
++			fprintf(DUMP_FILE, "Signal: %d\t", ai->rss);
++			fprintf(DUMP_FILE, "Wlan: %s\t", ether_sprintf(ai->u.ci.associate_wlan));
++			fprintf(DUMP_FILE, "IP: %d.%d.%d.%d\n", 
++				((u_int8_t *)&ai->u.ci.ip)[0], ((u_int8_t *)&ai->u.ci.ip)[1],
++				((u_int8_t *)&ai->u.ci.ip)[2], ((u_int8_t *)&ai->u.ci.ip)[3]);
++		}
++		pthread_mutex_unlock(&client_head[i].lock);
++	}
++	dump_file_close();
++}
++
++
++static unsigned int 
++assemble_airinfo(char type, unsigned char *tx_buffer, int buffer_size)
++{
++#define ie_number(_ie, _type, _lenth, _value, _msg_len, _lock) \
++	do { \
++		if (((unsigned char *)(_ie) + (_lenth) + 2) - (tx_buffer + buffer_size) > 0) { \
++			pthread_mutex_unlock(_lock); \
++			goto out; \
++		} \
++		(_ie)->ie_type = (_type); \
++		(_ie)->ie_lenth = _lenth; \
++		*(typeof((_value)) *)((_ie)->data) = (_value); \
++		(_ie) = (struct msg_ie *)((unsigned char *)(_ie) + (_lenth) + 2); \
++		(_msg_len) += (unsigned int)((_lenth) + 2); \
++	} while (0)
++			
++#define ie_string(_ie, _type, _lenth, _string, _msg_len, _lock) \
++	do { \
++		if (((unsigned char *)(_ie) + (_lenth) + 2) - (tx_buffer + buffer_size) > 0) { \
++			pthread_mutex_unlock(_lock); \
++			goto out; \
++		} \
++		(_ie)->ie_type = (_type); \
++		(_ie)->ie_lenth = (_lenth); \
++		memcpy((ie)->data, (_string), (_lenth)); \
++		(_ie) = (struct msg_ie *)((unsigned char *)(_ie) + (_lenth) + 2); \
++		(_msg_len) += (unsigned int)((_lenth) + 2); \
++	} while (0)
++	
++	u_int8_t i = 0;
++	struct airinfo *ai = NULL;
++	unsigned int msg_len = 0, group_len = 0;
++	struct msg_hdr *hdr = (struct msg_hdr *)tx_buffer;
++	struct msg_ie *ie = (struct msg_ie *)(tx_buffer + sizeof(struct msg_hdr));
++	
++	if (WLAN_INFO == type) {
++		hdr->version = 1;
++		hdr->operation = MSG_RESPONSE;
++		hdr->msg_type = WLAN_INFO;
++		
++		for (i=0; i<HASH_SIZE; i++) {
++            pthread_mutex_lock(&wlan_head[i].lock);
++			list_for_each(&wlan_head[i].head, ai, list) {
++				ie_string(ie, IE_WLAN_MAC, MAC_LEN, ai->mac, msg_len, &wlan_head[i].lock);
++				ie_number(ie, IE_RSS, 1, ai->rss, msg_len, &wlan_head[i].lock);
++				ie_string(ie, IE_ESSID, strlen(ai->u.wi.essid), ai->u.wi.essid, msg_len, &wlan_head[i].lock);
++				ie_number(ie, IE_CHANNEL, 1, ai->u.wi.channel, msg_len, &wlan_head[i].lock);
++				ie_number(ie, IE_ENCRYPTION_TYPE, 1, ai->u.wi.encryption_type, msg_len, &wlan_head[i].lock);
++				group_len = msg_len;
++			}
++			pthread_mutex_unlock(&wlan_head[i].lock);
++		}
++	} else if (CLIENT_INFO == type) {
++		hdr->version = 1;
++		hdr->operation = MSG_RESPONSE;
++		hdr->msg_type = CLIENT_INFO;
++		for (i=0; i<HASH_SIZE; i++) {
++			pthread_mutex_lock(&client_head[i].lock);
++			list_for_each(&client_head[i].head, ai, list) {
++				ie_string(ie, IE_STA_MAC, MAC_LEN, ai->mac, msg_len, &client_head[i].lock);
++				ie_number(ie, IE_RSS, 1, ai->rss, msg_len, &client_head[i].lock);
++				ie_string(ie, IE_WLAN_MAC, MAC_LEN, ai->u.ci.associate_wlan, msg_len, &client_head[i].lock);
++				ie_number(ie, IE_IP, 4, ai->u.ci.ip, msg_len, &client_head[i].lock);
++				group_len = msg_len;
++			}
++			pthread_mutex_unlock(&client_head[i].lock);
++		}
++	}
++out:
++	if (group_len)
++		hdr->msg_lenth = group_len;
++	return (group_len + sizeof(struct msg_hdr));
++
++#undef ie_string
++#undef ie_number
++}
++
++static void
++packet_dump(unsigned char * buf, int len, struct sockaddr_un *addr)
++{
++	int i;
++	if (conf.debug) {
++		dump_file_open("a+");
++		fprintf(DUMP_FILE, "\n");
++		if (addr) {
++			fprintf(DUMP_FILE, "******* Request *******\n");
++			fprintf(DUMP_FILE, "Peer addr: %s\n", addr->sun_path);
++		} else {
++			fprintf(DUMP_FILE, "******* Response *******\n");
++			fprintf(DUMP_FILE, "Msg Lenth: %d\n", len);
++		}
++		for (i = 0; i < len; i++) {
++			if (i && (i % 2) == 0)
++				fprintf(DUMP_FILE, " ");
++			if (i && (i % 16) == 0)
++				fprintf(DUMP_FILE, "\n");
++			fprintf(DUMP_FILE, "%02x", buf[i]);
++		}
++		fprintf(DUMP_FILE, "\n");
++		dump_file_close();
++	}
++}
++
++
++
++#define HAN_DEBUG(...) \
++	do { \
++		if (conf.debug) { \
++			DUMP_FILE = fopen(conf.dump_file, "a+"); \
++			fprintf(DUMP_FILE, __VA_ARGS__); \
++			fclose(DUMP_FILE); \
++		} \
++	} while (0)
++
++void *
++thread_deliver_handle(void *arg)
++{
++	struct sockaddr_un c_addr;
++	socklen_t addr_len = sizeof(c_addr);
++	unsigned char rx_buffer[128] = {0};
++	unsigned char tx_buffer[TX_BUFSIZE] = {0};
++	unsigned int len = 0, msg_len = 0;
++	struct msg_hdr *hdr = NULL;
++
++	while (true) {
++		bzero(&c_addr, sizeof(c_addr));
++		len = recvfrom(deliver_fd, rx_buffer, sizeof(rx_buffer), 
++				0, (struct sockaddr *)&c_addr, &addr_len);
++		if (len > 0) {
++			
++			packet_dump(rx_buffer, len, &c_addr);
++			
++			hdr = (struct msg_hdr *)rx_buffer;
++			
++			HAN_DEBUG("MSG TYPE: %d\n", hdr->operation);
++			HAN_DEBUG("INFO TYPE: %d\n", hdr->msg_type);
++			
++			if (MSG_REQUEST == hdr->operation) {
++				if (WLAN_INFO == hdr->msg_type)
++					msg_len = assemble_airinfo(WLAN_INFO, tx_buffer, TX_BUFSIZE);
++				else if (CLIENT_INFO == hdr->msg_type)
++					msg_len = assemble_airinfo(CLIENT_INFO, tx_buffer, TX_BUFSIZE);
++				if (msg_len) {
++					
++					packet_dump(tx_buffer, msg_len, NULL);
++					
++					sendto(deliver_fd, tx_buffer, msg_len, 
++						0, (struct sockaddr *)&c_addr, sizeof(c_addr));
++					msg_len = 0;
++					bzero(tx_buffer, sizeof(tx_buffer));
++				}
++			}
++			len = 0;
++			bzero(rx_buffer, sizeof(rx_buffer));
++		}
++	}
++	
++}
++
+diff -urN a/han.h b/han.h
+--- a/han.h	1970-01-01 08:00:00.000000000 +0800
++++ b/han.h	2016-03-29 23:10:14.000000000 +0800
+@@ -0,0 +1,124 @@
++#ifndef __HAN_H
++#define __HAN_H
++
++#include <linux/types.h>
++#include <linux/socket.h>
++#include <sys/types.h>
++#include <sys/socket.h>
++#include <linux/if.h>
++#include <linux/wireless.h>
++
++
++#ifndef MAC_LEN
++#define MAC_LEN	6
++#endif
++
++#ifndef MAX_ESSID_LEN
++#define MAX_ESSID_LEN	32
++#endif
++
++enum encrytion_type{
++	ENCRYPTION_OPEN,
++	ENCRYPTION_WEP,
++	ENCRYPTION_WPA,
++	ENCRYPTION_WPA2,
++	ENCRYPTION_WAPI
++};
++
++struct airinfo {
++	struct list_node list;
++	u_int8_t mac[MAC_LEN];
++	u_int8_t inact;
++	u_int8_t rss;
++	union {
++		struct wlan_info {
++			char essid[MAX_ESSID_LEN];
++			u_int8_t channel;
++			u_int8_t encryption_type;	
++		} wi;
++		struct client_info {
++			u_int8_t associate_wlan[MAC_LEN];
++			u_int32_t ip;
++		} ci;
++	} u;	
++};
++
++#define HASH_SIZE 32
++#define HASH(addr) \
++	(((const u_int8_t *) (addr))[MAC_LEN - 1] % HASH_SIZE)
++
++struct airinfo_head {
++	struct list_head head;
++	pthread_mutex_t lock;
++};
++
++#ifndef	IW_MAX_FREQUENCIES
++#define IW_MAX_FREQUENCIES	32
++#endif
++
++struct msg_hdr {
++	char	version;
++	char	operation;
++	short	res;
++	short	msg_type;
++	short	msg_lenth;
++}__attribute__((aligned(2)));
++
++enum ie_type {
++	IE_WLAN_MAC = 63,
++	IE_CHANNEL,
++	IE_RSS,
++	IE_ESSID,
++	IE_ENCRYPTION_TYPE, 
++	
++	IE_STA_MAC = 90,
++	IE_IP,	
++};
++
++
++struct msg_ie {
++	u_int8_t ie_type;
++	u_int8_t ie_lenth;
++	u_int8_t data[0];
++} __attribute__((packed));
++
++
++enum msg_type {
++	MSG_REQUEST = 1,
++	MSG_RESPONSE = 2,
++};
++
++enum info_type {
++	WLAN_INFO = 1,
++	CLIENT_INFO = 5,
++};
++
++
++void
++init_list(void);
++void
++sigalrm_handler(__attribute__((unused)) int sig);
++void
++dump_airinfo(struct packet_info *pi);
++void 
++init_deliver_fd(void);
++void *
++thread_deliver_handle(void *);
++void
++dump_client_table(void);
++void
++dump_wlan_table(void);
++void
++dump_status(void);
++
++
++extern int deliver_fd;
++extern struct chan_freq channels_2g[MAX_CHANNELS];
++extern struct chan_freq channels_5g[MAX_CHANNELS];
++extern int whole_channels_scanning;
++extern int pause_scanning;
++
++
++
++
++#endif
+diff -urN a/main.c b/main.c
+--- a/main.c	2014-11-05 16:57:51.000000000 +0800
++++ b/main.c	2016-03-29 22:09:58.000000000 +0800
+@@ -40,6 +40,10 @@
+ #include "channel.h"
+ #include "node.h"
+ #include "essid.h"
++#if HAN_VERSION
++#include "han.h"
++#include <pthread.h>
++#endif
+ 
+ 
+ struct list_head nodes;
+@@ -58,11 +62,24 @@
+ 	.control_pipe		= DEFAULT_CONTROL_PIPE,
+ 	.filter_pkt		= PKT_TYPE_ALL,
+ 	.filter_mode		= WLAN_MODE_ALL,
++#if HAN_VERSION
++	.ifname_2g		= INTERFACE_NAME_2G,
++	.ifname_5g		= INTERFACE_NAME_5G,
++	.reload_inact	= RELOAD_INACT,
++	.sun_path		= SUN_PATH,
++	.scanning_intval	= 5,
++	.duration_on_foreign	= 50,
++	.dump_file		= "/tmp/dump_file",
++#endif
+ };
+ 
+ struct timeval the_time;
+ 
+ int mon; /* monitoring socket */
++int mon_2g;
++char *mon_2g_interface = "athscan0";
++int mon_5g;
++char *mon_5g_interface = "athscan1";
+ 
+ static FILE* DF = NULL;
+ 
+@@ -366,7 +383,6 @@
+ 	struct packet_info p;
+ 
+ 	DEBUG("\n===============================================================================\n");
+-
+ 	len = recv_packet(fd, buffer, bufsize);
+ 
+ #if DO_DEBUG
+@@ -381,7 +397,10 @@
+ 		DEBUG("parsing failed\n");
+ 		return;
+ 	}
+-
++#ifdef HAN_VERSION
++	dump_airinfo(&p);
++	return ;
++#endif
+ 	handle_packet(&p);
+ }
+ 
+@@ -396,7 +415,12 @@
+ 	FD_ZERO(&excpt_fds);
+ 	if (!conf.quiet && !conf.debug)
+ 		FD_SET(0, &read_fds);
++#if !HAN_VERSION
+ 	FD_SET(mon, &read_fds);
++#else
++	FD_SET(mon_2g, &read_fds);
++	FD_SET(mon_5g, &read_fds);
++#endif
+ 	if (srv_fd != -1)
+ 		FD_SET(srv_fd, &read_fds);
+ 	if (cli_fd != -1)
+@@ -406,7 +430,12 @@
+ 
+ 	tv.tv_sec = 0;
+ 	tv.tv_usec = min(conf.channel_time, 1000000);
++#if !HAN_VERSION
+ 	mfd = max(mon, srv_fd);
++#else
++	mfd = max(mon_2g, srv_fd);
++	mfd = max(mfd, mon_5g);
++#endif
+ 	mfd = max(mfd, ctlpipe);
+ 	mfd = max(mfd, cli_fd) + 1;
+ 
+@@ -426,6 +455,7 @@
+ 		handle_user_input();
+ 
+ 	/* local packet or client */
++#if !HAN_VERSION
+ 	if (FD_ISSET(mon, &read_fds)) {
+ 		if (conf.serveraddr)
+ 			net_receive(mon, buffer, &buflen, sizeof(buffer));
+@@ -433,6 +463,7 @@
+ 			local_receive_packet(mon, buffer, sizeof(buffer));
+ 	}
+ 
++
+ 	/* server */
+ 	if (srv_fd > -1 && FD_ISSET(srv_fd, &read_fds))
+ 		net_handle_server_conn();
+@@ -440,7 +471,13 @@
+ 	/* from client to server */
+ 	if (cli_fd > -1 && FD_ISSET(cli_fd, &read_fds))
+ 		net_receive(cli_fd, cli_buffer, &cli_buflen, sizeof(cli_buffer));
+-
++#else 
++		
++	if (FD_ISSET(mon_2g, &read_fds))
++			local_receive_packet(mon_2g, buffer, sizeof(buffer));
++		if (FD_ISSET(mon_5g, &read_fds))
++			local_receive_packet(mon_5g, buffer, sizeof(buffer));
++#endif
+ 	/* named pipe */
+ 	if (ctlpipe > -1 && FD_ISSET(ctlpipe, &read_fds))
+ 		control_receive_command();
+@@ -493,7 +530,7 @@
+ 		fclose(DF);
+ 		DF = NULL;
+ 	}
+-
++	
+ 	if (conf.allow_control)
+ 		control_finish();
+ 
+@@ -532,7 +569,7 @@
+ 	int c;
+ 	static int n;
+ 
+-	while((c = getopt(argc, argv, "hqDsCi:t:c:p:e:f:d:o:b:X::x:m:u:a:")) > 0) {
++	while((c = getopt(argc, argv, "hqDsCi:t:c:p:e:f:d:o:b:X::x:m:u:a:I:F:")) > 0) {
+ 		switch (c) {
+ 		case 'p':
+ 			conf.port = optarg;
+@@ -659,11 +696,17 @@
+ 			if (conf.filter_pkt & PKT_TYPE_ALL_DATA)
+ 				conf.filter_pkt |= PKT_TYPE_DATA;
+ 			break;
++		case 'I':
++			conf.scanning_intval = (char)atoi(optarg);
++			break;
++		case 'F':
++			conf.duration_on_foreign = atoi(optarg);
++			break;
+ 		case 'h':
+ 		default:
+ 			printf("\nUsage: %s [-h] [-q] [-D ] [-i interface] [-t sec] [-d ms] [-b bytes]\n"
+ 				"\t\t[-s] [-u] [-C] [-c IP] [-p port] [-o file] [-X[name]] [-x command]\n"
+-				"\t\t[-e MAC] [-f PKT_NAME] [-m MODE]\n\n"
++				"\t\t[-e MAC] [-f PKT_NAME] [-m MODE] [-I interval] [-F duration]\n\n"
+ 
+ 				"General Options: Description (default value)\n"
+ 				"  -h\t\tHelp\n"
+@@ -697,6 +740,8 @@
+ 				"  -e <MAC>\tSource MAC addresses (xx:xx:xx:xx:xx:xx), up to 9 times\n"
+ 				"  -f <PKT_NAME>\tFilter packet types\n"
+ 				"  -m <MODE>\tOperating mode: AP|STA|ADH|PRB|WDS|UNKNOWN\n"
++				"  -I <Scan Interval>\t\n"
++				"  -F <Foreign Channel Duration>\t\n"
+ 				"\n",
+ 				argv[0]);
+ 			exit(0);
+@@ -722,8 +767,15 @@
+ int
+ main(int argc, char** argv)
+ {
++#if HAN_VERSION
++	pthread_t pth_do_2g_scan, pth_do_5g_scan, pth_deliver; 
++#endif
++	
+ 	list_head_init(&essids.list);
+ 	list_head_init(&nodes);
++#if HAN_VERSION
++	init_list();
++#endif
+ 
+ 	get_options(argc, argv);
+ 
+@@ -731,6 +783,9 @@
+ 	signal(SIGTERM, sigint_handler);
+ 	signal(SIGHUP, sigint_handler);
+ 	signal(SIGPIPE, sigpipe_handler);
++#if HAN_VERSION
++	signal(SIGALRM, sigalrm_handler);
++#endif
+ 	atexit(exit_handler);
+ 
+ 	gettimeofday(&stats.stats_time, NULL);
+@@ -742,7 +797,7 @@
+ 		printlog("Allowing control socket");
+ 		control_init_pipe();
+ 	}
+-
++#if !HAN_VERSION
+ 	if (conf.serveraddr)
+ 		mon = net_open_client_socket(conf.serveraddr, conf.port);
+ 	else {
+@@ -761,19 +816,43 @@
+ 		channel_init();
+ 		init_spectrum();
+ 	}
++#else
++	mon_2g = open_packet_socket(conf.ifname_2g, conf.recv_buffer_size);
++	if (mon_2g <= 0) {
++		err(1, "Couldn't open 2g packet socket");
++		exit(0);
++	}
++	mon_5g = open_packet_socket(conf.ifname_5g, conf.recv_buffer_size);
++	if (mon_5g <= 0) {
++		err(1, "Couldn't open 5g packet socket");
++		exit(0);
++	}
++	conf.arphrd = ARPHRD_IEEE80211_PRISM;
++	channel_init();
++
++	init_deliver_fd();
++	//thread
++	pthread_create(&pth_do_2g_scan, NULL, do_2g_scan, NULL);
++	pthread_create(&pth_do_5g_scan, NULL, do_5g_scan, NULL);
++	pthread_create(&pth_deliver, NULL, thread_deliver_handle, NULL);
++#endif
+ 
++	alarm(15);
+ 	if (!conf.quiet && !conf.debug)
+ 		init_display();
+-
++	
++#if !HAN_VERSION
+ 	if (conf.dumpfile != NULL)
+ 		dumpfile_open(conf.dumpfile);
+ 
+ 	if (!conf.serveraddr && conf.port && conf.allow_client)
+ 		net_init_server_socket(conf.port);
++#endif
+ 
+ 	for ( /* ever */ ;;)
+ 	{
+ 		receive_any();
++#if !HAN_VERSION
+ 		gettimeofday(&the_time, NULL);
+ 		timeout_nodes();
+ 
+@@ -785,6 +864,7 @@
+ 					update_display(NULL);
+ 			}
+ 		}
++#endif
+ 	}
+ 	/* will never */
+ 	return 0;
+diff -urN a/main.h b/main.h
+--- a/main.h	2014-11-05 16:57:51.000000000 +0800
++++ b/main.h	2016-03-24 03:04:46.000000000 +0800
+@@ -96,6 +96,12 @@
+ 
+ /* default config values */
+ #define INTERFACE_NAME		"wlan0"
++#if HAN_VERSION
++#define INTERFACE_NAME_2G		"athscan0"
++#define INTERFACE_NAME_5G  		"athscan1"
++#define RELOAD_INACT		6
++#define SUN_PATH			"/tmp/unix-bgscan"
++#endif
+ #define NODE_TIMEOUT		60	/* seconds */
+ #define CHANNEL_TIME		250000	/* 250 msec */
+ /* update display every 100ms - "10 frames per sec should be enough for everyone" ;) */
+@@ -319,6 +325,17 @@
+ 	unsigned char		my_mac_addr[MAC_LEN];
+ 	int			paused;
+ 	int			num_channels;
++#if HAN_VERSION
++	char*			ifname_2g;
++	char*			ifname_5g;
++	int				num_channels_2g;
++	int				num_channels_5g;
++	int				duration_on_foreign;
++	char			scanning_intval;
++	char 			reload_inact;
++	char* 			sun_path;
++	char* 			dump_file;
++#endif
+ };
+ 
+ extern struct config conf;
+diff -urN a/Makefile b/Makefile
+--- a/Makefile	2014-11-05 16:57:51.000000000 +0800
++++ b/Makefile	2016-03-19 00:20:28.000000000 +0800
+@@ -20,7 +20,7 @@
+ DEBUG=0
+ PCAP=0
+ 
+-NAME=horst
++NAME=bg-s
+ OBJS=main.o capture$(if $(filter 1,$(PCAP)),-pcap).o protocol_parser.o \
+ 	protocol_parser_wlan.o network.o wext.o node.o essid.o channel.o \
+ 	util.o wlan_util.o ieee80211_util.o listsort.o average.o \
+@@ -28,9 +28,17 @@
+ 	display-statistics.o display-essid.o display-history.o \
+ 	display-spectrum.o display-channel.o control.o \
+ 	radiotap/radiotap.o
++
+ LIBS=-lncurses -lm
+ CFLAGS+=-Wall -Wextra -g -I.
+ 
++
++ifeq ($(HAN_VERSION),1)
++OBJS+=han.o
++LIBS+=-lpthread
++CFLAGS+=-DHAN_VERSION=1
++endif
++
+ ifeq ($(DEBUG),1)
+ CFLAGS+=-DDO_DEBUG
+ endif
+@@ -48,6 +56,10 @@
+ average.o: average.c average.h util.h
+ capture.o: capture.c capture.h util.h
+ capture-pcap.o: capture-pcap.c capture.h util.h
++
++ifeq ($(HAN_VERSION),1)
++han.o: han.c han.h main.h
++endif
+ channel.o: channel.c main.h ccan/list/list.h average.h channel.h \
+  wlan80211.h util.h wext.h
+ control.o: control.c main.h ccan/list/list.h average.h channel.h \
+@@ -76,7 +88,7 @@
+ ieee80211_util.o: ieee80211_util.c ieee80211_util.h wlan80211.h main.h \
+  ccan/list/list.h average.h channel.h util.h
+ listsort.o: listsort.c ccan/list/list.h listsort.h
+-main.o: main.c main.h ccan/list/list.h average.h channel.h wlan80211.h \
++main.o: main.c main.h $(if $(filter 1,$(HAN_VERSION)), han.h) ccan/list/list.h average.h channel.h wlan80211.h \
+  util.h capture.h protocol_parser.h network.h display.h wlan_util.h \
+  ieee80211_util.h control.h node.h essid.h
+ network.o: network.c main.h ccan/list/list.h average.h channel.h \
+diff -urN a/protocol_parser_wlan.c b/protocol_parser_wlan.c
+--- a/protocol_parser_wlan.c	2014-11-05 16:57:51.000000000 +0800
++++ b/protocol_parser_wlan.c	2016-03-24 22:39:49.000000000 +0800
+@@ -317,12 +317,12 @@
+ 
+ 	if (WLAN_FRAME_IS_DATA(fc)) {
+ 		p->pkt_types |= PKT_TYPE_DATA;
+-
+ 		hdrlen = 24;
+ 		if (WLAN_FRAME_IS_QOS(fc)) {
+ 			hdrlen += 2;
+ 			if (fc & WLAN_FRAME_FC_ORDER)
+ 				hdrlen += 4;
++			
+ 		}
+ 
+ 		/* AP, STA or IBSS */
